@@ -1,0 +1,3 @@
+com.wk.autoconfig.annotaion.WkEnableAutoConfig= \
+com.wk.autoconfig.beans.BeanA,  \
+com.wk.autoconfig.beans.BeanB
