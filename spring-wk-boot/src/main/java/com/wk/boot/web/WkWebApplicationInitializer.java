@@ -13,9 +13,13 @@ public class WkWebApplicationInitializer implements WebApplicationInitializer {
 
 	@Override
 	public void onStartup(ServletContext servletContext) throws ServletException {
+		System.out.println("WkWebApplicationInitializer start");
 		AnnotationConfigWebApplicationContext context = new AnnotationConfigWebApplicationContext();
 		context.register(WkSpringbootConfig.class);
-		// context.setServletContext(servletContext);
+		/**
+		 * 当使用注解EnableWebMvc后，context.setServletContext就需要为容器配置servletContext
+		 */
+		context.setServletContext(servletContext);
 		context.refresh();
 
 		// 注册dispatcher
