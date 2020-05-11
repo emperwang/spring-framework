@@ -33,4 +33,5 @@ include 'spring-wk-beans'
 include 'spring-wk-aop'
 include 'spring-wk-boot'
 include 'spring-wk-mybatis'
+include 'spring-boot-autoconfiguration'
 
