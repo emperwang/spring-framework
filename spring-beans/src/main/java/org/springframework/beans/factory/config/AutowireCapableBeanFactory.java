@@ -68,6 +68,9 @@ public interface AutowireCapableBeanFactory extends BeanFactory {
 	 * @see #autowire
 	 * @see #autowireBeanProperties
 	 */
+	/**
+	 * 表示 写明了 @Autowired注解,但是没有指定装配方式
+	 */
 	int AUTOWIRE_NO = 0;
 
 	/**
@@ -76,6 +79,9 @@ public interface AutowireCapableBeanFactory extends BeanFactory {
 	 * @see #createBean
 	 * @see #autowire
 	 * @see #autowireBeanProperties
+	 */
+	/**
+	 * 根据名字装配
 	 */
 	int AUTOWIRE_BY_NAME = 1;
 
@@ -86,6 +92,9 @@ public interface AutowireCapableBeanFactory extends BeanFactory {
 	 * @see #autowire
 	 * @see #autowireBeanProperties
 	 */
+	/**
+	 *  根据类型来自动装配
+	 */
 	int AUTOWIRE_BY_TYPE = 2;
 
 	/**
@@ -93,6 +102,9 @@ public interface AutowireCapableBeanFactory extends BeanFactory {
 	 * can be satisfied (involves resolving the appropriate constructor).
 	 * @see #createBean
 	 * @see #autowire
+	 */
+	/**
+	 * 构造器装配
 	 */
 	int AUTOWIRE_CONSTRUCTOR = 3;
 
