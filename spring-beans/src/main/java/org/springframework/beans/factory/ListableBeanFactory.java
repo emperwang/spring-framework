@@ -55,6 +55,11 @@ import org.springframework.lang.Nullable;
  * @see HierarchicalBeanFactory
  * @see BeanFactoryUtils
  */
+
+/**
+ * 从此BeanFactory接口中看到,方法都是返回单个bean
+ * 而ListableBeanFactory是作为一个扩展, 可以一次性返回多个对应的bean
+ */
 public interface ListableBeanFactory extends BeanFactory {
 
 	/**
@@ -66,6 +71,11 @@ public interface ListableBeanFactory extends BeanFactory {
 	 * @return if this bean factory contains a bean definition with the given name
 	 * @see #containsBean
 	 */
+	/**
+	 * beanFactory是否包含beanName对应的bean definition
+	 * @param beanName
+	 * @return
+	 */
 	boolean containsBeanDefinition(String beanName);
 
 	/**
@@ -75,6 +85,7 @@ public interface ListableBeanFactory extends BeanFactory {
 	 * other means than bean definitions.
 	 * @return the number of beans defined in the factory
 	 */
+	// 返回容器中bean definition的个数
 	int getBeanDefinitionCount();
 
 	/**
@@ -85,6 +96,7 @@ public interface ListableBeanFactory extends BeanFactory {
 	 * @return the names of all beans defined in this factory,
 	 * or an empty array if none defined
 	 */
+	// 返回当前容器中所有定义的bean的name
 	String[] getBeanDefinitionNames();
 
 	/**
@@ -114,6 +126,11 @@ public interface ListableBeanFactory extends BeanFactory {
 	 * @see FactoryBean#getObjectType
 	 * @see BeanFactoryUtils#beanNamesForTypeIncludingAncestors(ListableBeanFactory, ResolvableType)
 	 */
+	/**
+	 * 根据给定的类型,返回容器中此类型对应的bean的名字
+	 * @param type
+	 * @return
+	 */
 	String[] getBeanNamesForType(ResolvableType type);
 
 	/**
@@ -140,6 +157,11 @@ public interface ListableBeanFactory extends BeanFactory {
 	 * the given object type (including subclasses), or an empty array if none
 	 * @see FactoryBean#getObjectType
 	 * @see BeanFactoryUtils#beanNamesForTypeIncludingAncestors(ListableBeanFactory, Class)
+	 */
+	/**
+	 * genuine给定的类型返回容器中此类型对应的bean的名字
+	 * @param type
+	 * @return
 	 */
 	String[] getBeanNamesForType(@Nullable Class<?> type);
 
@@ -174,6 +196,9 @@ public interface ListableBeanFactory extends BeanFactory {
 	 * @see FactoryBean#getObjectType
 	 * @see BeanFactoryUtils#beanNamesForTypeIncludingAncestors(ListableBeanFactory, Class, boolean, boolean)
 	 */
+	// 同样是根据给定的类型返回对应bean的名字,不过功能比较强大
+	// includeNonSingletons 此参数表示是否考虑哪些 prototype or scoped beans
+	// allowEagerInit: 对应懒加载以及工厂方法产生的bean,此参数表示是否提前工厂类需要提前初始化,以了解到其生产的bean的类型
 	String[] getBeanNamesForType(@Nullable Class<?> type, boolean includeNonSingletons, boolean allowEagerInit);
 
 	/**
@@ -204,6 +229,8 @@ public interface ListableBeanFactory extends BeanFactory {
 	 * @see FactoryBean#getObjectType
 	 * @see BeanFactoryUtils#beansOfTypeIncludingAncestors(ListableBeanFactory, Class)
 	 */
+	// 参数为要返回的bean的类型
+	// 结果为map, key是bean name,  value是bean的实例
 	<T> Map<String, T> getBeansOfType(@Nullable Class<T> type) throws BeansException;
 
 	/**
@@ -239,6 +266,7 @@ public interface ListableBeanFactory extends BeanFactory {
 	 * @see FactoryBean#getObjectType
 	 * @see BeanFactoryUtils#beansOfTypeIncludingAncestors(ListableBeanFactory, Class, boolean, boolean)
 	 */
+	// 同样是返回对应类型的bean,不过功能比较强大
 	<T> Map<String, T> getBeansOfType(@Nullable Class<T> type, boolean includeNonSingletons, boolean allowEagerInit)
 			throws BeansException;
 
@@ -264,6 +292,8 @@ public interface ListableBeanFactory extends BeanFactory {
 	 * @throws BeansException if a bean could not be created
 	 * @since 3.0
 	 */
+	// 找到那些bean对应class上有 annotationType 注解
+	// 结果: key 为bean name, value为bean实例
 	Map<String, Object> getBeansWithAnnotation(Class<? extends Annotation> annotationType) throws BeansException;
 
 	/**
@@ -276,6 +306,8 @@ public interface ListableBeanFactory extends BeanFactory {
 	 * @throws NoSuchBeanDefinitionException if there is no bean with the given name
 	 * @since 3.0
 	 */
+	// 从beanName对应的bean查找其类上是否有指定annotationType 注解
+	// 如果找到的话  返回注解
 	@Nullable
 	<A extends Annotation> A findAnnotationOnBean(String beanName, Class<A> annotationType)
 			throws NoSuchBeanDefinitionException;
