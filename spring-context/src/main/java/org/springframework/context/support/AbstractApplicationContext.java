@@ -509,6 +509,7 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 	/**
 	 * Return the list of statically specified ApplicationListeners.
 	 */
+	// 返回已经注册的监听器
 	public Collection<ApplicationListener<?>> getApplicationListeners() {
 		return this.applicationListeners;
 	}
@@ -551,24 +552,33 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 				invokeBeanFactoryPostProcessors(beanFactory);
 
 				// Register bean processors that intercept bean creation.
+				// 注册BeanPostProcessor 后置处理器
 				registerBeanPostProcessors(beanFactory);
 
 				// Initialize message source for this context.
+				// 初始化国际消息组件 -- 后看
 				initMessageSource();
 
 				// Initialize event multicaster for this context.
+				// 为此上下文初始化 事件多播器
 				initApplicationEventMulticaster();
 
 				// Initialize other special beans in specific context subclasses.
+				// 此主要用于子类进行扩展
 				onRefresh();
 
 				// Check for listener beans and register them.
+				// 注册监听器
 				registerListeners();
 
 				// Instantiate all remaining (non-lazy-init) singletons.
+				// 重点  重点  重点
+				// 此方法会实例化所有的非懒加载的bean
 				finishBeanFactoryInitialization(beanFactory);
 
 				// Last step: publish corresponding event.
+				// 完成refresh
+				//
 				finishRefresh();
 			}
 
@@ -755,6 +765,7 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 	 * respecting explicit order if given.
 	 * <p>Must be called before any instantiation of application beans.
 	 */
+	// 注册所有的 BeanPostProcessor 处理器
 	protected void registerBeanPostProcessors(ConfigurableListableBeanFactory beanFactory) {
 		PostProcessorRegistrationDelegate.registerBeanPostProcessors(beanFactory, this);
 	}
@@ -797,6 +808,8 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 	 * Uses SimpleApplicationEventMulticaster if none defined in the context.
 	 * @see org.springframework.context.event.SimpleApplicationEventMulticaster
 	 */
+	// 初始化applicationEventMulticaster, 如果容器中已经存在,则使用容器中的
+	// 如果没有存在,则使用SimpleApplicationEventMulticaster
 	protected void initApplicationEventMulticaster() {
 		ConfigurableListableBeanFactory beanFactory = getBeanFactory();
 		if (beanFactory.containsLocalBean(APPLICATION_EVENT_MULTICASTER_BEAN_NAME)) {
@@ -821,6 +834,7 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 	 * Uses DefaultLifecycleProcessor if none defined in the context.
 	 * @see org.springframework.context.support.DefaultLifecycleProcessor
 	 */
+	// 初始化Lifecycle类型的bean
 	protected void initLifecycleProcessor() {
 		ConfigurableListableBeanFactory beanFactory = getBeanFactory();
 		if (beanFactory.containsLocalBean(LIFECYCLE_PROCESSOR_BEAN_NAME)) {
@@ -857,12 +871,14 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 	 * Add beans that implement ApplicationListener as listeners.
 	 * Doesn't affect other listeners, which can be added without being beans.
 	 */
+	// 注册监听器
 	protected void registerListeners() {
 		// Register statically specified listeners first.
 		for (ApplicationListener<?> listener : getApplicationListeners()) {
 			getApplicationEventMulticaster().addApplicationListener(listener);
 		}
 
+		// 把容器中注册的applicationListener 注册到 多播器中
 		// Do not initialize FactoryBeans here: We need to leave all regular beans
 		// uninitialized to let post-processors apply to them!
 		String[] listenerBeanNames = getBeanNamesForType(ApplicationListener.class, true, false);
@@ -870,6 +886,7 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 			getApplicationEventMulticaster().addApplicationListenerBean(listenerBeanName);
 		}
 
+		// 发布earlyApplicationEvents 事件
 		// Publish early application events now that we finally have a multicaster...
 		Set<ApplicationEvent> earlyEventsToProcess = this.earlyApplicationEvents;
 		this.earlyApplicationEvents = null;
@@ -884,8 +901,10 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 	 * Finish the initialization of this context's bean factory,
 	 * initializing all remaining singleton beans.
 	 */
+	// 初始化所有的单例bean
 	protected void finishBeanFactoryInitialization(ConfigurableListableBeanFactory beanFactory) {
 		// Initialize conversion service for this context.
+		// 设置容器的 ConversionService, 也就是前端参数到controller参数的转换,例如:前端传递的字符串转换为date
 		if (beanFactory.containsBean(CONVERSION_SERVICE_BEAN_NAME) &&
 				beanFactory.isTypeMatch(CONVERSION_SERVICE_BEAN_NAME, ConversionService.class)) {
 			beanFactory.setConversionService(
@@ -912,6 +931,7 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 		beanFactory.freezeConfiguration();
 
 		// Instantiate all remaining (non-lazy-init) singletons.
+		// 初始化单例bean
 		beanFactory.preInstantiateSingletons();
 	}
 
@@ -921,19 +941,24 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 	 * {@link org.springframework.context.event.ContextRefreshedEvent}.
 	 */
 	protected void finishRefresh() {
+		// 清楚资源缓存
 		// Clear context-level resource caches (such as ASM metadata from scanning).
 		clearResourceCaches();
 
 		// Initialize lifecycle processor for this context.
+		// 初始化此上下文中Lifecycle类型的bean, 也就是在开始的阶段调用其start,stop阶段调用bean的stop方法
 		initLifecycleProcessor();
 
 		// Propagate refresh to lifecycle processor first.
+		// 重新调用一次Lifecycle类型bean的start方法
 		getLifecycleProcessor().onRefresh();
 
 		// Publish the final event.
+		// 发布一个事件
 		publishEvent(new ContextRefreshedEvent(this));
 
 		// Participate in LiveBeansView MBean, if active.
+		// MBean 操作
 		LiveBeansView.registerApplicationContext(this);
 	}
 

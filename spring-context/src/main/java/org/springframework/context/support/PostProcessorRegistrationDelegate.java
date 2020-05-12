@@ -209,7 +209,7 @@ final class PostProcessorRegistrationDelegate {
 
 	public static void registerBeanPostProcessors(
 			ConfigurableListableBeanFactory beanFactory, AbstractApplicationContext applicationContext) {
-
+		// 获取所有的BeanPostProcessor的bean name
 		String[] postProcessorNames = beanFactory.getBeanNamesForType(BeanPostProcessor.class, true, false);
 
 		// Register BeanPostProcessorChecker that logs an info message when
@@ -220,11 +220,14 @@ final class PostProcessorRegistrationDelegate {
 
 		// Separate between BeanPostProcessors that implement PriorityOrdered,
 		// Ordered, and the rest.
+		// 把是实现了PriorityOrdered接口的后置处理器 和 实现了Ordered的处理器  以及都没有实现的处理器,
+		// 分别放入到不同的容器中
 		List<BeanPostProcessor> priorityOrderedPostProcessors = new ArrayList<>();
 		List<BeanPostProcessor> internalPostProcessors = new ArrayList<>();
 		List<String> orderedPostProcessorNames = new ArrayList<>();
 		List<String> nonOrderedPostProcessorNames = new ArrayList<>();
 		for (String ppName : postProcessorNames) {
+			// 得到实现了此PriorityOrdered接口的后置处理器
 			if (beanFactory.isTypeMatch(ppName, PriorityOrdered.class)) {
 				BeanPostProcessor pp = beanFactory.getBean(ppName, BeanPostProcessor.class);
 				priorityOrderedPostProcessors.add(pp);
@@ -232,16 +235,19 @@ final class PostProcessorRegistrationDelegate {
 					internalPostProcessors.add(pp);
 				}
 			}
+			// 获取实现了Ordered接口的处理器
 			else if (beanFactory.isTypeMatch(ppName, Ordered.class)) {
 				orderedPostProcessorNames.add(ppName);
 			}
-			else {
+			else { // 什么都没有实现的处理器
 				nonOrderedPostProcessorNames.add(ppName);
 			}
 		}
 
 		// First, register the BeanPostProcessors that implement PriorityOrdered.
+		// 对处理器进行排序
 		sortPostProcessors(priorityOrderedPostProcessors, beanFactory);
+		// 注册处理器到容器中
 		registerBeanPostProcessors(beanFactory, priorityOrderedPostProcessors);
 
 		// Next, register the BeanPostProcessors that implement Ordered.
@@ -253,6 +259,7 @@ final class PostProcessorRegistrationDelegate {
 				internalPostProcessors.add(pp);
 			}
 		}
+		// 把orider的处理器排序,同时也注册到容器中
 		sortPostProcessors(orderedPostProcessors, beanFactory);
 		registerBeanPostProcessors(beanFactory, orderedPostProcessors);
 
@@ -265,6 +272,7 @@ final class PostProcessorRegistrationDelegate {
 				internalPostProcessors.add(pp);
 			}
 		}
+		// 现在把那些没有排序的处理器添加到容器中
 		registerBeanPostProcessors(beanFactory, nonOrderedPostProcessors);
 
 		// Finally, re-register all internal BeanPostProcessors.
@@ -273,6 +281,7 @@ final class PostProcessorRegistrationDelegate {
 
 		// Re-register post-processor for detecting inner beans as ApplicationListeners,
 		// moving it to the end of the processor chain (for picking up proxies etc).
+		// 注册ApplicationListenerDetector处理器, 自动侦测ApplicationListener类
 		beanFactory.addBeanPostProcessor(new ApplicationListenerDetector(applicationContext));
 	}
 
@@ -314,7 +323,7 @@ final class PostProcessorRegistrationDelegate {
 	 */
 	private static void registerBeanPostProcessors(
 			ConfigurableListableBeanFactory beanFactory, List<BeanPostProcessor> postProcessors) {
-
+		// 遍历后置处理器, 把其注册到容器中
 		for (BeanPostProcessor postProcessor : postProcessors) {
 			beanFactory.addBeanPostProcessor(postProcessor);
 		}
@@ -356,7 +365,7 @@ final class PostProcessorRegistrationDelegate {
 			}
 			return bean;
 		}
-
+		// 判断一个bean是否是基础指令bean
 		private boolean isInfrastructureBean(@Nullable String beanName) {
 			if (beanName != null && this.beanFactory.containsBeanDefinition(beanName)) {
 				BeanDefinition bd = this.beanFactory.getBeanDefinition(beanName);

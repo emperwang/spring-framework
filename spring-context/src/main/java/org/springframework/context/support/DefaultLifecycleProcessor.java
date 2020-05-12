@@ -97,6 +97,7 @@ public class DefaultLifecycleProcessor implements LifecycleProcessor, BeanFactor
 	 * started in the default phase 0. A bean declared as a dependency of another bean
 	 * will be started before the dependent bean regardless of the declared phase.
 	 */
+	// 调用Lifecycle类型bean的start方法
 	@Override
 	public void start() {
 		startBeans(false);
@@ -111,12 +112,13 @@ public class DefaultLifecycleProcessor implements LifecycleProcessor, BeanFactor
 	 * stopped in the default phase 0. A bean declared as dependent on another bean
 	 * will be stopped before the dependency bean regardless of the declared phase.
 	 */
+	// 调用Lifecycle类型的bean的stop方法
 	@Override
 	public void stop() {
 		stopBeans();
 		this.running = false;
 	}
-
+	// 刷新操作，重新调用所有Lifecycle类型的bean的start方法
 	@Override
 	public void onRefresh() {
 		startBeans(true);
@@ -138,8 +140,10 @@ public class DefaultLifecycleProcessor implements LifecycleProcessor, BeanFactor
 	// Internal helpers
 
 	private void startBeans(boolean autoStartupOnly) {
+		// 获取所有的Lifecyel类型的bean
 		Map<String, Lifecycle> lifecycleBeans = getLifecycleBeans();
 		Map<Integer, LifecycleGroup> phases = new HashMap<>();
+		// 遍历所有的bean,把bean根据不同的阶段进行分组
 		lifecycleBeans.forEach((beanName, bean) -> {
 			if (!autoStartupOnly || (bean instanceof SmartLifecycle && ((SmartLifecycle) bean).isAutoStartup())) {
 				int phase = getPhase(bean);
@@ -151,6 +155,7 @@ public class DefaultLifecycleProcessor implements LifecycleProcessor, BeanFactor
 				group.add(beanName, bean);
 			}
 		});
+		// 把不同阶段的bean进行排序,并按照顺序进行启动
 		if (!phases.isEmpty()) {
 			List<Integer> keys = new ArrayList<>(phases.keySet());
 			Collections.sort(keys);
@@ -166,10 +171,13 @@ public class DefaultLifecycleProcessor implements LifecycleProcessor, BeanFactor
 	 * @param lifecycleBeans a Map with bean name as key and Lifecycle instance as value
 	 * @param beanName the name of the bean to start
 	 */
+	// 真正调用Lifecycle bean的start方法
 	private void doStart(Map<String, ? extends Lifecycle> lifecycleBeans, String beanName, boolean autoStartupOnly) {
 		Lifecycle bean = lifecycleBeans.remove(beanName);
 		if (bean != null && bean != this) {
+			// 先获取此bean的依赖的bean
 			String[] dependenciesForBean = getBeanFactory().getDependenciesForBean(beanName);
+			// 先启动依赖的bean
 			for (String dependency : dependenciesForBean) {
 				doStart(lifecycleBeans, dependency, autoStartupOnly);
 			}
@@ -179,6 +187,7 @@ public class DefaultLifecycleProcessor implements LifecycleProcessor, BeanFactor
 					logger.trace("Starting bean '" + beanName + "' of type [" + bean.getClass().getName() + "]");
 				}
 				try {
+					// 调用bean的start方法
 					bean.start();
 				}
 				catch (Throwable ex) {
@@ -192,8 +201,10 @@ public class DefaultLifecycleProcessor implements LifecycleProcessor, BeanFactor
 	}
 
 	private void stopBeans() {
+		// 获取所有Lifecycle类型的bean
 		Map<String, Lifecycle> lifecycleBeans = getLifecycleBeans();
 		Map<Integer, LifecycleGroup> phases = new HashMap<>();
+		// 遍历所有的bean,并根据阶段的不同,进行分组; 把阶段相当的bean放到同一个组中
 		lifecycleBeans.forEach((beanName, bean) -> {
 			int shutdownPhase = getPhase(bean);
 			LifecycleGroup group = phases.get(shutdownPhase);
@@ -203,6 +214,7 @@ public class DefaultLifecycleProcessor implements LifecycleProcessor, BeanFactor
 			}
 			group.add(beanName, bean);
 		});
+		// 调用bean的stop方法
 		if (!phases.isEmpty()) {
 			List<Integer> keys = new ArrayList<>(phases.keySet());
 			keys.sort(Collections.reverseOrder());
@@ -218,12 +230,15 @@ public class DefaultLifecycleProcessor implements LifecycleProcessor, BeanFactor
 	 * @param lifecycleBeans a Map with bean name as key and Lifecycle instance as value
 	 * @param beanName the name of the bean to stop
 	 */
+	// 真正调用bean的stop方法
 	private void doStop(Map<String, ? extends Lifecycle> lifecycleBeans, final String beanName,
 			final CountDownLatch latch, final Set<String> countDownBeanNames) {
 
 		Lifecycle bean = lifecycleBeans.remove(beanName);
 		if (bean != null) {
+			// 获取此bean的依赖的bean
 			String[] dependentBeans = getBeanFactory().getDependentBeans(beanName);
+			// 先停止其依赖的bean
 			for (String dependentBean : dependentBeans) {
 				doStop(lifecycleBeans, dependentBean, latch, countDownBeanNames);
 			}
@@ -275,17 +290,24 @@ public class DefaultLifecycleProcessor implements LifecycleProcessor, BeanFactor
 	 * as well as all SmartLifecycle beans (even if they are marked as lazy-init).
 	 * @return the Map of applicable beans, with bean names as keys and bean instances as values
 	 */
+	// 获取容器中所有的Lifecycle 的bean
 	protected Map<String, Lifecycle> getLifecycleBeans() {
+		// 获取容器
 		ConfigurableListableBeanFactory beanFactory = getBeanFactory();
+		// 存储Lifecycle的容器
 		Map<String, Lifecycle> beans = new LinkedHashMap<>();
+		// 获取Lifecycle类型的bean
 		String[] beanNames = beanFactory.getBeanNamesForType(Lifecycle.class, false, false);
-		for (String beanName : beanNames) {
+		for (String beanName : beanNames) { // 遍历所有的bean
+			// 获取bean的真实名字
 			String beanNameToRegister = BeanFactoryUtils.transformedBeanName(beanName);
+			// 是否是factorybean
 			boolean isFactoryBean = beanFactory.isFactoryBean(beanNameToRegister);
 			String beanNameToCheck = (isFactoryBean ? BeanFactory.FACTORY_BEAN_PREFIX + beanName : beanName);
 			if ((beanFactory.containsSingleton(beanNameToRegister) &&
 					(!isFactoryBean || matchesBeanType(Lifecycle.class, beanNameToCheck, beanFactory))) ||
 					matchesBeanType(SmartLifecycle.class, beanNameToCheck, beanFactory)) {
+				// 从容器中获取bean
 				Object bean = beanFactory.getBean(beanNameToCheck);
 				if (bean != this && bean instanceof Lifecycle) {
 					beans.put(beanNameToRegister, (Lifecycle) bean);

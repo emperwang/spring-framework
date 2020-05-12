@@ -269,6 +269,9 @@ public abstract class AbstractBeanFactory extends FactoryBeanRegistrySupport imp
 					logger.trace("Returning cached instance of singleton bean '" + beanName + "'");
 				}
 			}
+			// 如果要获取的bean是null对象,则直接返回
+			// 如果bean对应的对象是FactoryBean,则调用工厂方法获取对象
+			// 如果mdb为null,则尝试从容器中获取此FactoryBean的实例来创建对象
 			bean = getObjectForBeanInstance(sharedInstance, name, beanName, null);
 		}
 
@@ -283,27 +286,33 @@ public abstract class AbstractBeanFactory extends FactoryBeanRegistrySupport imp
 			}
 
 			// Check if bean definition exists in this factory.
+			// 获取父容器
 			BeanFactory parentBeanFactory = getParentBeanFactory();
+			// 如果存在父容器,则当前容器不包括要查找的bean,则从父容器中进行查找
 			if (parentBeanFactory != null && !containsBeanDefinition(beanName)) {
 				// Not found -> check parent.
+				// 获取bean的真实名字
 				String nameToLookup = originalBeanName(name);
 				if (parentBeanFactory instanceof AbstractBeanFactory) {
+					// 从父容器中获取对象
 					return ((AbstractBeanFactory) parentBeanFactory).doGetBean(
 							nameToLookup, requiredType, args, typeCheckOnly);
 				}
 				else if (args != null) {
 					// Delegation to parent with explicit args.
+					// 如果有参数,也委托父容器进行查找
 					return (T) parentBeanFactory.getBean(nameToLookup, args);
 				}
 				else if (requiredType != null) {
 					// No args -> delegate to standard getBean method.
+					// 如果有对应的类型, 同样委托父容器进行查找
 					return parentBeanFactory.getBean(nameToLookup, requiredType);
 				}
 				else {
 					return (T) parentBeanFactory.getBean(nameToLookup);
 				}
 			}
-
+			// 记录当前bean到alreadyCreated容器中
 			if (!typeCheckOnly) {
 				markBeanAsCreated(beanName);
 			}
@@ -313,6 +322,7 @@ public abstract class AbstractBeanFactory extends FactoryBeanRegistrySupport imp
 				 *  获取要创建的bean的BeanDefinition
 				 */
 				final RootBeanDefinition mbd = getMergedLocalBeanDefinition(beanName);
+				// 检测是否是抽象类
 				checkMergedBeanDefinition(mbd, beanName, args);
 
 				// Guarantee initialization of beans that the current bean depends on.
@@ -326,6 +336,7 @@ public abstract class AbstractBeanFactory extends FactoryBeanRegistrySupport imp
 							throw new BeanCreationException(mbd.getResourceDescription(), beanName,
 									"Circular depends-on relationship between '" + beanName + "' and '" + dep + "'");
 						}
+						// 把此bean的依赖bean 关系注册到容器中
 						registerDependentBean(dep, beanName);
 						try {
 							// 去创建dependOn类
@@ -344,6 +355,7 @@ public abstract class AbstractBeanFactory extends FactoryBeanRegistrySupport imp
 					// 创建此单例对象
 					sharedInstance = getSingleton(beanName, () -> {
 						try {
+							// 真正创建bean的地方
 							return createBean(beanName, mbd, args);
 						}
 						catch (BeansException ex) {
@@ -882,13 +894,15 @@ public abstract class AbstractBeanFactory extends FactoryBeanRegistrySupport imp
 		}
 		return result;
 	}
-
+	// 添加后置处理器到容器中
 	@Override
 	public void addBeanPostProcessor(BeanPostProcessor beanPostProcessor) {
 		Assert.notNull(beanPostProcessor, "BeanPostProcessor must not be null");
 		// Remove from old position, if any
+		// 先进行了移除,以防已经存在
 		this.beanPostProcessors.remove(beanPostProcessor);
 		// Track whether it is instantiation/destruction aware
+		// 记录是否注册有 InstantiationAwareBeanPostProcessor  DestructionAwareBeanPostProcessor 这两个处理器
 		if (beanPostProcessor instanceof InstantiationAwareBeanPostProcessor) {
 			this.hasInstantiationAwareBeanPostProcessors = true;
 		}
@@ -896,6 +910,7 @@ public abstract class AbstractBeanFactory extends FactoryBeanRegistrySupport imp
 			this.hasDestructionAwareBeanPostProcessors = true;
 		}
 		// Add to end of list
+		// 最后把处理器放到容器中
 		this.beanPostProcessors.add(beanPostProcessor);
 	}
 
@@ -1668,6 +1683,9 @@ public abstract class AbstractBeanFactory extends FactoryBeanRegistrySupport imp
 	 * @param mbd the merged bean definition
 	 * @return the object to expose for the bean
 	 */
+	// 从beanInstance中获取对象, 也就是说如果bean已经实例化,则直接返回
+	// 如果此bean是factoryBean,则从容器中获取此factoryBean的实例, 并调用其创建对象的方法获取对象
+	//
 	protected Object getObjectForBeanInstance(
 			Object beanInstance, String name, String beanName, @Nullable RootBeanDefinition mbd) {
 

@@ -121,12 +121,13 @@ public class SimpleApplicationEventMulticaster extends AbstractApplicationEventM
 		return this.errorHandler;
 	}
 
-
+	// 发布事件
 	@Override
 	public void multicastEvent(ApplicationEvent event) {
 		multicastEvent(event, resolveDefaultEventType(event));
 	}
 
+	// 调用容器中的监听器(ApplicationListener)对事件进行处理
 	@Override
 	public void multicastEvent(final ApplicationEvent event, @Nullable ResolvableType eventType) {
 		ResolvableType type = (eventType != null ? eventType : resolveDefaultEventType(event));
@@ -136,6 +137,7 @@ public class SimpleApplicationEventMulticaster extends AbstractApplicationEventM
 				executor.execute(() -> invokeListener(listener, event));
 			}
 			else {
+				// 调用监听器
 				invokeListener(listener, event);
 			}
 		}
@@ -155,6 +157,7 @@ public class SimpleApplicationEventMulticaster extends AbstractApplicationEventM
 		ErrorHandler errorHandler = getErrorHandler();
 		if (errorHandler != null) {
 			try {
+				// 真实调用监听器
 				doInvokeListener(listener, event);
 			}
 			catch (Throwable err) {
@@ -169,6 +172,7 @@ public class SimpleApplicationEventMulticaster extends AbstractApplicationEventM
 	@SuppressWarnings({"unchecked", "rawtypes"})
 	private void doInvokeListener(ApplicationListener listener, ApplicationEvent event) {
 		try {
+			// 监听器运行
 			listener.onApplicationEvent(event);
 		}
 		catch (ClassCastException ex) {
