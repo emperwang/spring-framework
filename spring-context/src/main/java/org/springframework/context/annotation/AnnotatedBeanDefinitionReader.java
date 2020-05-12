@@ -130,6 +130,7 @@ public class AnnotatedBeanDefinitionReader {
 	 * @param annotatedClasses one or more annotated classes,
 	 * e.g. {@link Configuration @Configuration} classes
 	 */
+	// 把annotatedClasses 定义为beanDefinition 并注册到容器中
 	public void register(Class<?>... annotatedClasses) {
 		for (Class<?> annotatedClass : annotatedClasses) {
 			registerBean(annotatedClass);
@@ -141,6 +142,7 @@ public class AnnotatedBeanDefinitionReader {
 	 * class-declared annotations.
 	 * @param annotatedClass the class of the bean
 	 */
+	//  注册一个注解声明的配置类
 	public void registerBean(Class<?> annotatedClass) {
 		doRegisterBean(annotatedClass, null, null, null);
 	}
@@ -243,6 +245,7 @@ public class AnnotatedBeanDefinitionReader {
 
 		BeanDefinitionHolder definitionHolder = new BeanDefinitionHolder(abd, beanName);
 		definitionHolder = AnnotationConfigUtils.applyScopedProxyMode(scopeMetadata, definitionHolder, this.registry);
+		// 注册beanDefinition 到容器中
 		BeanDefinitionReaderUtils.registerBeanDefinition(definitionHolder, this.registry);
 	}
 

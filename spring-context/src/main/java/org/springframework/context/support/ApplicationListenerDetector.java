@@ -55,17 +55,21 @@ class ApplicationListenerDetector implements DestructionAwareBeanPostProcessor, 
 		this.applicationContext = applicationContext;
 	}
 
-
+	// 记录bean是否是单例
 	@Override
 	public void postProcessMergedBeanDefinition(RootBeanDefinition beanDefinition, Class<?> beanType, String beanName) {
 		this.singletonNames.put(beanName, beanDefinition.isSingleton());
 	}
 
+	// 初始化前操作：什么也不做
 	@Override
 	public Object postProcessBeforeInitialization(Object bean, String beanName) {
 		return bean;
 	}
 
+	// 初始化后的操作:如果此bean是ApplicationListener,那么就有下面两种处理
+	// 1. 是单例  那么就把此监听器 放到applicationListeners
+	// 2. 不是单例  则不会添加此监听器到容器,也不会放到singletonNames
 	@Override
 	public Object postProcessAfterInitialization(Object bean, String beanName) {
 		if (bean instanceof ApplicationListener) {
@@ -89,6 +93,7 @@ class ApplicationListenerDetector implements DestructionAwareBeanPostProcessor, 
 		return bean;
 	}
 
+	// 销毁前的动作: 如果此bean是一个ApplicationListener,那么就从ApplicationEventMulticaster删除
 	@Override
 	public void postProcessBeforeDestruction(Object bean, String beanName) {
 		if (bean instanceof ApplicationListener) {

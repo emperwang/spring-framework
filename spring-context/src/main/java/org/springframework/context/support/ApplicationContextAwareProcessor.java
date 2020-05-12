@@ -73,7 +73,7 @@ class ApplicationContextAwareProcessor implements BeanPostProcessor {
 		this.embeddedValueResolver = new EmbeddedValueResolver(applicationContext.getBeanFactory());
 	}
 
-
+	// 在bean初始化前调用  各种Aware接口函数
 	@Override
 	@Nullable
 	public Object postProcessBeforeInitialization(final Object bean, String beanName) throws BeansException {
@@ -93,6 +93,7 @@ class ApplicationContextAwareProcessor implements BeanPostProcessor {
 			}, acc);
 		}
 		else {
+			// 调用Aware各种接口函数
 			invokeAwareInterfaces(bean);
 		}
 

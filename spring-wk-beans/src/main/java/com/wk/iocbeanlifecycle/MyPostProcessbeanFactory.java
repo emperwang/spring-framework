@@ -30,8 +30,8 @@ public class MyPostProcessbeanFactory implements BeanFactoryPostProcessor {
 		// 懒加载
 		instA.setLazyInit(true);
 
-		GenericBeanDefinition generPerson = (GenericBeanDefinition) beanFactory.getBeanDefinition("person");
-		ConstructorArgumentValues strConstruct = new ConstructorArgumentValues();
+		/*GenericBeanDefinition generPerson = (GenericBeanDefinition) beanFactory.getBeanDefinition("person");
+		ConstructorArgumentValues strConstruct = new ConstructorArgumentValues();*/
 		// 此表示使用第一个参数是字符串的构造器
 		//strConstruct.addIndexedArgumentValue(0, "zhangsan");
 		// 此表示使用第一个参数是整数的构造器
