@@ -55,6 +55,7 @@ public interface ConfigurableBeanFactory extends HierarchicalBeanFactory, Single
 	 * Custom scopes can be added via {@code registerScope}.
 	 * @see #registerScope
 	 */
+	// 单例 scope
 	String SCOPE_SINGLETON = "singleton";
 
 	/**
@@ -62,6 +63,7 @@ public interface ConfigurableBeanFactory extends HierarchicalBeanFactory, Single
 	 * Custom scopes can be added via {@code registerScope}.
 	 * @see #registerScope
 	 */
+	// 原型  scope
 	String SCOPE_PROTOTYPE = "prototype";
 
 
@@ -74,6 +76,7 @@ public interface ConfigurableBeanFactory extends HierarchicalBeanFactory, Single
 	 * a parent BeanFactory
 	 * @see #getParentBeanFactory()
 	 */
+	// 设置父容器
 	void setParentBeanFactory(BeanFactory parentBeanFactory) throws IllegalStateException;
 
 	/**
@@ -137,6 +140,7 @@ public interface ConfigurableBeanFactory extends HierarchicalBeanFactory, Single
 	 * here, supporting "#{...}" expressions in a Unified EL compatible style.
 	 * @since 3.0
 	 */
+	// 设置EL表达式
 	void setBeanExpressionResolver(@Nullable BeanExpressionResolver resolver);
 
 	/**
@@ -242,11 +246,13 @@ public interface ConfigurableBeanFactory extends HierarchicalBeanFactory, Single
 	 * will always be applied after programmatically registered ones.
 	 * @param beanPostProcessor the post-processor to register
 	 */
+	// 添加一个beanPostProcessor
 	void addBeanPostProcessor(BeanPostProcessor beanPostProcessor);
 
 	/**
 	 * Return the current number of registered BeanPostProcessors, if any.
 	 */
+	// 获取beanPostProcessor的数量
 	int getBeanPostProcessorCount();
 
 	/**
@@ -254,6 +260,7 @@ public interface ConfigurableBeanFactory extends HierarchicalBeanFactory, Single
 	 * @param scopeName the scope identifier
 	 * @param scope the backing Scope implementation
 	 */
+	// 注册一个scope
 	void registerScope(String scopeName, Scope scope);
 
 	/**
@@ -263,6 +270,7 @@ public interface ConfigurableBeanFactory extends HierarchicalBeanFactory, Single
 	 * @return the array of scope names, or an empty array if none
 	 * @see #registerScope
 	 */
+	// 获取注册的所有scope的名字
 	String[] getRegisteredScopeNames();
 
 	/**
@@ -303,6 +311,7 @@ public interface ConfigurableBeanFactory extends HierarchicalBeanFactory, Single
 	 * @param alias the alias to be registered for the bean
 	 * @throws BeanDefinitionStoreException if the alias is already in use
 	 */
+	// 注册别名
 	void registerAlias(String beanName, String alias) throws BeanDefinitionStoreException;
 
 	/**
@@ -324,6 +333,7 @@ public interface ConfigurableBeanFactory extends HierarchicalBeanFactory, Single
 	 * @throws NoSuchBeanDefinitionException if there is no bean definition with the given name
 	 * @since 2.5
 	 */
+	// 获取合并后的beanDefinition, 也就是把childBean和Parentbean合并
 	BeanDefinition getMergedBeanDefinition(String beanName) throws NoSuchBeanDefinitionException;
 
 	/**
@@ -334,6 +344,7 @@ public interface ConfigurableBeanFactory extends HierarchicalBeanFactory, Single
 	 * @throws NoSuchBeanDefinitionException if there is no bean with the given name
 	 * @since 2.5
 	 */
+	// 判断bean是否是工厂bean
 	boolean isFactoryBean(String name) throws NoSuchBeanDefinitionException;
 
 	/**
@@ -343,6 +354,7 @@ public interface ConfigurableBeanFactory extends HierarchicalBeanFactory, Single
 	 * @param inCreation whether the bean is currently in creation
 	 * @since 3.1
 	 */
+	// 把beanName对应的bean设置为正在创建
 	void setCurrentlyInCreation(String beanName, boolean inCreation);
 
 	/**
@@ -351,6 +363,7 @@ public interface ConfigurableBeanFactory extends HierarchicalBeanFactory, Single
 	 * @return whether the bean is currently in creation
 	 * @since 2.5
 	 */
+	// 判断给定的beanName对应的bean是否正在创建中
 	boolean isCurrentlyInCreation(String beanName);
 
 	/**
@@ -360,6 +373,7 @@ public interface ConfigurableBeanFactory extends HierarchicalBeanFactory, Single
 	 * @param dependentBeanName the name of the dependent bean
 	 * @since 2.5
 	 */
+	// 注册beanName依赖的dependentBeanName
 	void registerDependentBean(String beanName, String dependentBeanName);
 
 	/**
@@ -368,6 +382,7 @@ public interface ConfigurableBeanFactory extends HierarchicalBeanFactory, Single
 	 * @return the array of dependent bean names, or an empty array if none
 	 * @since 2.5
 	 */
+	// 获取某个bean的依赖bean的名字
 	String[] getDependentBeans(String beanName);
 
 	/**
@@ -387,6 +402,7 @@ public interface ConfigurableBeanFactory extends HierarchicalBeanFactory, Single
 	 * @param beanName the name of the bean definition
 	 * @param beanInstance the bean instance to destroy
 	 */
+	// 销毁bean
 	void destroyBean(String beanName, Object beanInstance);
 
 	/**
@@ -395,6 +411,7 @@ public interface ConfigurableBeanFactory extends HierarchicalBeanFactory, Single
 	 * and logged instead of propagated to the caller of this method.
 	 * @param beanName the name of the scoped bean
 	 */
+	// 销毁某个scopeBean
 	void destroyScopedBean(String beanName);
 
 	/**
@@ -403,6 +420,7 @@ public interface ConfigurableBeanFactory extends HierarchicalBeanFactory, Single
 	 * <p>Any exception that arises during destruction should be caught
 	 * and logged instead of propagated to the caller of this method.
 	 */
+	// 销毁所有单例
 	void destroySingletons();
 
 }
