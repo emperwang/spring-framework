@@ -44,6 +44,7 @@ public class SimpleAliasRegistry implements AliasRegistry {
 	protected final Log logger = LogFactory.getLog(getClass());
 
 	/** Map from alias to canonical name. */
+	// 存放别名的容器
 	private final Map<String, String> aliasMap = new ConcurrentHashMap<>(16);
 
 
@@ -75,6 +76,7 @@ public class SimpleAliasRegistry implements AliasRegistry {
 					}
 				}
 				checkForAliasCircle(name, alias);
+				// 把别名放入map重
 				this.aliasMap.put(alias, name);
 				if (logger.isTraceEnabled()) {
 					logger.trace("Alias definition '" + alias + "' registered for name '" + name + "'");
@@ -87,6 +89,7 @@ public class SimpleAliasRegistry implements AliasRegistry {
 	 * Return whether alias overriding is allowed.
 	 * Default is {@code true}.
 	 */
+	// 是否允许覆盖
 	protected boolean allowAliasOverriding() {
 		return true;
 	}
@@ -97,6 +100,7 @@ public class SimpleAliasRegistry implements AliasRegistry {
 	 * @param alias the alias to look for
 	 * @since 4.2.1
 	 */
+	// 判断是否已经注册
 	public boolean hasAlias(String name, String alias) {
 		for (Map.Entry<String, String> entry : this.aliasMap.entrySet()) {
 			String registeredName = entry.getValue();
@@ -109,7 +113,7 @@ public class SimpleAliasRegistry implements AliasRegistry {
 		}
 		return false;
 	}
-
+	// 移除某个别名
 	@Override
 	public void removeAlias(String alias) {
 		synchronized (this.aliasMap) {
@@ -120,11 +124,13 @@ public class SimpleAliasRegistry implements AliasRegistry {
 		}
 	}
 
+	// 判断一个name是否是别名
 	@Override
 	public boolean isAlias(String name) {
 		return this.aliasMap.containsKey(name);
 	}
 
+	// 获取name的所有别名
 	@Override
 	public String[] getAliases(String name) {
 		List<String> result = new ArrayList<>();
@@ -139,6 +145,7 @@ public class SimpleAliasRegistry implements AliasRegistry {
 	 * @param name the target name to find aliases for
 	 * @param result the resulting aliases list
 	 */
+	// 遍历
 	private void retrieveAliases(String name, List<String> result) {
 		this.aliasMap.forEach((alias, registeredName) -> {
 			if (registeredName.equals(name)) {
@@ -199,6 +206,7 @@ public class SimpleAliasRegistry implements AliasRegistry {
 	 * @see #hasAlias
 	 */
 	protected void checkForAliasCircle(String name, String alias) {
+		// 如果已经注册,则报错
 		if (hasAlias(alias, name)) {
 			throw new IllegalStateException("Cannot register alias '" + alias +
 					"' for name '" + name + "': Circular reference - '" +
@@ -211,6 +219,7 @@ public class SimpleAliasRegistry implements AliasRegistry {
 	 * @param name the user-specified name
 	 * @return the transformed name
 	 */
+	// 从别名获取到真实的名字
 	public String canonicalName(String name) {
 		String canonicalName = name;
 		// Handle aliasing...

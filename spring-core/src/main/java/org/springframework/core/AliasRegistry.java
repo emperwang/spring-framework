@@ -32,6 +32,7 @@ public interface AliasRegistry {
 	 * @throws IllegalStateException if the alias is already in use
 	 * and may not be overridden
 	 */
+	// 注册name对应的别名 alias
 	void registerAlias(String name, String alias);
 
 	/**
@@ -39,6 +40,7 @@ public interface AliasRegistry {
 	 * @param alias the alias to remove
 	 * @throws IllegalStateException if no such alias was found
 	 */
+	// 从registry中删除别名 alias
 	void removeAlias(String alias);
 
 	/**
@@ -47,6 +49,7 @@ public interface AliasRegistry {
 	 * @param name the name to check
 	 * @return whether the given name is an alias
 	 */
+	// 判断给定的name是否是一个别名
 	boolean isAlias(String name);
 
 	/**
@@ -54,6 +57,7 @@ public interface AliasRegistry {
 	 * @param name the name to check for aliases
 	 * @return the aliases, or an empty array if none
 	 */
+	// 获取name对应的别名
 	String[] getAliases(String name);
 
 }
