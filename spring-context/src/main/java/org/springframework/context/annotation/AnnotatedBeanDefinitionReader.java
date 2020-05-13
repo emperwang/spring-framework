@@ -84,6 +84,7 @@ public class AnnotatedBeanDefinitionReader {
 		Assert.notNull(environment, "Environment must not be null");
 		this.registry = registry;
 		this.conditionEvaluator = new ConditionEvaluator(registry, environment, null);
+		// 具体注册公共处理类到容器的方法
 		AnnotationConfigUtils.registerAnnotationConfigProcessors(this.registry);
 	}
 

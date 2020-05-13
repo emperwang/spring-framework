@@ -66,6 +66,7 @@ public class AnnotationConfigApplicationContext extends GenericApplicationContex
 		 *  先调用父类的构造器，创建工厂类
 		 *  创建两个解析bean定义的类
 		 */
+		// AnnotatedBeanDefinitionReader 此初始化会注册一些注解的公共处理类到容器
 		this.reader = new AnnotatedBeanDefinitionReader(this);
 		this.scanner = new ClassPathBeanDefinitionScanner(this);
 	}
@@ -87,6 +88,7 @@ public class AnnotationConfigApplicationContext extends GenericApplicationContex
 	 * e.g. {@link Configuration @Configuration} classes
 	 */
 	public AnnotationConfigApplicationContext(Class<?>... annotatedClasses) {
+		// 初始化
 		this();
 		/**
 		 *  注册这个配置类
