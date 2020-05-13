@@ -115,6 +115,7 @@ public abstract class AopProxyUtils {
 	 * @see Advised
 	 * @see DecoratingProxy
 	 */
+	// 得到需要代理的接口
 	static Class<?>[] completeProxiedInterfaces(AdvisedSupport advised, boolean decoratingProxy) {
 		Class<?>[] specifiedInterfaces = advised.getProxiedInterfaces();
 		if (specifiedInterfaces.length == 0) {

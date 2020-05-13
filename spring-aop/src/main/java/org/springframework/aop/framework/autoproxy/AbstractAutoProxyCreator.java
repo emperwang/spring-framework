@@ -293,11 +293,14 @@ public abstract class AbstractAutoProxyCreator extends ProxyProcessorSupport
 	 * identified as one to proxy by the subclass.
 	 * @see #getAdvicesAndAdvisorsForBean
 	 */
+	// 在后置处理器这里, 进行代理点的设置
+	// 也就是在bean初始化后之后
 	@Override
 	public Object postProcessAfterInitialization(@Nullable Object bean, String beanName) {
 		if (bean != null) {
 			Object cacheKey = getCacheKey(bean.getClass(), beanName);
 			if (!this.earlyProxyReferences.contains(cacheKey)) {
+				// 如果需要创建代理，那在这里进行具体的创建动作
 				return wrapIfNecessary(bean, beanName, cacheKey);
 			}
 		}
@@ -333,6 +336,7 @@ public abstract class AbstractAutoProxyCreator extends ProxyProcessorSupport
 	 * @param cacheKey the cache key for metadata access
 	 * @return a proxy wrapping the bean, or the raw bean instance as-is
 	 */
+	// 如果需要就创建代理
 	protected Object wrapIfNecessary(Object bean, String beanName, Object cacheKey) {
 		if (StringUtils.hasLength(beanName) && this.targetSourcedBeans.contains(beanName)) {
 			return bean;
@@ -346,7 +350,9 @@ public abstract class AbstractAutoProxyCreator extends ProxyProcessorSupport
 		}
 
 		// Create proxy if we have advice.
+		// 获取容器中此bean对应的advice
 		Object[] specificInterceptors = getAdvicesAndAdvisorsForBean(bean.getClass(), beanName, null);
+		// 如果存在对应的advice,那么就把此bean放到advisedBeans容器中,并为此bean创建代理
 		if (specificInterceptors != DO_NOT_PROXY) {
 			this.advisedBeans.put(cacheKey, Boolean.TRUE);
 			Object proxy = createProxy(
@@ -441,35 +447,40 @@ public abstract class AbstractAutoProxyCreator extends ProxyProcessorSupport
 	 * @return the AOP proxy for the bean
 	 * @see #buildAdvisors
 	 */
+	// 创建代理; 也就是为给定的bean创建aop代理
 	protected Object createProxy(Class<?> beanClass, @Nullable String beanName,
 			@Nullable Object[] specificInterceptors, TargetSource targetSource) {
 
 		if (this.beanFactory instanceof ConfigurableListableBeanFactory) {
 			AutoProxyUtils.exposeTargetClass((ConfigurableListableBeanFactory) this.beanFactory, beanName, beanClass);
 		}
-
+		// 创建一个ProxyFactory，此类用于对目标bean进行包装
 		ProxyFactory proxyFactory = new ProxyFactory();
 		proxyFactory.copyFrom(this);
-
+		// 判断proxy-target-class 配置，如果为true,那么就使用cglib创建代理,如果没有设置默认为false
 		if (!proxyFactory.isProxyTargetClass()) {
+			// 判断是此bean对应的beanDefinition是否设置了preserveTargetClass属性为true;如果为true,那么也使用cglib
 			if (shouldProxyTargetClass(beanClass, beanName)) {
 				proxyFactory.setProxyTargetClass(true);
 			}
 			else {
+				// 获取beanClass的接口类信息，如果有则添加到proxyFactory中;如果没有则也使用cglib生成代理
 				evaluateProxyInterfaces(beanClass, proxyFactory);
 			}
 		}
-
+		// 得到此beanName对应的advisor以及interceptor
 		Advisor[] advisors = buildAdvisors(beanName, specificInterceptors);
+		// 设置proxyFactory的advisor 以及 保存原class
 		proxyFactory.addAdvisors(advisors);
 		proxyFactory.setTargetSource(targetSource);
+		// 对proxyFactory进行一些定制化操作,此处主要是用于子类进行扩展
 		customizeProxyFactory(proxyFactory);
 
 		proxyFactory.setFrozen(this.freezeProxy);
 		if (advisorsPreFiltered()) {
 			proxyFactory.setPreFiltered(true);
 		}
-
+		// 使用proxyFactory来进行代理的创建
 		return proxyFactory.getProxy(getProxyClassLoader());
 	}
 
@@ -509,10 +520,13 @@ public abstract class AbstractAutoProxyCreator extends ProxyProcessorSupport
 	 * specific to this bean (may be empty, but not null)
 	 * @return the list of Advisors for the given bean
 	 */
+	// 把specificInterceptors转换为advisor, 并把common Interceptor 加入进来
 	protected Advisor[] buildAdvisors(@Nullable String beanName, @Nullable Object[] specificInterceptors) {
 		// Handle prototypes correctly...
+		// 获取Interceptor
 		Advisor[] commonInterceptors = resolveInterceptorNames();
 
+		// 使用此容器allInterceptors存储所有的advisor和interceptor
 		List<Object> allInterceptors = new ArrayList<>();
 		if (specificInterceptors != null) {
 			allInterceptors.addAll(Arrays.asList(specificInterceptors));
@@ -531,8 +545,9 @@ public abstract class AbstractAutoProxyCreator extends ProxyProcessorSupport
 			logger.trace("Creating implicit proxy for bean '" + beanName + "' with " + nrOfCommonInterceptors +
 					" common interceptors and " + nrOfSpecificInterceptors + " specific interceptors");
 		}
-
+		// 存储advisors
 		Advisor[] advisors = new Advisor[allInterceptors.size()];
+		// 遍历所有的advisor, 并对其进行包装
 		for (int i = 0; i < allInterceptors.size(); i++) {
 			advisors[i] = this.advisorAdapterRegistry.wrap(allInterceptors.get(i));
 		}
