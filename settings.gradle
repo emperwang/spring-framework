@@ -35,4 +35,5 @@ include 'spring-wk-boot'
 include 'spring-wk-mybatis'
 include 'spring-boot-autoconfiguration'
 include 'spring-mybatis-3'
+include 'spring-mybatis-spring-bridge'
 
