@@ -1,4 +1,4 @@
-package com.wk;
+package com.wk.basedemo;
 
 import com.wk.entity.User;
 import org.apache.ibatis.io.Resources;

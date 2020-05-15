@@ -1,4 +1,4 @@
-package com.wk.basedemo;
+package com.wk.springdemo.mapper;
 
 import com.wk.entity.User;
 import org.apache.ibatis.annotations.Param;

@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
-<mapper namespace="com.wk.basedemo.UserMapper">
+<mapper namespace="com.wk.springdemo.mapper.UserMapper">
     <resultMap id="baseResult" type="com.wk.entity.User">
         <id property="id" column="id" jdbcType="INTEGER"></id>
         <result property="name" column="name" jdbcType="VARCHAR"></result>
@@ -12,7 +12,7 @@
         id,name,age,address
     </sql>
 
-    <select id="selectById" parameterType="java.lang.Integer" resultType="com.wk.entity.User">
+    <select id="selectById" parameterType="java.lang.Integer" resultMap="baseResult">
         select <include refid="baseSql"/> from USER WHERE id=#{id}
     </select>
 
