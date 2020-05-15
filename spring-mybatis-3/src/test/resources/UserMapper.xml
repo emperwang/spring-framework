@@ -1,0 +1,115 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wk.UserMapper">
+    <resultMap id="baseResult" type="com.wk.entity.User">
+        <id property="id" column="id" jdbcType="INTEGER"></id>
+        <result property="name" column="name" jdbcType="VARCHAR"></result>
+        <result property="age" column="age" jdbcType="INTEGER"></result>
+        <result property="address" column="address" jdbcType="VARCHAR"></result>
+    </resultMap>
+
+    <sql id="baseSql">
+        id,name,age,address
+    </sql>
+
+    <select id="selectById" parameterType="java.lang.Integer" resultType="com.wk.entity.User">
+        select <include refid="baseSql"/> from USER WHERE id=#{id}
+    </select>
+
+    <select id="selectByMap" parameterType="java.util.Map" resultType="com.wk.entity.User">
+        select <include refid="baseSql"/> from USER WHERE id=#{id}
+    </select>
+
+    <select id="selectAll" resultMap="baseResult">
+        SELECT <include refid="baseSql"/> FROM user;
+    </select>
+
+    <!--choose select-->
+    <select id="chooseSelect" parameterType="com.wk.entity.User" resultMap="baseResult">
+        SELECT <include refid="baseSql"/> FROM USER
+        <where>
+            <choose>
+                <when test="id != null and id != ''">
+                    AND id = #{id}
+                </when>
+                <when test="name != null and name != ''">
+                    AND  name = #{name}
+                </when>
+                <when test="age != null and age != ''">
+                    AND age = #{age}
+                </when>
+                <when test="address != null and address != ''">
+                    AND address = #{address}
+                </when>
+                <otherwise>
+                    id = 6
+                </otherwise>
+            </choose>
+        </where>
+    </select>
+
+
+    <!-- 批量更新-->
+    <update id="updateAgeList" parameterType="com.wk.entity.User">
+        <foreach collection="list" separator=";" item="idx" close=";">
+            UPDATE user SET age=#{idx.age} where id=#{idx.id}
+        </foreach>
+    </update>
+
+    <!--更新一个记录中的某些字段-->
+    <update id="updateSelectField" parameterType="com.wk.entity.User">
+       UPDATE USER
+       <set>
+           <if test="name!= null and name != ''">
+            name=#{name},
+           </if>
+           <if test="age != null and age != ''">
+               age=#{age},
+           </if>
+           <if test="address != null and address != ''">
+               address=#{address}
+           </if>
+       </set>
+      WHERE id=#{id}
+    </update>
+    <!--选择性的更新操作-->
+    <update id="updateSelectFieldTrim" parameterType="com.wk.entity.User">
+      UPDATE USER
+      <trim prefix="set" suffixOverrides=",">
+          <if test="name!=null &amp;&amp; name != ''">
+              name=#{name},
+          </if>
+          <if test="age !=null &amp;&amp; age != ''">
+              age=#{},
+          </if>
+          <if test="address!=null &amp;&amp; address != ''">
+              address=#{address}
+          </if>
+      </trim>
+      WHERE id=#{id}
+    </update>
+
+    <!--批量添加-->
+    <insert id="batchInsert" parameterType="java.util.List">
+      INSERT into USER(name,age,address) VALUES
+      <foreach collection="list" item="itm" separator=",">
+          (#{itm.name}, #{itm.age}, #{itm.address})
+      </foreach>
+    </insert>
+
+    <!--目前有问题-->
+    <delete id="batchDeletes" parameterType="java.util.List">
+        DELETE FROM USER WHERE id IN
+          <foreach collection="list" item="itm" open="(" separator="," close=");">
+              #{itm.id, jdbcType='INTEGER'}
+          </foreach>
+    </delete>
+    
+    <delete id="batchDelArray" parameterType="int">
+        DELETE FROM user WHERE  id IN
+        <foreach collection="array"  item="id" open="(" separator="," close=");">
+            #{id}
+        </foreach>
+    </delete>
+    
+</mapper>

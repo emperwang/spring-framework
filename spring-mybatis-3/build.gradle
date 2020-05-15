@@ -1,0 +1,78 @@
+
+apply plugin: 'java'
+
+sourceCompatibility = 1.8
+
+repositories {
+    mavenLocal()
+    mavenCentral()
+}
+
+
+task copyTestResources(type: Copy) {
+    from "${projectDir}/src/test/resources"
+    into "${buildDir}/classes/test"
+}
+processTestResources.dependsOn copyTestResources
+
+//processResources{
+//    from('src/main/resources'){
+//        include '**/*.properties'
+//    }
+//
+//    from('src/main/resources'){
+//        include("**/*.xml")
+//    }
+//}
+
+//processTestResources {
+//    from('src/test/resources'){
+//        include '**/*.properties'
+//    }
+//
+//    from('src/test/resources'){
+//        include("**/*.xml")
+//    }
+//}
+
+
+// 指定打包时 需要包含的文件
+jar {
+    baseName="mybatis-3"
+    // include   // 包含指定的文件
+
+    from('src/main/java/resources'){
+        include '*.properties'
+    }
+
+    from('src/main/java/resources'){
+        include("*.xml")
+    }
+}
+
+dependencies {
+    compile 'org.projectlombok:lombok:1.18.0'
+    compile 'ognl:ognl:3.2.14'
+    compile 'org.javassist:javassist:3.27.0-GA'
+    compile 'org.slf4j:slf4j-api:1.7.30'
+    compile 'org.slf4j:slf4j-log4j12:1.7.30'
+    compile 'log4j:log4j:1.2.17'
+    compile 'org.apache.logging.log4j:log4j-core:2.13.1'
+    compile 'commons-logging:commons-logging:1.2'
+    compile 'cglib:cglib:3.3.0'
+
+    // for test
+    testCompile 'org.hsqldb:hsqldb:2.5.0'
+    testCompile 'org.apache.derby:derby:10.14.2.0'
+    testCompile 'org.mockito:mockito-core:3.3.3'
+    testCompile 'org.mockito:mockito-junit-jupiter:3.3.3'
+    testCompile 'org.apache.velocity:velocity-engine-core:2.2'
+    testCompile 'org.postgresql:postgresql:42.2.12'
+    testCompile 'mysql:mysql-connector-java:5.1.47'
+    testCompile 'org.assertj:assertj-core:3.16.0'
+    testCompile 'eu.codearte.catch-exception:catch-exception:2.0'
+    testCompile 'org.testcontainers:junit-jupiter:1.13.0'
+    testCompile 'org.testcontainers:postgresql:1.13.0'
+    testCompile 'org.testcontainers:mysql:1.13.0'
+    testCompile group: 'junit', name: 'junit', version: '4.12'
+}
