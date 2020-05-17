@@ -137,103 +137,103 @@ task docsZip(type: Zip, dependsOn: ['api', 'asciidoctor', 'dokka']) {
 	}
 }
 
-task schemaZip(type: Zip) {
-	group = "Distribution"
-	baseName = "spring-framework"
-	classifier = "schema"
-	description = "Builds -${classifier} archive containing all " +
-			"XSDs for deployment at http://springframework.org/schema."
-	duplicatesStrategy 'exclude'
-	moduleProjects.each { subproject ->
-		def Properties schemas = new Properties();
-
-		subproject.sourceSets.main.resources.find {
-			it.path.endsWith("META-INF/spring.schemas")
-		}?.withInputStream { schemas.load(it) }
-
-		for (def key : schemas.keySet()) {
-			def shortName = key.replaceAll(/http.*schema.(.*).spring-.*/, '$1')
-			assert shortName != key
-			File xsdFile = subproject.sourceSets.main.resources.find {
-				it.path.endsWith(schemas.get(key))
-			}
-			assert xsdFile != null
-			into (shortName) {
-				from xsdFile.path
-			}
-		}
-	}
-}
-
-task distZip(type: Zip, dependsOn: [docsZip, schemaZip]) {
-
-	group = "Distribution"
-	baseName = "spring-framework"
-	classifier = "dist"
-	description = "Builds -${classifier} archive, containing all jars and docs, " +
-			"suitable for community download page."
-
-	ext.baseDir = "${baseName}-${project.version}";
-
-	from("src/docs/dist") {
-		include "readme.txt"
-		include "license.txt"
-		include "notice.txt"
-		into "${baseDir}"
-		expand(copyright: new Date().format("yyyy"), version: project.version)
-	}
-
-	from(zipTree(docsZip.archivePath)) {
-		into "${baseDir}/docs"
-	}
-
-	from(zipTree(schemaZip.archivePath)) {
-		into "${baseDir}/schema"
-	}
-
-	moduleProjects.each { subproject ->
-		into ("${baseDir}/libs") {
-			from subproject.jar
-			if (subproject.tasks.findByPath("sourcesJar")) {
-				from subproject.sourcesJar
-			}
-			if (subproject.tasks.findByPath("javadocJar")) {
-				from subproject.javadocJar
-			}
-		}
-	}
-}
-
-distZip.mustRunAfter subprojects.test
-
-// Create a distribution that contains all dependencies (required and optional).
-// Not published by default; only for use when building from source.
-task depsZip(type: Zip, dependsOn: distZip) { zipTask ->
-	group = "Distribution"
-	baseName = "spring-framework"
-	classifier = "dist-with-deps"
-	description = "Builds -${classifier} archive, containing everything " +
-			"in the -${distZip.classifier} archive plus all runtime dependencies."
-
-	from zipTree(distZip.archivePath)
-
-	gradle.taskGraph.whenReady { taskGraph ->
-		if (taskGraph.hasTask(":${zipTask.name}")) {
-			def projectNames = rootProject.subprojects*.name
-			def artifacts = new HashSet()
-			subprojects.each { subproject ->
-				(subproject.configurations.runtime.resolvedConfiguration.resolvedArtifacts +
-						subproject.configurations.optional.resolvedConfiguration.resolvedArtifacts).each { artifact ->
-					def dependency = artifact.moduleVersion.id
-					if (!projectNames.contains(dependency.name)) {
-						artifacts << artifact.file
-					}
-				}
-			}
-
-			zipTask.from(artifacts) {
-				into "${distZip.baseDir}/deps"
-			}
-		}
-	}
-}
+//task schemaZip(type: Zip) {
+//	group = "Distribution"
+//	baseName = "spring-framework"
+//	classifier = "schema"
+//	description = "Builds -${classifier} archive containing all " +
+//			"XSDs for deployment at http://springframework.org/schema."
+//	duplicatesStrategy 'exclude'
+//	moduleProjects.each { subproject ->
+//		def Properties schemas = new Properties();
+//
+//		subproject.sourceSets.main.resources.find {
+//			it.path.endsWith("META-INF/spring.schemas")
+//		}?.withInputStream { schemas.load(it) }
+//
+//		for (def key : schemas.keySet()) {
+//			def shortName = key.replaceAll(/http.*schema.(.*).spring-.*/, '$1')
+//			assert shortName != key
+//			File xsdFile = subproject.sourceSets.main.resources.find {
+//				it.path.endsWith(schemas.get(key))
+//			}
+//			assert xsdFile != null
+//			into (shortName) {
+//				from xsdFile.path
+//			}
+//		}
+//	}
+//}
+//
+//task distZip(type: Zip, dependsOn: [docsZip, schemaZip]) {
+//
+//	group = "Distribution"
+//	baseName = "spring-framework"
+//	classifier = "dist"
+//	description = "Builds -${classifier} archive, containing all jars and docs, " +
+//			"suitable for community download page."
+//
+//	ext.baseDir = "${baseName}-${project.version}";
+//
+//	from("src/docs/dist") {
+//		include "readme.txt"
+//		include "license.txt"
+//		include "notice.txt"
+//		into "${baseDir}"
+//		expand(copyright: new Date().format("yyyy"), version: project.version)
+//	}
+//
+//	from(zipTree(docsZip.archivePath)) {
+//		into "${baseDir}/docs"
+//	}
+//
+//	from(zipTree(schemaZip.archivePath)) {
+//		into "${baseDir}/schema"
+//	}
+//
+//	moduleProjects.each { subproject ->
+//		into ("${baseDir}/libs") {
+//			from subproject.jar
+//			if (subproject.tasks.findByPath("sourcesJar")) {
+//				from subproject.sourcesJar
+//			}
+//			if (subproject.tasks.findByPath("javadocJar")) {
+//				from subproject.javadocJar
+//			}
+//		}
+//	}
+//}
+//
+//distZip.mustRunAfter subprojects.test
+//
+//// Create a distribution that contains all dependencies (required and optional).
+//// Not published by default; only for use when building from source.
+//task depsZip(type: Zip, dependsOn: distZip) { zipTask ->
+//	group = "Distribution"
+//	baseName = "spring-framework"
+//	classifier = "dist-with-deps"
+//	description = "Builds -${classifier} archive, containing everything " +
+//			"in the -${distZip.classifier} archive plus all runtime dependencies."
+//
+//	from zipTree(distZip.archivePath)
+//
+//	gradle.taskGraph.whenReady { taskGraph ->
+//		if (taskGraph.hasTask(":${zipTask.name}")) {
+//			def projectNames = rootProject.subprojects*.name
+//			def artifacts = new HashSet()
+//			subprojects.each { subproject ->
+//				(subproject.configurations.runtime.resolvedConfiguration.resolvedArtifacts +
+//						subproject.configurations.optional.resolvedConfiguration.resolvedArtifacts).each { artifact ->
+//					def dependency = artifact.moduleVersion.id
+//					if (!projectNames.contains(dependency.name)) {
+//						artifacts << artifact.file
+//					}
+//				}
+//			}
+//
+//			zipTask.from(artifacts) {
+//				into "${distZip.baseDir}/deps"
+//			}
+//		}
+//	}
+//}
