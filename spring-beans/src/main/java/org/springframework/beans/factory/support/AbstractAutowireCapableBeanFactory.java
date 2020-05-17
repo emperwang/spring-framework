@@ -506,6 +506,7 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 		try {
 			// Give BeanPostProcessors a chance to return a proxy instead of the target bean instance.
 			// 在这里调用InstantiationAwareBeanPostProcessor这个后置处理器，有可能会创建代理对象
+			// 因为到这里换没有创建好bean实例, 故大可能不会创建代理对象,但是可以解析一些切面等信息
 			Object bean = resolveBeforeInstantiation(beanName, mbdToUse);
 			if (bean != null) {
 				return bean;
@@ -575,6 +576,9 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 		synchronized (mbd.postProcessingLock) {
 			if (!mbd.postProcessed) {
 				try {
+					/**
+					 * 调用MergedBeanDefinitionPostProcessor后置处理器,合并父子bean的信息
+					 */
 					applyMergedBeanDefinitionPostProcessors(mbd, beanType, beanName);
 				}
 				catch (Throwable ex) {
@@ -602,8 +606,14 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 		Object exposedObject = bean;
 		try {
 			// 此处是为bean的属性进行赋值操作
+			// InstantiationAwareBeanPostProcessor后置处理器的调用,postProcessAfterInstantiation在bean实例化的一些操作
+			// InstantiationAwareBeanPostProcessor后置处理器postProcessPropertyValues 方法
 			populateBean(beanName, mbd, instanceWrapper);
 			// 次数就是调用bean的初始化函数,如init-method 指定的方法
+			// 调用aware方法
+			// 回调BeanPostProcessor的postProcessBeforeInitialization方法
+			// 调用初始化方法  先调用InitializingBean  在调用自定义的初始化方法
+			// 回调BeanPostProcessor的postProcessAfterInitialization方法
 			exposedObject = initializeBean(beanName, exposedObject, mbd);
 		}
 		catch (Throwable ex) {
@@ -1307,6 +1317,7 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 						getAccessControlContext());
 			}
 			else {
+				// 调用构造方法进行创建
 				beanInstance = getInstantiationStrategy().instantiate(mbd, beanName, parent);
 			}
 			BeanWrapper bw = new BeanWrapperImpl(beanInstance);

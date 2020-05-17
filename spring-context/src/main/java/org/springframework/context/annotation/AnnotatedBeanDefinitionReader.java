@@ -66,6 +66,7 @@ public class AnnotatedBeanDefinitionReader {
 	 * @see #AnnotatedBeanDefinitionReader(BeanDefinitionRegistry, Environment)
 	 * @see #setEnvironment(Environment)
 	 */
+	// 在这里会创建系统变量environment bean
 	public AnnotatedBeanDefinitionReader(BeanDefinitionRegistry registry) {
 		this(registry, getOrCreateEnvironment(registry));
 	}
@@ -83,6 +84,7 @@ public class AnnotatedBeanDefinitionReader {
 		Assert.notNull(registry, "BeanDefinitionRegistry must not be null");
 		Assert.notNull(environment, "Environment must not be null");
 		this.registry = registry;
+		// conditional 注解的处理
 		this.conditionEvaluator = new ConditionEvaluator(registry, environment, null);
 		// 具体注册公共处理类到容器的方法
 		AnnotationConfigUtils.registerAnnotationConfigProcessors(this.registry);
@@ -255,6 +257,7 @@ public class AnnotatedBeanDefinitionReader {
 	 * Get the Environment from the given registry if possible, otherwise return a new
 	 * StandardEnvironment.
 	 */
+	// 如果ioc中已经存在了Environment,那么就使用此存在的environment,否则创建一个
 	private static Environment getOrCreateEnvironment(BeanDefinitionRegistry registry) {
 		Assert.notNull(registry, "BeanDefinitionRegistry must not be null");
 		if (registry instanceof EnvironmentCapable) {

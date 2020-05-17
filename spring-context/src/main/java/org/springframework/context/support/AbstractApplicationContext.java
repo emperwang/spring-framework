@@ -518,16 +518,17 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 	public void refresh() throws BeansException, IllegalStateException {
 		synchronized (this.startupShutdownMonitor) {
 			// Prepare this context for refreshing.
-			// ioc容器开始启动前的准备工作,如  记录启动时间,修改容器是否启动的标志
+			// 第一步  ioc容器开始启动前的准备工作,如  记录启动时间,修改容器是否启动的标志
 			prepareRefresh();
 
 			// Tell the subclass to refresh the internal bean factory.
-			// 获取BeanFactory
+			// 第二步 获取BeanFactory
 			ConfigurableListableBeanFactory beanFactory = obtainFreshBeanFactory();
 
 			// Prepare the bean factory for use in this context.
 			// 对bean工厂进行一些配置
 			/**
+			 * 第三步
 			 * 1. 设置类加载器
 			 * 2. 设置El表达式解析器
 			 * 3. 设置PropertyEditorRegistrar
@@ -542,10 +543,12 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 				// Allows post-processing of the bean factory in context subclasses.
 				// 用于子类进行扩展
 				// 对于web工程是有做扩展操作的,等看到web源码时,在细看
+				// 第四步
 				postProcessBeanFactory(beanFactory);
 
 				// Invoke factory processors registered as beans in the context.
 				/**
+				 * 第五步
 				 * 1. 调用 所有的BeanDefinitionRegistryPostProcessor 后置处理器
 				 * 2. 调用所有的BeanFactoryPostProcessor 后置处理器
 				 */
@@ -553,32 +556,34 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 
 				// Register bean processors that intercept bean creation.
 				// 注册BeanPostProcessor 后置处理器
+				// 第六步
 				registerBeanPostProcessors(beanFactory);
 
 				// Initialize message source for this context.
 				// 初始化国际消息组件 -- 后看
+				// 第七步
 				initMessageSource();
 
 				// Initialize event multicaster for this context.
-				// 为此上下文初始化 事件多播器
+				// 第八步  为此上下文初始化 事件多播器
 				initApplicationEventMulticaster();
 
 				// Initialize other special beans in specific context subclasses.
-				// 此主要用于子类进行扩展
+				// 第九步  此主要用于子类进行扩展
 				onRefresh();
 
 				// Check for listener beans and register them.
-				// 注册监听器
+				// 第十步  注册监听器
 				registerListeners();
 
 				// Instantiate all remaining (non-lazy-init) singletons.
-				// 重点  重点  重点
+				// 第十一步 重点  重点  重点
 				// 此方法会实例化所有的非懒加载的bean
 				finishBeanFactoryInitialization(beanFactory);
 
 				// Last step: publish corresponding event.
 				// 完成refresh
-				//
+				// 第十二步
 				finishRefresh();
 			}
 
@@ -588,10 +593,10 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 							"cancelling refresh attempt: " + ex);
 				}
 
-				// Destroy already created singletons to avoid dangling resources.
+				// 第十三步 Destroy already created singletons to avoid dangling resources.
 				destroyBeans();
 
-				// Reset 'active' flag.
+				// 第十四步  Reset 'active' flag.
 				cancelRefresh(ex);
 
 				// Propagate exception to caller.
@@ -600,7 +605,7 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 
 			finally {
 				// Reset common introspection caches in Spring's core, since we
-				// might not ever need metadata for singleton beans anymore...
+				// 第十五步  might not ever need metadata for singleton beans anymore...
 				resetCommonCaches();
 			}
 		}
