@@ -474,6 +474,8 @@ public class DefaultListableBeanFactory extends AbstractAutowireCapableBeanFacto
 	@Override
 	public String[] getBeanNamesForType(@Nullable Class<?> type, boolean includeNonSingletons, boolean allowEagerInit) {
 		if (!isConfigurationFrozen() || type == null || !allowEagerInit) {
+			// 当第一次从容器中获取advisor时,此方法的type为Object,也就是会把Object类型的beanName全部返回，也就是得到容器中
+			// 所有bean的beanName
 			return doGetBeanNamesForType(ResolvableType.forRawClass(type), includeNonSingletons, allowEagerInit);
 		}
 		Map<Class<?>, String[]> cache =
@@ -493,6 +495,7 @@ public class DefaultListableBeanFactory extends AbstractAutowireCapableBeanFacto
 		List<String> result = new ArrayList<>();
 
 		// Check all bean definitions.
+		// 遍历容器中所有beanName
 		for (String beanName : this.beanDefinitionNames) {
 			// Only consider bean as eligible if the bean name
 			// is not defined as alias for some other bean.
@@ -506,6 +509,7 @@ public class DefaultListableBeanFactory extends AbstractAutowireCapableBeanFacto
 						// In case of FactoryBean, match object created by FactoryBean.
 						boolean isFactoryBean = isFactoryBean(beanName, mbd);
 						BeanDefinitionHolder dbd = mbd.getDecoratedDefinition();
+						// 判断是否和参数中的类型匹配
 						boolean matchFound =
 								(allowEagerInit || !isFactoryBean ||
 										(dbd != null && !mbd.isLazyInit()) || containsSingleton(beanName)) &&

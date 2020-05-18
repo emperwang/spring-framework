@@ -39,6 +39,7 @@ public abstract class AspectJProxyUtils {
 	 * @param advisors the advisors available
 	 * @return {@code true} if any special {@link Advisor Advisors} were added, otherwise {@code false}
 	 */
+	// 对advisor调用链进行扩展; 如果调用链中不存在ExposeInvocationInterceptor则在index=0的位置添加一个
 	public static boolean makeAdvisorChainAspectJCapableIfNecessary(List<Advisor> advisors) {
 		// Don't add advisors to an empty list; may indicate that proxying is just not required
 		if (!advisors.isEmpty()) {

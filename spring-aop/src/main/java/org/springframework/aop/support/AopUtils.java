@@ -265,6 +265,7 @@ public abstract class AopUtils {
 	 * @param targetClass class we're testing
 	 * @return whether the pointcut can apply on any method
 	 */
+	// 判断advisor是否能应用到targetClass
 	public static boolean canApply(Advisor advisor, Class<?> targetClass) {
 		return canApply(advisor, targetClass, false);
 	}
@@ -279,14 +280,18 @@ public abstract class AopUtils {
 	 * any introductions
 	 * @return whether the pointcut can apply on any method
 	 */
+	// 检测advisor能否应用到targetClass
 	public static boolean canApply(Advisor advisor, Class<?> targetClass, boolean hasIntroductions) {
+		// 过滤规则
 		if (advisor instanceof IntroductionAdvisor) {
 			return ((IntroductionAdvisor) advisor).getClassFilter().matches(targetClass);
 		}
+		// 根据pointCut是进行匹配
 		else if (advisor instanceof PointcutAdvisor) {
 			PointcutAdvisor pca = (PointcutAdvisor) advisor;
 			return canApply(pca.getPointcut(), targetClass, hasIntroductions);
 		}
+		// 如果没有pointCut那么就认为是可用的
 		else {
 			// It doesn't have a pointcut so we assume it applies.
 			return true;
@@ -307,6 +312,8 @@ public abstract class AopUtils {
 		}
 		List<Advisor> eligibleAdvisors = new ArrayList<>();
 		for (Advisor candidate : candidateAdvisors) {
+			// 条件: 首先候选的advisor必须是IntroductionAdvisor类型
+			// canApply 根据pointcut是进行判断
 			if (candidate instanceof IntroductionAdvisor && canApply(candidate, clazz)) {
 				eligibleAdvisors.add(candidate);
 			}

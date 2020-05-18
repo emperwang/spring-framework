@@ -34,6 +34,7 @@ import org.springframework.aop.Advisor;
  *
  * @author Rod Johnson
  */
+// advisor适配器接口
 public interface AdvisorAdapter {
 
 	/**

@@ -7,6 +7,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.EnableAspectJAutoProxy;
 
 @Configuration
+// 此注解向容器中注入了aop相关的bean
 @EnableAspectJAutoProxy
 public class AopConfig {
 

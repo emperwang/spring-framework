@@ -28,6 +28,7 @@ import org.springframework.lang.Nullable;
  * @see AfterReturningAdvice
  * @see ThrowsAdvice
  */
+// before advice
 public interface MethodBeforeAdvice extends BeforeAdvice {
 
 	/**

@@ -24,6 +24,7 @@ package org.springframework.aop.framework.adapter;
  * @author Phillip Webb
  * @see DefaultAdvisorAdapterRegistry
  */
+// 全局的 advisor 适配器 注册表
 public final class GlobalAdvisorAdapterRegistry {
 
 	private GlobalAdvisorAdapterRegistry() {
@@ -33,6 +34,8 @@ public final class GlobalAdvisorAdapterRegistry {
 	/**
 	 * Keep track of a single instance so we can return it to classes that request it.
 	 */
+	// 默认的advisor适配器注册表
+	// 也就是说 那些advisor 和advice 会存储在这里
 	private static AdvisorAdapterRegistry instance = new DefaultAdvisorAdapterRegistry();
 
 	/**

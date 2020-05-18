@@ -112,6 +112,7 @@ public abstract class AbstractAutoProxyCreator extends ProxyProcessorSupport
 	protected final Log logger = LogFactory.getLog(getClass());
 
 	/** Default is global AdvisorAdapterRegistry. */
+	// 那些advisor和advice 会存储在这里
 	private AdvisorAdapterRegistry advisorAdapterRegistry = GlobalAdvisorAdapterRegistry.getInstance();
 
 	/**
@@ -242,6 +243,7 @@ public abstract class AbstractAutoProxyCreator extends ProxyProcessorSupport
 		return wrapIfNecessary(bean, beanName, cacheKey);
 	}
 
+	// 在bean实例化之前就判断那些bean需要被代理
 	@Override
 	public Object postProcessBeforeInstantiation(Class<?> beanClass, String beanName) {
 		Object cacheKey = getCacheKey(beanClass, beanName);
@@ -250,6 +252,7 @@ public abstract class AbstractAutoProxyCreator extends ProxyProcessorSupport
 			if (this.advisedBeans.containsKey(cacheKey)) {
 				return null;
 			}
+			// 判读class是否是Infrastructure类型的  判断是否需要跳过(根据beanName进行判断)
 			if (isInfrastructureClass(beanClass) || shouldSkip(beanClass, beanName)) {
 				this.advisedBeans.put(cacheKey, Boolean.FALSE);
 				return null;
@@ -351,12 +354,16 @@ public abstract class AbstractAutoProxyCreator extends ProxyProcessorSupport
 
 		// Create proxy if we have advice.
 		// 获取容器中此bean对应的advice
+		// getAdvicesAndAdvisorsForBean此方法会吧容器中的bean遍历一遍,以此得到所有的advice方法以及pointcut也就是advisor
+		// 深入看一下getAdvicesAndAdvisorsForBean
 		Object[] specificInterceptors = getAdvicesAndAdvisorsForBean(bean.getClass(), beanName, null);
 		// 如果存在对应的advice,那么就把此bean放到advisedBeans容器中,并为此bean创建代理
 		if (specificInterceptors != DO_NOT_PROXY) {
 			this.advisedBeans.put(cacheKey, Boolean.TRUE);
+			// 具体创建代理的过程
 			Object proxy = createProxy(
 					bean.getClass(), beanName, specificInterceptors, new SingletonTargetSource(bean));
+			// 缓存代理
 			this.proxyTypes.put(cacheKey, proxy.getClass());
 			return proxy;
 		}
@@ -377,6 +384,7 @@ public abstract class AbstractAutoProxyCreator extends ProxyProcessorSupport
 	 * @see org.springframework.aop.framework.AopInfrastructureBean
 	 * @see #shouldSkip
 	 */
+	// 判断给定的class是否是Infrastructure 类型的bean; 依据此来判断是否需要进行代理
 	protected boolean isInfrastructureClass(Class<?> beanClass) {
 		boolean retVal = Advice.class.isAssignableFrom(beanClass) ||
 				Pointcut.class.isAssignableFrom(beanClass) ||
@@ -400,6 +408,7 @@ public abstract class AbstractAutoProxyCreator extends ProxyProcessorSupport
 	 * @return whether to skip the given bean
 	 * @see org.springframework.beans.factory.config.AutowireCapableBeanFactory#ORIGINAL_INSTANCE_SUFFIX
 	 */
+	// 判断此后置处理器是否要对 参数中的class方法进行代理
 	protected boolean shouldSkip(Class<?> beanClass, String beanName) {
 		return AutoProxyUtils.isOriginalInstance(beanName, beanClass);
 	}
@@ -452,6 +461,7 @@ public abstract class AbstractAutoProxyCreator extends ProxyProcessorSupport
 			@Nullable Object[] specificInterceptors, TargetSource targetSource) {
 
 		if (this.beanFactory instanceof ConfigurableListableBeanFactory) {
+			// 设置beanName对应的beanDefinition的originalTargetClass属性
 			AutoProxyUtils.exposeTargetClass((ConfigurableListableBeanFactory) this.beanFactory, beanName, beanClass);
 		}
 		// 创建一个ProxyFactory，此类用于对目标bean进行包装
