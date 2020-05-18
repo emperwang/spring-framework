@@ -52,6 +52,8 @@ public interface UserMapper {
 
     int batchInsert(List<User> list);
 
+    int insertOne(User user);
+
     // todo  此函数测试不通过
     int batchDeletes(List<User> list);
 

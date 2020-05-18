@@ -97,6 +97,10 @@
       </foreach>
     </insert>
 
+	<insert id="insertOne" parameterType="com.wk.entity.User">
+		INSERT into USER(name,age,address) VALUES(#{name}, #{age}, #{address});
+	</insert>
+
     <!--目前有问题-->
     <delete id="batchDeletes" parameterType="java.util.List">
         DELETE FROM USER WHERE id IN

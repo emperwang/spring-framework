@@ -4,15 +4,19 @@ import org.apache.ibatis.session.SqlSessionFactory;
 import org.mybatis.spring.SqlSessionFactoryBean;
 import org.mybatis.spring.annotation.MapperScan;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
 import org.springframework.jdbc.datasource.DriverManagerDataSource;
+import org.springframework.transaction.annotation.EnableTransactionManagement;
 
 import javax.sql.DataSource;
 
 @Configuration
 @MapperScan(basePackages = {"com.wk.springdemo.mapper"})
+@ComponentScan(value = {"com.wk.springdemo.service"})
+//@EnableTransactionManagement
 public class MybatisConfig {
 	//private String MapperLocation = "classpath: /*Mapper.xml";
 	private String MapperLocation = "classpath:/mapper/*.xml";
