@@ -1,8 +1,12 @@
 package com.wk.aop;
 
 
+import org.aspectj.lang.JoinPoint;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.*;
+
+import java.lang.reflect.Method;
+import java.util.Arrays;
 
 @Aspect
 public class AspectConfig {
@@ -12,7 +16,8 @@ public class AspectConfig {
 
 
 	@Before(value = "MyPointcut()")
-	public void beforeAdvise(){
+	public void beforeAdvise(JoinPoint jpt){
+		System.out.printf("args : "+ Arrays.asList(jpt.getArgs()));
 		System.out.println("before advise");
 	}
 
