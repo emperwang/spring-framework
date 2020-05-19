@@ -77,22 +77,22 @@ import org.springframework.util.Assert;
 public abstract class TransactionSynchronizationManager {
 
 	private static final Log logger = LogFactory.getLog(TransactionSynchronizationManager.class);
-
+	// 存储数据库连接到当前的线程中, key为datasource, value为 connectionHolder
 	private static final ThreadLocal<Map<Object, Object>> resources =
 			new NamedThreadLocal<>("Transactional resources");
-
+	// 记录当前线程同步中的事务,如 嵌入事务 request_new事务等，此时一个线程中就会有多个事务
 	private static final ThreadLocal<Set<TransactionSynchronization>> synchronizations =
 			new NamedThreadLocal<>("Transaction synchronizations");
-
+	// 存放当前事务的名字,一般是全限定类型 + "." + 方法名
 	private static final ThreadLocal<String> currentTransactionName =
 			new NamedThreadLocal<>("Current transaction name");
-
+	// 当前线程对应的事务是否是只读的
 	private static final ThreadLocal<Boolean> currentTransactionReadOnly =
 			new NamedThreadLocal<>("Current transaction read-only status");
-
+	// 当前线程的事务的隔离级别
 	private static final ThreadLocal<Integer> currentTransactionIsolationLevel =
 			new NamedThreadLocal<>("Current transaction isolation level");
-
+	// 当前线程持有的是否是否已经开始
 	private static final ThreadLocal<Boolean> actualTransactionActive =
 			new NamedThreadLocal<>("Actual transaction active");
 
@@ -177,14 +177,18 @@ public abstract class TransactionSynchronizationManager {
 	public static void bindResource(Object key, Object value) throws IllegalStateException {
 		Object actualKey = TransactionSynchronizationUtils.unwrapResourceIfNecessary(key);
 		Assert.notNull(value, "Value must not be null");
+		// 获取当前线程保存的数据库连接的map
 		Map<Object, Object> map = resources.get();
 		// set ThreadLocal Map if none found
+		// 如果map为null, 则创建一个新的
 		if (map == null) {
 			map = new HashMap<>();
 			resources.set(map);
 		}
+		// 把当前的连接放入
 		Object oldValue = map.put(actualKey, value);
 		// Transparently suppress a ResourceHolder that was marked as void...
+		// isVoid 为true, 标识进行过unbound操作
 		if (oldValue instanceof ResourceHolder && ((ResourceHolder) oldValue).isVoid()) {
 			oldValue = null;
 		}

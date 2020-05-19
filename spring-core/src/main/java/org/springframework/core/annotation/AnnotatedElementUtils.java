@@ -1104,6 +1104,7 @@ public abstract class AnnotatedElementUtils {
 		if (visited.add(element)) {
 			try {
 				// Locally declared annotations (ignoring @Inherited)
+				// 第一步: 先从分析本方法上的注解信息
 				Annotation[] annotations = AnnotationUtils.getDeclaredAnnotations(element);
 				if (annotations.length > 0) {
 					List<T> aggregatedResults = (processor.aggregates() ? new ArrayList<>() : null);

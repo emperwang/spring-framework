@@ -181,6 +181,7 @@ public abstract class DataSourceUtils {
 				if (logger.isDebugEnabled()) {
 					logger.debug("Setting JDBC Connection [" + con + "] read-only");
 				}
+				// 如果设置了可读, 那么就设置数据库连接的属性为可读
 				con.setReadOnly(true);
 			}
 			catch (SQLException | RuntimeException ex) {
@@ -204,13 +205,15 @@ public abstract class DataSourceUtils {
 				logger.debug("Changing isolation level of JDBC Connection [" + con + "] to " +
 						definition.getIsolationLevel());
 			}
+			// 获取当前设置的各级级别
 			int currentIsolation = con.getTransactionIsolation();
+			// 如果设置的各级级别和默认的隔离级别不一样,就会更新当前的隔离级别,并设置到数据库连接上
 			if (currentIsolation != definition.getIsolationLevel()) {
 				previousIsolationLevel = currentIsolation;
 				con.setTransactionIsolation(definition.getIsolationLevel());
 			}
 		}
-
+		// 返回当前设置的隔离级别
 		return previousIsolationLevel;
 	}
 

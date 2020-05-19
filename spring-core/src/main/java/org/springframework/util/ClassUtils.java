@@ -1044,6 +1044,7 @@ public abstract class ClassUtils {
 	 * @return the qualified name of the method
 	 * @since 4.3.4
 	 */
+	// 返回全限定 类名 +"." + method name
 	public static String getQualifiedMethodName(Method method, @Nullable Class<?> clazz) {
 		Assert.notNull(method, "Method must not be null");
 		return (clazz != null ? clazz : method.getDeclaringClass()).getName() + '.' + method.getName();

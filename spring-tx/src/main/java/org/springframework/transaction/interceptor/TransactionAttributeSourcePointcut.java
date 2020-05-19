@@ -32,16 +32,22 @@ import org.springframework.util.ObjectUtils;
  * @author Juergen Hoeller
  * @since 2.5.5
  */
+// TransactionAttributeSourcePointcut 主要用来判断一个class或method是否需要进行事务的代理创建
 @SuppressWarnings("serial")
 abstract class TransactionAttributeSourcePointcut extends StaticMethodMatcherPointcut implements Serializable {
 
+	// 通过此方法来判断一个class或method是否需要进行事务的代理创建
 	@Override
 	public boolean matches(Method method, Class<?> targetClass) {
+		// 如果是TransactionalProxy  PlatformTransactionManager  PersistenceExceptionTranslator类型,不需要
 		if (TransactionalProxy.class.isAssignableFrom(targetClass) ||
 				PlatformTransactionManager.class.isAssignableFrom(targetClass) ||
 				PersistenceExceptionTranslator.class.isAssignableFrom(targetClass)) {
 			return false;
 		}
+		// 获取TransactionAttributeSource
+		// todo tas.getTransactionAttribute 重要  重要  重要
+		// tas.getTransactionAttribute通过此方法类解析注解信息,以及判断方法或类是否需要进行代理创建
 		TransactionAttributeSource tas = getTransactionAttributeSource();
 		return (tas == null || tas.getTransactionAttribute(method, targetClass) != null);
 	}

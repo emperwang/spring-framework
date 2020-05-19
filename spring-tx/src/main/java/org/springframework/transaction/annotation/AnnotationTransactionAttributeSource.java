@@ -143,6 +143,7 @@ public class AnnotationTransactionAttributeSource extends AbstractFallbackTransa
 		return determineTransactionAttribute(clazz);
 	}
 
+	// 获取特定方法的有关事务的属性信息
 	@Override
 	@Nullable
 	protected TransactionAttribute findTransactionAttribute(Method method) {
@@ -159,6 +160,8 @@ public class AnnotationTransactionAttributeSource extends AbstractFallbackTransa
 	 * @param element the annotated method or class
 	 * @return the configured transaction attribute, or {@code null} if none was found
 	 */
+	// 使用注册好的解析器去解析事务信息; 不同的解析器解析不同的配置,如:注解配置, xml配置
+	// 这里咱们分析注解配置
 	@Nullable
 	protected TransactionAttribute determineTransactionAttribute(AnnotatedElement element) {
 		for (TransactionAnnotationParser annotationParser : this.annotationParsers) {
