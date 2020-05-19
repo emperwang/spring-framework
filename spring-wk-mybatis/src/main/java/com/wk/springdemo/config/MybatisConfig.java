@@ -8,7 +8,9 @@ import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
+import org.springframework.jdbc.datasource.DataSourceTransactionManager;
 import org.springframework.jdbc.datasource.DriverManagerDataSource;
+import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 
 import javax.sql.DataSource;
@@ -16,11 +18,12 @@ import javax.sql.DataSource;
 @Configuration
 @MapperScan(basePackages = {"com.wk.springdemo.mapper"})
 @ComponentScan(value = {"com.wk.springdemo.service"})
-//@EnableTransactionManagement
+@EnableTransactionManagement
 public class MybatisConfig {
 	//private String MapperLocation = "classpath: /*Mapper.xml";
 	private String MapperLocation = "classpath:/mapper/*.xml";
 
+	// 数据源
 	@Bean
 	public DataSource dataSource(){
 		DriverManagerDataSource dataSource = new DriverManagerDataSource();
@@ -31,6 +34,7 @@ public class MybatisConfig {
 		return dataSource;
 	}
 
+	// sqlsessionfactory
 	@Bean("sqlSessionFactory")
 	public SqlSessionFactory sqlSessionFactory() throws Exception {
 		PathMatchingResourcePatternResolver patternResolver = new PathMatchingResourcePatternResolver();
@@ -38,5 +42,13 @@ public class MybatisConfig {
 		sessionFactoryBean.setDataSource(dataSource());
 		sessionFactoryBean.setMapperLocations(patternResolver.getResources(MapperLocation));
 		return sessionFactoryBean.getObject();
+	}
+
+	// 事务管理器
+	@Bean
+	public PlatformTransactionManager transactionManager(){
+		DataSourceTransactionManager transactionManager = new DataSourceTransactionManager();
+		transactionManager.setDataSource(dataSource());
+		return transactionManager;
 	}
 }
