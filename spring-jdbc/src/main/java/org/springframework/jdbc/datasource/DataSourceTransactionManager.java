@@ -231,11 +231,14 @@ public class DataSourceTransactionManager extends AbstractPlatformTransactionMan
 	public Object getResourceFactory() {
 		return obtainDataSource();
 	}
-
+	// 真正获取事务的操作
 	@Override
 	protected Object doGetTransaction() {
+		// DataSourceTransactionObject是对ConnectionHolder的进一步封装
 		DataSourceTransactionObject txObject = new DataSourceTransactionObject();
+		// 是否允许nest类型的事务创建savepoint
 		txObject.setSavepointAllowed(isNestedTransactionAllowed());
+		// 从threadLocal中去后去ConnectionHolder, ConnectionHolder封装了数据库连接
 		ConnectionHolder conHolder =
 				(ConnectionHolder) TransactionSynchronizationManager.getResource(obtainDataSource());
 		txObject.setConnectionHolder(conHolder, false);
@@ -314,11 +317,12 @@ public class DataSourceTransactionManager extends AbstractPlatformTransactionMan
 			throw new CannotCreateTransactionException("Could not open JDBC Connection for transaction", ex);
 		}
 	}
-
+	// 挂起当前事务
 	@Override
 	protected Object doSuspend(Object transaction) {
 		DataSourceTransactionObject txObject = (DataSourceTransactionObject) transaction;
 		txObject.setConnectionHolder(null);
+		// 挂起事务,也就是把事务资源从threadLocal中删除
 		return TransactionSynchronizationManager.unbindResource(obtainDataSource());
 	}
 

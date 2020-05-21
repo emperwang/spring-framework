@@ -428,7 +428,9 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 	@Override
 	public Object applyBeanPostProcessorsBeforeInitialization(Object existingBean, String beanName)
 			throws BeansException {
-
+		/**
+		 * InitDestroyAnnotationBeanPostProcessor 处理PostConstruct 和 PreDestroy注解的方法
+		 */
 		Object result = existingBean;
 		for (BeanPostProcessor processor : getBeanPostProcessors()) {
 			Object current = processor.postProcessBeforeInitialization(result, beanName);
@@ -521,6 +523,7 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 		try {
 			/**
 			 *  具体创建实例的方法
+			 *  1. 调用MergedBeanDefinitionPostProcessor-->postProcessMergedBeanDefinition 进行父子bean信息的合并
 			 */
 			Object beanInstance = doCreateBean(beanName, mbdToUse, args);
 			if (logger.isTraceEnabled()) {
@@ -1811,12 +1814,22 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 		if (mbd == null || !mbd.isSynthetic()) {
 			/**
 			 *  回调beanPostProcessor方法,也就是初始化前的回调
+			 *  在这里会调用postconstruct注解的初始化方法.
+			 *
+			 *  那也就是说方法调用顺序:
+			 *  1.PostConstruct注解的方法
+			 *  2. InitializingBean.afterPropertiesSet
+			 *  3. init-method
 			 */
 			wrappedBean = applyBeanPostProcessorsBeforeInitialization(wrappedBean, beanName);
 		}
 
 		try {
-			// 调用初始化方法
+			/**
+			 * 调用初始化方法
+			 * 	1. 先调用InitializingBean接口的初始化方法 .afterPropertiesSet
+			 * 	2. 调用 init-method 的初始化方法
+			 */
 			invokeInitMethods(beanName, wrappedBean, mbd);
 		}
 		catch (Throwable ex) {

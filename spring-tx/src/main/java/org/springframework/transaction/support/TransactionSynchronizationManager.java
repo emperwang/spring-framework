@@ -211,6 +211,7 @@ public abstract class TransactionSynchronizationManager {
 	 */
 	public static Object unbindResource(Object key) throws IllegalStateException {
 		Object actualKey = TransactionSynchronizationUtils.unwrapResourceIfNecessary(key);
+		// 把资源从当前线程的threadLocal中删除
 		Object value = doUnbindResource(actualKey);
 		if (value == null) {
 			throw new IllegalStateException(
@@ -232,6 +233,7 @@ public abstract class TransactionSynchronizationManager {
 
 	/**
 	 * Actually remove the value of the resource that is bound for the given key.
+	 *  解绑资源, 也就是把资源从threadLocal中删除
 	 */
 	@Nullable
 	private static Object doUnbindResource(Object actualKey) {
