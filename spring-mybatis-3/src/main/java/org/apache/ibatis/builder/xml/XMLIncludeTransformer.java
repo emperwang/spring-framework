@@ -42,11 +42,12 @@ public class XMLIncludeTransformer {
     this.configuration = configuration;
     this.builderAssistant = builderAssistant;
   }
-
+	// 主要是把sql语句中的include节点解析
   public void applyIncludes(Node source) {
     Properties variablesContext = new Properties();
     Properties configurationVariables = configuration.getVariables();
     Optional.ofNullable(configurationVariables).ifPresent(variablesContext::putAll);
+    // 解析include 节点
     applyIncludes(source, variablesContext, false);
   }
 
@@ -59,7 +60,9 @@ public class XMLIncludeTransformer {
    *          Current context for static variables with values
    */
   private void applyIncludes(Node source, final Properties variablesContext, boolean included) {
+  	// 处理include节点
     if (source.getNodeName().equals("include")) {
+    	// 获取此include包含的sql语句段
       Node toInclude = findSqlFragment(getStringAttribute(source, "refid"), variablesContext);
       Properties toIncludeContext = getVariablesContext(source, variablesContext);
       applyIncludes(toInclude, toIncludeContext, true);
@@ -71,6 +74,7 @@ public class XMLIncludeTransformer {
         toInclude.getParentNode().insertBefore(toInclude.getFirstChild(), toInclude);
       }
       toInclude.getParentNode().removeChild(toInclude);
+      // 普通节点
     } else if (source.getNodeType() == Node.ELEMENT_NODE) {
       if (included && !variablesContext.isEmpty()) {
         // replace variables in attribute values

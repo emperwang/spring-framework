@@ -80,6 +80,8 @@ public class XMLMapperBuilder extends BaseBuilder {
       configurationElement(parser.evalNode("/mapper"));
       // 解析完后,把此mapper添加到已解析的容器中,以防多次解析
       configuration.addLoadedResource(resource);
+      	//1. 记录加载的namespace
+		//2. 记录创建此mapper及其代理的工厂类
       bindMapperForNamespace();
     }
 
@@ -116,7 +118,7 @@ public class XMLMapperBuilder extends BaseBuilder {
       throw new BuilderException("Error parsing Mapper XML. The XML location is '" + resource + "'. Cause: " + e, e);
     }
   }
-
+	// 创建statement
   private void buildStatementFromContext(List<XNode> list) {
     if (configuration.getDatabaseId() != null) {
       buildStatementFromContext(list, configuration.getDatabaseId());
@@ -418,6 +420,7 @@ public class XMLMapperBuilder extends BaseBuilder {
     if (namespace != null) {
       Class<?> boundType = null;
       try {
+      	// 加载namespace对应的class
         boundType = Resources.classForName(namespace);
       } catch (ClassNotFoundException e) {
         // ignore, bound type is not required
@@ -426,7 +429,11 @@ public class XMLMapperBuilder extends BaseBuilder {
         // Spring may not know the real resource name so we set a flag
         // to prevent loading again this resource from the mapper interface
         // look at MapperAnnotationBuilder#loadXmlResource
-        configuration.addLoadedResource("namespace:" + namespace);
+        // 记录加载的namespace
+		  configuration.addLoadedResource("namespace:" + namespace);
+        // mapperRegistry在其中记录此class，及其对应的MapperProxyFactory
+		  // knownMappers.put(type, new MapperProxyFactory<>(type)) 在mapper
+		  // 简单说就是 记录创建此mapper对应实例的代理类工厂
         configuration.addMapper(boundType);
       }
     }

@@ -42,7 +42,7 @@ public class XMLScriptBuilder extends BaseBuilder {
   public XMLScriptBuilder(Configuration configuration, XNode context) {
     this(configuration, context, null);
   }
-
+	// 解析mapper.xml文件中的脚本
   public XMLScriptBuilder(Configuration configuration, XNode context, Class<?> parameterType) {
     super(configuration);
     this.context = context;
@@ -50,7 +50,7 @@ public class XMLScriptBuilder extends BaseBuilder {
     initNodeHandlerMap();
   }
 
-
+	// 提前初始化了解析各种标签的handler
   private void initNodeHandlerMap() {
     nodeHandlerMap.put("trim", new TrimHandler());
     nodeHandlerMap.put("where", new WhereHandler());
@@ -64,11 +64,14 @@ public class XMLScriptBuilder extends BaseBuilder {
   }
 
   public SqlSource parseScriptNode() {
+  	// 解析动态标签
     MixedSqlNode rootSqlNode = parseDynamicTags(context);
     SqlSource sqlSource;
     if (isDynamic) {
+    	// 解析动态标签
       sqlSource = new DynamicSqlSource(configuration, rootSqlNode);
     } else {
+    	// 创建原始sql
       sqlSource = new RawSqlSource(configuration, rootSqlNode, parameterType);
     }
     return sqlSource;

@@ -31,9 +31,11 @@ import java.util.List;
  * @author Jeff Butler
  */
 public class SelectKeyGenerator implements KeyGenerator {
-
+	// 命令前缀
   public static final String SELECT_KEY_SUFFIX = "!selectKey";
+  // 执行的顺序,在前还是在后
   private final boolean executeBefore;
+  // 查询主键的statement
   private final MappedStatement keyStatement;
 
   public SelectKeyGenerator(MappedStatement keyStatement, boolean executeBefore) {
@@ -54,7 +56,7 @@ public class SelectKeyGenerator implements KeyGenerator {
       processGeneratedKeys(executor, ms, parameter);
     }
   }
-
+	// 具体获取主键的操作
   private void processGeneratedKeys(Executor executor, MappedStatement ms, Object parameter) {
     try {
       if (parameter != null && keyStatement != null && keyStatement.getKeyProperties() != null) {
@@ -63,7 +65,9 @@ public class SelectKeyGenerator implements KeyGenerator {
         final MetaObject metaParam = configuration.newMetaObject(parameter);
         // Do not close keyExecutor.
         // The transaction will be closed by parent executor.
+		  // 获取执行器
         Executor keyExecutor = configuration.newExecutor(executor.getTransaction(), ExecutorType.SIMPLE);
+        // 执行主键的查询操作
         List<Object> values = keyExecutor.query(keyStatement, parameter, RowBounds.DEFAULT, Executor.NO_RESULT_HANDLER);
         if (values.size() == 0) {
           throw new ExecutorException("SelectKey returned no data.");

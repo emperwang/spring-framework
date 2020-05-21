@@ -37,7 +37,12 @@ import static org.springframework.util.Assert.notNull;
  * @see SqlSessionTemplate
  */
 public abstract class SqlSessionDaoSupport extends DaoSupport {
-
+	/**
+	 * todo 注意此sqlSessionTemplate的创建比较特殊
+	 * 首先MapperFactoryBean是SqlSessionDaoSupport的子类,而MapperFactoryBean的beanDefinition在创建时
+	 * 就添加了两个属性变量一个是addToConfig  另一个是SqlSessionFactory, 因为有这两个属性变量,所以在populate bean的属性时,就会调用
+	 * setSqlSessionFactory(SqlSessionFactory sqlSessionFactory)方法,也就会创建此sqlSessionTemplate bean.
+	 */
   private SqlSessionTemplate sqlSessionTemplate;
 
   /**

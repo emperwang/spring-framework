@@ -42,12 +42,12 @@ public class MapperProxyFactory<T> {
   public Map<Method, MapperMethodInvoker> getMethodCache() {
     return methodCache;
   }
-
+	// 创建mapper文件的代理
   @SuppressWarnings("unchecked")
   protected T newInstance(MapperProxy<T> mapperProxy) {
     return (T) Proxy.newProxyInstance(mapperInterface.getClassLoader(), new Class[] { mapperInterface }, mapperProxy);
   }
-
+	// MapperProxy是mapper代理的拦截器方法
   public T newInstance(SqlSession sqlSession) {
     final MapperProxy<T> mapperProxy = new MapperProxy<>(sqlSession, mapperInterface, methodCache);
     return newInstance(mapperProxy);

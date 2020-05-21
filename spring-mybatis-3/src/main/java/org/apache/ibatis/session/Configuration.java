@@ -125,7 +125,7 @@ public class Configuration {
    * @see <a href='https://code.google.com/p/mybatis/issues/detail?id=300'>Issue 300 (google code)</a>
    */
   protected Class<?> configurationFactory;
-  // 对于配置文件中配置的Mapper,拦截器, typeHandler, typeAlias都是在保存在这里
+  // 记录mapper文件及其对应的代理工厂类
   protected final MapperRegistry mapperRegistry = new MapperRegistry(this);
   protected final InterceptorChain interceptorChain = new InterceptorChain();
   protected final TypeHandlerRegistry typeHandlerRegistry = new TypeHandlerRegistry(this);
@@ -795,7 +795,7 @@ public class Configuration {
   public void addMappers(String packageName) {
     mapperRegistry.addMappers(packageName);
   }
-
+	// 记录创建mapper的及其对应的代理工厂类
   public <T> void addMapper(Class<T> type) {
     mapperRegistry.addMapper(type);
   }
