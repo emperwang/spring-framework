@@ -57,9 +57,16 @@ public class SimpleExecutor extends BaseExecutor {
   public <E> List<E> doQuery(MappedStatement ms, Object parameter, RowBounds rowBounds, ResultHandler resultHandler, BoundSql boundSql) throws SQLException {
     Statement stmt = null;
     try {
+    	// 获取configuration
       Configuration configuration = ms.getConfiguration();
-      StatementHandler handler = configuration.newStatementHandler(wrapper, ms, parameter, rowBounds, resultHandler, boundSql);
-      stmt = prepareStatement(handler, ms.getStatementLog());
+		/**
+		 *  根据ms.getStatementType类型,创建sql执行的statement,默认是PREPARED, 也可以设置为STATEMENT和CALLABLE
+		 *  并应用拦截器到此handler上
+		 */
+		StatementHandler handler = configuration.newStatementHandler(wrapper, ms, parameter, rowBounds, resultHandler, boundSql);
+      // todo  设置connection的超时时间
+		stmt = prepareStatement(handler, ms.getStatementLog());
+		// 数据的查询
       return handler.query(stmt, resultHandler);
     } finally {
       closeStatement(stmt);

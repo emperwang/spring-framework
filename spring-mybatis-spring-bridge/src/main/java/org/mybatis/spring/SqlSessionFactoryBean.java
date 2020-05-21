@@ -486,7 +486,9 @@ public class SqlSessionFactoryBean
     notNull(sqlSessionFactoryBuilder, "Property 'sqlSessionFactoryBuilder' is required");
     state((configuration == null && configLocation == null) || !(configuration != null && configLocation != null),
         "Property 'configuration' and 'configLocation' can not specified with together");
-
+	  /**
+	   * 进行初始化时,就创建SqlSessionFactory
+	   */
     this.sqlSessionFactory = buildSqlSessionFactory();
   }
 
@@ -501,11 +503,15 @@ public class SqlSessionFactoryBean
    * @throws Exception
    *           if configuration is failed
    */
+	/**
+	 * buildSqlSessionFactory 创建SqlSessionFactory
+	 */
   protected SqlSessionFactory buildSqlSessionFactory() throws Exception {
 
     final Configuration targetConfiguration;
 
     XMLConfigBuilder xmlConfigBuilder = null;
+    // 如果已经存在了configuration, 当然此时第一次进入,肯定是为null的
     if (this.configuration != null) {
       targetConfiguration = this.configuration;
       if (targetConfiguration.getVariables() == null) {
@@ -513,16 +519,19 @@ public class SqlSessionFactoryBean
       } else if (this.configurationProperties != null) {
         targetConfiguration.getVariables().putAll(this.configurationProperties);
       }
+      // 如果指定了mybatis-config.xml配置文件的位置
+		// 就创建一个xmlConfigBuilder类用来对config文件的解析
     } else if (this.configLocation != null) {
       xmlConfigBuilder = new XMLConfigBuilder(this.configLocation.getInputStream(), null, this.configurationProperties);
       targetConfiguration = xmlConfigBuilder.getConfiguration();
     } else {
       LOGGER.debug(
           () -> "Property 'configuration' or 'configLocation' not specified, using default MyBatis Configuration");
+      // 如果不存在configuration也没有指定配置文件位置,那么就创建一个
       targetConfiguration = new Configuration();
       Optional.ofNullable(this.configurationProperties).ifPresent(targetConfiguration::setVariables);
     }
-
+	// 下面的Optional都是对configuration类中的属性进行设置
     Optional.ofNullable(this.objectFactory).ifPresent(targetConfiguration::setObjectFactory);
     Optional.ofNullable(this.objectWrapperFactory).ifPresent(targetConfiguration::setObjectWrapperFactory);
     Optional.ofNullable(this.vfs).ifPresent(targetConfiguration::setVfsImpl);
@@ -580,7 +589,7 @@ public class SqlSessionFactoryBean
     }
 
     Optional.ofNullable(this.cache).ifPresent(targetConfiguration::addCache);
-
+    // 如果指定了mybatis-config.xml配置文件的话,那么在此处会进行分析
     if (xmlConfigBuilder != null) {
       try {
         xmlConfigBuilder.parse();
@@ -591,11 +600,11 @@ public class SqlSessionFactoryBean
         ErrorContext.instance().reset();
       }
     }
-
+	// 创建数据库环境, 此处使用的应该是SpringManagedTransactionFactory
     targetConfiguration.setEnvironment(new Environment(this.environment,
         this.transactionFactory == null ? new SpringManagedTransactionFactory() : this.transactionFactory,
         this.dataSource));
-
+	// 如果指定了mapper.xml配置,在此处就要进行解析了
     if (this.mapperLocations != null) {
       if (this.mapperLocations.length == 0) {
         LOGGER.warn(() -> "Property 'mapperLocations' was specified but matching resources are not found.");
@@ -605,8 +614,10 @@ public class SqlSessionFactoryBean
             continue;
           }
           try {
+          	// 创建XMLMapperBuilder对象,来对mapper文件进行解析
             XMLMapperBuilder xmlMapperBuilder = new XMLMapperBuilder(mapperLocation.getInputStream(),
                 targetConfiguration, mapperLocation.toString(), targetConfiguration.getSqlFragments());
+            // todo 重要 具体mapper.xml解析的动作
             xmlMapperBuilder.parse();
           } catch (Exception e) {
             throw new NestedIOException("Failed to parse mapping resource: '" + mapperLocation + "'", e);

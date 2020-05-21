@@ -16,6 +16,7 @@ import org.springframework.transaction.annotation.EnableTransactionManagement;
 import javax.sql.DataSource;
 
 @Configuration
+// 扫描mapper的接口,并注册到容器中
 @MapperScan(basePackages = {"com.wk.springdemo.mapper"})
 @ComponentScan(value = {"com.wk.springdemo.service"})
 @EnableTransactionManagement

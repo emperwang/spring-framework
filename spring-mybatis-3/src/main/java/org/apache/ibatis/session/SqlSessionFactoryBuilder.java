@@ -89,8 +89,9 @@ public class SqlSessionFactoryBuilder {
       }
     }
   }
-
+	// 创建SqlSesionFactory
   public SqlSessionFactory build(Configuration config) {
+	// 由此可见创建的是DefaultSqlSessionFactory
     return new DefaultSqlSessionFactory(config);
   }
 

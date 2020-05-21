@@ -93,9 +93,9 @@ public final class SqlSessionUtils {
 
     notNull(sessionFactory, NO_SQL_SESSION_FACTORY_SPECIFIED);
     notNull(executorType, NO_EXECUTOR_TYPE_SPECIFIED);
-
+	// TransactionSynchronizationManager.getResource此方法很熟悉了, spring的管理threadLocal中事务资源的方法
     SqlSessionHolder holder = (SqlSessionHolder) TransactionSynchronizationManager.getResource(sessionFactory);
-
+	// 获取threadLocal中的sqlsession
     SqlSession session = sessionHolder(executorType, holder);
     if (session != null) {
       return session;
@@ -155,7 +155,7 @@ public final class SqlSessionUtils {
     }
 
   }
-
+	// 获取当前线程中的sqlsession
   private static SqlSession sessionHolder(ExecutorType executorType, SqlSessionHolder holder) {
     SqlSession session = null;
     if (holder != null && holder.isSynchronizedWithTransaction()) {
@@ -163,7 +163,7 @@ public final class SqlSessionUtils {
         throw new TransientDataAccessResourceException(
             "Cannot change the ExecutorType when there is an existing transaction");
       }
-
+		// 统计数据的增加
       holder.requested();
 
       LOGGER.debug(() -> "Fetched SqlSession [" + holder.getSqlSession() + "] from current transaction");

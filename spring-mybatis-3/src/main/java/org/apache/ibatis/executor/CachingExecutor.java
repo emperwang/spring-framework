@@ -35,6 +35,9 @@ import java.util.List;
 public class CachingExecutor implements Executor {
 
   private final Executor delegate;
+  // 防止脏读的实现。
+	// 简单说 就是在一个事务期间的操作,并不会放到缓存中,只有当事务提交后,才会把此事务期间的指放到缓存
+	// 而事务期间没有放大缓存的对象,都放在了 tcm中的容器中
   private final TransactionalCacheManager tcm = new TransactionalCacheManager();
 
   public CachingExecutor(Executor delegate) {
@@ -80,21 +83,30 @@ public class CachingExecutor implements Executor {
 
   @Override
   public <E> List<E> query(MappedStatement ms, Object parameterObject, RowBounds rowBounds, ResultHandler resultHandler) throws SQLException {
-    BoundSql boundSql = ms.getBoundSql(parameterObject);
+    // 获取此statement绑定的sql
+  	BoundSql boundSql = ms.getBoundSql(parameterObject);
+  	// 创建缓存key
     CacheKey key = createCacheKey(ms, parameterObject, rowBounds, boundSql);
+    // 查询
     return query(ms, parameterObject, rowBounds, resultHandler, key, boundSql);
   }
 
   @Override
   public <E> List<E> query(MappedStatement ms, Object parameterObject, RowBounds rowBounds, ResultHandler resultHandler, CacheKey key, BoundSql boundSql)
       throws SQLException {
+  	// 看看此statement是否有缓存
     Cache cache = ms.getCache();
+    // 有缓存的情况
+	  // 此为二级缓存
     if (cache != null) {
+    	// 是否需要flush缓存
       flushCacheIfRequired(ms);
       if (ms.isUseCache() && resultHandler == null) {
         ensureNoOutParams(ms, boundSql);
+        // 查看缓存中是否有要查询的值,有则直接返回
         @SuppressWarnings("unchecked")
         List<E> list = (List<E>) tcm.getObject(cache, key);
+        // 如果缓存中没有,则从数据库中进行查询,并放到tcm缓存中
         if (list == null) {
           list = delegate.query(ms, parameterObject, rowBounds, resultHandler, key, boundSql);
           tcm.putObject(cache, key, list); // issue #578 and #116
@@ -102,6 +114,8 @@ public class CachingExecutor implements Executor {
         return list;
       }
     }
+    // 没有缓存则直接进行查询.
+	  // 此处的delegate其实就是Simple执行器
     return delegate.query(ms, parameterObject, rowBounds, resultHandler, key, boundSql);
   }
 
@@ -156,7 +170,7 @@ public class CachingExecutor implements Executor {
   public void clearLocalCache() {
     delegate.clearLocalCache();
   }
-
+	// 如果需要刷新缓存，则清空缓存的内容
   private void flushCacheIfRequired(MappedStatement ms) {
     Cache cache = ms.getCache();
     if (cache != null && ms.isFlushCacheRequired()) {

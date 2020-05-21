@@ -176,36 +176,49 @@ public class ClassPathMapperScanner extends ClassPathBeanDefinitionScanner {
    * Calls the parent search that will search and register all the candidates. Then the registered objects are post
    * processed to set them as MapperFactoryBeans
    */
+  // todo 扫描接口文件
   @Override
   public Set<BeanDefinitionHolder> doScan(String... basePackages) {
+  	// 调用父类的扫描器,进行扫描. 获取到对应package下的文件
     Set<BeanDefinitionHolder> beanDefinitions = super.doScan(basePackages);
 
     if (beanDefinitions.isEmpty()) {
       LOGGER.warn(() -> "No MyBatis mapper was found in '" + Arrays.toString(basePackages)
           + "' package. Please check your configuration.");
     } else {
+    	// todo 重要 重要  重要
+		/**
+		 * 此processBeanDefinitions处理,把注册的接口文件的beanDefinition信息进行了修改,把beanClass修改为MapperFactoryBean.class,
+		 * 并把原来的bean的全限定类名设置为了参数, 以此来达到了接口文件能进行初始化的假象
+		 */
       processBeanDefinitions(beanDefinitions);
     }
 
     return beanDefinitions;
   }
-
+	// todo 偷梁换柱大法.....
   private void processBeanDefinitions(Set<BeanDefinitionHolder> beanDefinitions) {
     GenericBeanDefinition definition;
+    // 遍历package下的所有的mapper接口文件,来进行处理
     for (BeanDefinitionHolder holder : beanDefinitions) {
+    	// 获取到此bean的beanDefinition
       definition = (GenericBeanDefinition) holder.getBeanDefinition();
+      // 获取到bean的全限定类名
       String beanClassName = definition.getBeanClassName();
       LOGGER.debug(() -> "Creating MapperFactoryBean with name '" + holder.getBeanName() + "' and '" + beanClassName
           + "' mapperInterface");
 
       // the mapper interface is the original class of the bean
       // but, the actual class of the bean is MapperFactoryBean
+		// 添加一个构造器参数, 参数是原来的beanClass全限定类名
       definition.getConstructorArgumentValues().addGenericArgumentValue(beanClassName); // issue #59
+		// todo 重点  重点  重点------偷梁换柱的具体操作就是这句话
       definition.setBeanClass(this.mapperFactoryBeanClass);
-
+		// 添加一个属性
       definition.getPropertyValues().add("addToConfig", this.addToConfig);
 
       boolean explicitFactoryUsed = false;
+      // 是否判断是否在注解中 设置了  SqlSessionFactory的信息
       if (StringUtils.hasText(this.sqlSessionFactoryBeanName)) {
         definition.getPropertyValues().add("sqlSessionFactory",
             new RuntimeBeanReference(this.sqlSessionFactoryBeanName));

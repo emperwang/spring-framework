@@ -49,6 +49,7 @@ public abstract class SqlSessionDaoSupport extends DaoSupport {
    */
   public void setSqlSessionFactory(SqlSessionFactory sqlSessionFactory) {
     if (this.sqlSessionTemplate == null || sqlSessionFactory != this.sqlSessionTemplate.getSqlSessionFactory()) {
+    	// 创建sqlSessionTemplate
       this.sqlSessionTemplate = createSqlSessionTemplate(sqlSessionFactory);
     }
   }
@@ -67,6 +68,7 @@ public abstract class SqlSessionDaoSupport extends DaoSupport {
    */
   @SuppressWarnings("WeakerAccess")
   protected SqlSessionTemplate createSqlSessionTemplate(SqlSessionFactory sqlSessionFactory) {
+  	// sqlSessiontemplate的创建
     return new SqlSessionTemplate(sqlSessionFactory);
   }
 

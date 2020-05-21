@@ -51,6 +51,7 @@ public abstract class BaseExecutor implements Executor {
   protected Executor wrapper;
 
   protected ConcurrentLinkedQueue<DeferredLoad> deferredLoads;
+  // 一级缓存的实现
   protected PerpetualCache localCache;
   protected PerpetualCache localOutputParameterCache;
   protected Configuration configuration;
@@ -140,15 +141,19 @@ public abstract class BaseExecutor implements Executor {
       throw new ExecutorException("Executor was closed.");
     }
     if (queryStack == 0 && ms.isFlushCacheRequired()) {
+    	// 清空缓存的操作
       clearLocalCache();
     }
     List<E> list;
     try {
       queryStack++;
+      // 从一级缓存中查询
       list = resultHandler == null ? (List<E>) localCache.getObject(key) : null;
+      // 如果一级缓存存在,则处理
       if (list != null) {
         handleLocallyCachedOutputParameters(ms, key, parameter, boundSql);
       } else {
+      	// 一级缓存中不存在,则从数据库中查找
         list = queryFromDatabase(ms, parameter, rowBounds, resultHandler, key, boundSql);
       }
     } finally {
@@ -313,17 +318,21 @@ public abstract class BaseExecutor implements Executor {
       }
     }
   }
-
+	// 数据库的查询动作
   private <E> List<E> queryFromDatabase(MappedStatement ms, Object parameter, RowBounds rowBounds, ResultHandler resultHandler, CacheKey key, BoundSql boundSql) throws SQLException {
     List<E> list;
+    // 现在一级缓存占据一个位置
     localCache.putObject(key, EXECUTION_PLACEHOLDER);
     try {
       list = doQuery(ms, parameter, rowBounds, resultHandler, boundSql);
     } finally {
+    	//
       localCache.removeObject(key);
     }
+    // 结果放入一级缓存
     localCache.putObject(key, list);
     if (ms.getStatementType() == StatementType.CALLABLE) {
+    	// 缓存参数
       localOutputParameterCache.putObject(key, parameter);
     }
     return list;

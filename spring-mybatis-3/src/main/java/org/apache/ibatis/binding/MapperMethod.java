@@ -54,6 +54,10 @@ public class MapperMethod {
     this.method = new MethodSignature(config, mapperInterface, method);
   }
 
+    /**根据是sql的类型 insert update来执行不同的操作, 可以看到所有的操作是委托SqlSession来执行的
+	 * 而此处的sqlsession就是sqlsessionTemplate,通过前面的代码了解到sqlSessionTemplate是委托sqlSession的代理类来执行具体的操作
+	 * 也就是说,此处的sql语句的执行,最终还是委托到sqlSession的那个代理类来执行
+	 */
   public Object execute(SqlSession sqlSession, Object[] args) {
     Object result;
     switch (command.getType()) {

@@ -76,12 +76,18 @@ public class MapperProxy<T> implements InvocationHandler, Serializable {
     lookupConstructor = lookup;
   }
 
+	/**
+	 * 当调用此mapper接口的方法时.会进入到此方法
+	 */
   @Override
   public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
     try {
       if (Object.class.equals(method.getDeclaringClass())) {
         return method.invoke(this, args);
       } else {
+      	// cachedInvoker看一下此实现
+		  // 获取到PlainMethodInvoker, 然后调用此实例的invoke方法
+		  // 之后调用MapperMethod的execute方法
         return cachedInvoker(method).invoke(proxy, method, args, sqlSession);
       }
     } catch (Throwable t) {
@@ -104,6 +110,8 @@ public class MapperProxy<T> implements InvocationHandler, Serializable {
             throw new RuntimeException(e);
           }
         } else {
+        	// 走这里
+			// MapperMethod来获取此方法对应的SqlCommand  以及  MethodSignature
           return new PlainMethodInvoker(new MapperMethod(mapperInterface, method, sqlSession.getConfiguration()));
         }
       });

@@ -45,6 +45,7 @@ import java.util.Map;
  *
  * @author Clinton Begin
  */
+// 此类是具体执行sql语句的类
 public class DefaultSqlSession implements SqlSession {
 
   private final Configuration configuration;
@@ -143,7 +144,9 @@ public class DefaultSqlSession implements SqlSession {
   @Override
   public <E> List<E> selectList(String statement, Object parameter, RowBounds rowBounds) {
     try {
+    	// 获取方法对应的statement
       MappedStatement ms = configuration.getMappedStatement(statement);
+      // 使用执行器进行具体的sql的执行
       return executor.query(ms, wrapCollection(parameter), rowBounds, Executor.NO_RESULT_HANDLER);
     } catch (Exception e) {
       throw ExceptionFactory.wrapException("Error querying database.  Cause: " + e, e);

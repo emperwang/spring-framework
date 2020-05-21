@@ -39,6 +39,7 @@ public class XMLMapperBuilder extends BaseBuilder {
 
   private final XPathParser parser;
   private final MapperBuilderAssistant builderAssistant;
+  // 记录mapper文件中sql片段的, key为namespace+"."+id
   private final Map<String, XNode> sqlFragments;
   private final String resource;
 
@@ -71,11 +72,13 @@ public class XMLMapperBuilder extends BaseBuilder {
     this.sqlFragments = sqlFragments;
     this.resource = resource;
   }
-
+  // 解析mapper.xml文件
   public void parse() {
+  	// 查看此mapper文件是否已经解析,如果没有解析的话,那么就进行解析
     if (!configuration.isResourceLoaded(resource)) {
       // 具体解析mapper文件
       configurationElement(parser.evalNode("/mapper"));
+      // 解析完后,把此mapper添加到已解析的容器中,以防多次解析
       configuration.addLoadedResource(resource);
       bindMapperForNamespace();
     }
@@ -91,12 +94,16 @@ public class XMLMapperBuilder extends BaseBuilder {
 
   private void configurationElement(XNode context) {
     try {
+    	// 获取namespace节点内容,此内容就是对应接口类的全限定类名
       String namespace = context.getStringAttribute("namespace");
       if (namespace == null || namespace.isEmpty()) {
         throw new BuilderException("Mapper's namespace cannot be empty");
       }
+      // 记录全限定类名
       builderAssistant.setCurrentNamespace(namespace);
+      // 解析cache-ref
       cacheRefElement(context.evalNode("cache-ref"));
+      // 解析cache
       cacheElement(context.evalNode("cache"));
       parameterMapElement(context.evalNodes("/mapper/parameterMap"));
       // 解析resultMap节点
@@ -176,6 +183,7 @@ public class XMLMapperBuilder extends BaseBuilder {
 
   private void cacheRefElement(XNode context) {
     if (context != null) {
+    	// 记录namespace和cache的实现类
       configuration.addCacheRef(builderAssistant.getCurrentNamespace(), context.getStringAttribute("namespace"));
       CacheRefResolver cacheRefResolver = new CacheRefResolver(builderAssistant, context.getStringAttribute("namespace"));
       try {
@@ -322,6 +330,7 @@ public class XMLMapperBuilder extends BaseBuilder {
     return builderAssistant.buildDiscriminator(resultType, column, javaTypeClass, jdbcTypeEnum, typeHandlerClass, discriminatorMap);
   }
 
+  // 解析mapper.xml文件中的sql片段
   private void sqlElement(List<XNode> list) {
     if (configuration.getDatabaseId() != null) {
       sqlElement(list, configuration.getDatabaseId());
@@ -333,8 +342,10 @@ public class XMLMapperBuilder extends BaseBuilder {
     for (XNode context : list) {
       String databaseId = context.getStringAttribute("databaseId");
       String id = context.getStringAttribute("id");
+      // applyCurrentNamespace就会把id转换为namespace+"."+id
       id = builderAssistant.applyCurrentNamespace(id, false);
       if (databaseIdMatchesCurrent(id, databaseId, requiredDatabaseId)) {
+      	// 把此sql片段保存起来,key为namespace+"."+id
         sqlFragments.put(id, context);
       }
     }

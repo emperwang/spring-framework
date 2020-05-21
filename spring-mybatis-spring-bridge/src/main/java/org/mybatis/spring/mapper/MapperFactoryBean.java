@@ -51,6 +51,7 @@ import static org.springframework.util.Assert.notNull;
  *
  * @see SqlSessionTemplate
  */
+// 此类实现了FactoryBean, 那么实例化时,就会调用getObject方法类获取具体要创建的实例
 public class MapperFactoryBean<T> extends SqlSessionDaoSupport implements FactoryBean<T> {
 
   private Class<T> mapperInterface;
@@ -90,6 +91,7 @@ public class MapperFactoryBean<T> extends SqlSessionDaoSupport implements Factor
   /**
    * {@inheritDoc}
    */
+  // 创建bean的实例
   @Override
   public T getObject() throws Exception {
     return getSqlSession().getMapper(this.mapperInterface);

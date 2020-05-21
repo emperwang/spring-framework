@@ -120,6 +120,8 @@ public class SqlSessionTemplate implements SqlSession, DisposableBean {
     this.sqlSessionFactory = sqlSessionFactory;
     this.executorType = executorType;
     this.exceptionTranslator = exceptionTranslator;
+    // todo 注意这里 注意 注意  这里为SqlSession类创建了一个代理类, 代理方法为SqlSessionInterceptor
+	  // 可以看到此SqlSessionTemplate的具体的select操作调用的都是sqlSessionProxy, 那就是说,最终调用的是SqlSessionInterceptor方法
     this.sqlSessionProxy = (SqlSession) newProxyInstance(SqlSessionFactory.class.getClassLoader(),
         new Class[] { SqlSession.class }, new SqlSessionInterceptor());
   }
@@ -410,18 +412,28 @@ public class SqlSessionTemplate implements SqlSession, DisposableBean {
    * unwraps exceptions thrown by {@code Method#invoke(Object, Object...)} to pass a {@code PersistenceException} to the
    * {@code PersistenceExceptionTranslator}.
    */
-  private class SqlSessionInterceptor implements InvocationHandler {
+	/**
+	 * todo 重要  重要  重要
+	 * 所有的sql执行, 都会执行到此代理方法来执行
+	 */
+	private class SqlSessionInterceptor implements InvocationHandler {
     @Override
     public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
-      SqlSession sqlSession = getSqlSession(SqlSessionTemplate.this.sqlSessionFactory,
+		/**
+		 * todo  获取sqlsession, 为啥mybatis和spring整合后线程安全了呢?就在这里,sqlSession使用threadLocal来进行保存
+		 */
+		SqlSession sqlSession = getSqlSession(SqlSessionTemplate.this.sqlSessionFactory,
           SqlSessionTemplate.this.executorType, SqlSessionTemplate.this.exceptionTranslator);
       try {
+      	// 此处就执行到DefaultSqlSession
         Object result = method.invoke(sqlSession, args);
+        // 如果spring中没有事务,那么就执行进行提交操作了
         if (!isSqlSessionTransactional(sqlSession, SqlSessionTemplate.this.sqlSessionFactory)) {
           // force commit even on non-dirty sessions because some databases require
           // a commit/rollback before calling close()
           sqlSession.commit(true);
         }
+        // 返回执行的结果
         return result;
       } catch (Throwable t) {
         Throwable unwrapped = unwrapThrowable(t);

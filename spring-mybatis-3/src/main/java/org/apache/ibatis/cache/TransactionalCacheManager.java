@@ -23,6 +23,7 @@ import java.util.Map;
 /**
  * @author Clinton Begin
  */
+// todo 此类事防止脏读的主要类
 public class TransactionalCacheManager {
 
   private final Map<Cache, TransactionalCache> transactionalCaches = new HashMap<>();

@@ -337,7 +337,7 @@ public class MapperScannerConfigurer
     if (this.processPropertyPlaceHolders) {
       processPropertyPlaceHolders();
     }
-
+	// 创建此ClassPathMapperScanner对象,来扫描对应包下面的文件,生成beanDefinition,并注册到容器中
     ClassPathMapperScanner scanner = new ClassPathMapperScanner(registry);
     scanner.setAddToConfig(this.addToConfig);
     scanner.setAnnotationClass(this.annotationClass);
