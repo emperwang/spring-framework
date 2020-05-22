@@ -145,6 +145,7 @@ public class ResolverUtil<T> {
   }
 
   /** The set of matches being accumulated. */
+  // 1. 存储制定package下的复合条件的包
   private Set<Class<? extends T>> matches = new HashSet<>();
 
   /**
@@ -249,6 +250,7 @@ public class ResolverUtil<T> {
     try {
       List<String> children = VFS.getInstance().list(path);
       for (String child : children) {
+      	// 可以看到此方法匹配class文件
         if (child.endsWith(".class")) {
           addIfMatching(test, child);
         }

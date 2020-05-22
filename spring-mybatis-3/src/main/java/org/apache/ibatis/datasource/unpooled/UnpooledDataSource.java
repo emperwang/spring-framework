@@ -35,6 +35,7 @@ public class UnpooledDataSource implements DataSource {
 
   private ClassLoader driverClassLoader;
   private Properties driverProperties;
+  // 记录实例化的数据库驱动
   private static Map<String, Driver> registeredDrivers = new ConcurrentHashMap<>();
 
   private String driver;
@@ -84,7 +85,7 @@ public class UnpooledDataSource implements DataSource {
     this.url = url;
     this.driverProperties = driverProperties;
   }
-
+	// 真正获取连接
   @Override
   public Connection getConnection() throws SQLException {
     return doGetConnection(username, password);
@@ -199,7 +200,7 @@ public class UnpooledDataSource implements DataSource {
   public void setDefaultNetworkTimeout(Integer defaultNetworkTimeout) {
     this.defaultNetworkTimeout = defaultNetworkTimeout;
   }
-
+	// 获取数据库连接
   private Connection doGetConnection(String username, String password) throws SQLException {
     Properties props = new Properties();
     if (driverProperties != null) {
@@ -211,20 +212,27 @@ public class UnpooledDataSource implements DataSource {
     if (password != null) {
       props.setProperty("password", password);
     }
+    // 获取数据库连接
     return doGetConnection(props);
   }
 
   private Connection doGetConnection(Properties properties) throws SQLException {
-    initializeDriver();
+    // 实例化数据库驱动
+  	initializeDriver();
+  	// 真正获取数据库连接
     Connection connection = DriverManager.getConnection(url, properties);
+    // 配置数据库连接
+	// timeout时间   各级级别  是否自动提交
     configureConnection(connection);
     return connection;
   }
-
+	// 先对数据库驱动做一些初始化
   private synchronized void initializeDriver() throws SQLException {
+  	// 查看此数据库的驱动是否已经注册
     if (!registeredDrivers.containsKey(driver)) {
       Class<?> driverType;
       try {
+      	// 没有注册,则进行一些注册
         if (driverClassLoader != null) {
           driverType = Class.forName(driver, true, driverClassLoader);
         } else {
@@ -232,7 +240,9 @@ public class UnpooledDataSource implements DataSource {
         }
         // DriverManager requires the driver to be loaded via the system ClassLoader.
         // http://www.kfu.com/~nsayer/Java/dyn-jdbc.html
+		  // 实例化数据库驱动
         Driver driverInstance = (Driver) driverType.getDeclaredConstructor().newInstance();
+        // 注册数据库驱动
         DriverManager.registerDriver(new DriverProxy(driverInstance));
         registeredDrivers.put(driver, driverInstance);
       } catch (Exception e) {

@@ -118,7 +118,7 @@ public class MetaObject {
       return objectWrapper.get(prop);
     }
   }
-
+	// 反射调用property的set方法,来进行值得设置
   public void setValue(String name, Object value) {
     PropertyTokenizer prop = new PropertyTokenizer(name);
     if (prop.hasNext()) {
@@ -133,6 +133,7 @@ public class MetaObject {
       }
       metaValue.setValue(prop.getChildren(), value);
     } else {
+    	// 设置property的是
       objectWrapper.set(prop, value);
     }
   }

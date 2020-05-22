@@ -65,7 +65,7 @@ public class DefaultSqlSession implements SqlSession {
   public DefaultSqlSession(Configuration configuration, Executor executor) {
     this(configuration, executor, false);
   }
-
+	// 查询一个
   @Override
   public <T> T selectOne(String statement) {
     return this.selectOne(statement, null);
@@ -288,7 +288,7 @@ public class DefaultSqlSession implements SqlSession {
   public Configuration getConfiguration() {
     return configuration;
   }
-
+	// 获取一个mapper
   @Override
   public <T> T getMapper(Class<T> type) {
     return configuration.getMapper(type, this);

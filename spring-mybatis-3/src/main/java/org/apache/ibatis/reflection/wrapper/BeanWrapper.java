@@ -52,6 +52,7 @@ public class BeanWrapper extends BaseWrapper {
       Object collection = resolveCollection(prop, object);
       setCollectionValue(prop, collection, value);
     } else {
+    	// 设置属性值
       setBeanProperty(prop, object, value);
     }
   }
@@ -167,12 +168,15 @@ public class BeanWrapper extends BaseWrapper {
       throw new ReflectionException("Could not get property '" + prop.getName() + "' from " + object.getClass() + ".  Cause: " + t.toString(), t);
     }
   }
-
+	// 通过反射调用来设置bean的指
   private void setBeanProperty(PropertyTokenizer prop, Object object, Object value) {
     try {
+    	// 返回反射方法
       Invoker method = metaClass.getSetInvoker(prop.getName());
+      // 组装参数
       Object[] params = {value};
       try {
+      	// 反射方法调用
         method.invoke(object, params);
       } catch (Throwable t) {
         throw ExceptionUtil.unwrapThrowable(t);

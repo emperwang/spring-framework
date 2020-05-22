@@ -34,6 +34,8 @@ public class StringTypeHandler extends BaseTypeHandler<String> {
   @Override
   public String getNullableResult(ResultSet rs, String columnName)
       throws SQLException {
+  	// ResultSet 熟悉不?  就是jdbc返回的数据库结果集
+	  // 从rs中获取第columeName对应的指
     return rs.getString(columnName);
   }
 

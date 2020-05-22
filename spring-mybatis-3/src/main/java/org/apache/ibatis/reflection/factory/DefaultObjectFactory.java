@@ -42,17 +42,19 @@ public class DefaultObjectFactory implements ObjectFactory, Serializable {
     // we know types are assignable
     return (T) instantiateClass(classToCreate, constructorArgTypes, constructorArgs);
   }
-
+	// 实例化 class对象
   private  <T> T instantiateClass(Class<T> type, List<Class<?>> constructorArgTypes, List<Object> constructorArgs) {
     try {
       Constructor<T> constructor;
       if (constructorArgTypes == null || constructorArgs == null) {
         constructor = type.getDeclaredConstructor();
         try {
+        	// 构造器创建对象
           return constructor.newInstance();
         } catch (IllegalAccessException e) {
           if (Reflector.canControlMemberAccessible()) {
             constructor.setAccessible(true);
+            // 通过构造器创建
             return constructor.newInstance();
           } else {
             throw e;

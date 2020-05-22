@@ -26,6 +26,7 @@ import java.util.concurrent.ConcurrentHashMap;
 /**
  * @author Lasse Voss
  */
+// 生成mapper接口实例的代理工厂类.
 public class MapperProxyFactory<T> {
 
   private final Class<T> mapperInterface;
@@ -48,6 +49,7 @@ public class MapperProxyFactory<T> {
     return (T) Proxy.newProxyInstance(mapperInterface.getClassLoader(), new Class[] { mapperInterface }, mapperProxy);
   }
 	// MapperProxy是mapper代理的拦截器方法
+	// 也就是说,mapper接口执行时,会执行MapperProxy此类中的invoke方法
   public T newInstance(SqlSession sqlSession) {
     final MapperProxy<T> mapperProxy = new MapperProxy<>(sqlSession, mapperInterface, methodCache);
     return newInstance(mapperProxy);

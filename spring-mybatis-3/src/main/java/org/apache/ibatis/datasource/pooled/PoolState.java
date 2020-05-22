@@ -21,19 +21,24 @@ import java.util.List;
 /**
  * @author Clinton Begin
  */
+// 对于数据的一些统计信息
 public class PoolState {
 
   protected PooledDataSource dataSource;
-
+	// 存储空闲连接
   protected final List<PooledConnection> idleConnections = new ArrayList<>();
+  // 存储活动中的连接
   protected final List<PooledConnection> activeConnections = new ArrayList<>();
+  // 获取连接的次数
   protected long requestCount = 0;
   protected long accumulatedRequestTime = 0;
   protected long accumulatedCheckoutTime = 0;
   protected long claimedOverdueConnectionCount = 0;
   protected long accumulatedCheckoutTimeOfOverdueConnections = 0;
   protected long accumulatedWaitTime = 0;
+  // 记录获取数据库连接时  等待的次数
   protected long hadToWaitCount = 0;
+  // 没有获取到数据库连接的次数
   protected long badConnectionCount = 0;
 
   public PoolState(PooledDataSource dataSource) {

@@ -116,6 +116,7 @@ public class XMLConfigBuilder extends BaseBuilder {
       reflectorFactoryElement(root.evalNode("reflectorFactory"));
       settingsElement(settings);
       // read it after objectFactory and objectWrapperFactory issue #631
+		// 解析数据库环境
       environmentsElement(root.evalNode("environments"));
       databaseIdProviderElement(root.evalNode("databaseIdProvider"));
       typeHandlerElement(root.evalNode("typeHandlers"));
@@ -288,12 +289,16 @@ public class XMLConfigBuilder extends BaseBuilder {
       for (XNode child : context.getChildren()) {
         String id = child.getStringAttribute("id");
         if (isSpecifiedEnvironment(id)) {
+        	// 解析transactionManager节点, 根据此配置来进行事务的创建,有JDBC  MANAGER SPRING(此用于和spring整合使用)
           TransactionFactory txFactory = transactionManagerElement(child.evalNode("transactionManager"));
+          // 获取要创建的数据库的类型
           DataSourceFactory dsFactory = dataSourceElement(child.evalNode("dataSource"));
           DataSource dataSource = dsFactory.getDataSource();
+          // 设置enviroment的事务以及数据源
           Environment.Builder environmentBuilder = new Environment.Builder(id)
               .transactionFactory(txFactory)
               .dataSource(dataSource);
+          // 保存数据库信息
           configuration.setEnvironment(environmentBuilder.build());
         }
       }
@@ -372,9 +377,9 @@ public class XMLConfigBuilder extends BaseBuilder {
     if (parent != null) {
       /**
        * 由此可见mapper的配置有四种: 第一个是使用 package配置,此配置的mapper接口和xml需要在同一个目录
-       * 第二种: resource 属性配置
-       * 第三种: url属性配置
-       * 第四种: class 属性配置
+       * 第二种: resource 属性配置 此种方法,不需要接口文件和mapper.xml文件同一个包,因为此是先分析mapper.xml文件,再根据namespace去加载clss
+       * 第三种: url属性配置 此方法和resource类似
+       * 第四种: class 属性配置 也需要和xml文件在同一个目录下
        */
       for (XNode child : parent.getChildren()) {
         if ("package".equals(child.getName())) {

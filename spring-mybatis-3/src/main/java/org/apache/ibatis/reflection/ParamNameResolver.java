@@ -44,8 +44,9 @@ public class ParamNameResolver {
    * <li>aMethod(int a, RowBounds rb, int b) -&gt; {{0, "0"}, {2, "1"}}</li>
    * </ul>
    */
+  // 存储方法的参数
   private final SortedMap<Integer, String> names;
-
+	// 是否有参数 注解
   private boolean hasParamAnnotation;
 
   public ParamNameResolver(Configuration config, Method method) {
@@ -119,8 +120,10 @@ public class ParamNameResolver {
       return null;
     } else if (!hasParamAnnotation && paramCount == 1) {
       Object value = args[names.firstKey()];
+      // 如果参数是map或者collection,则把参数包装为 map,否则直接返回 value
       return wrapToMapIfCollection(value, useActualParamName ? names.get(0) : null);
     } else {
+    	// 可以看到,当用户传入多个参数时,也是吧参数转换为map
       final Map<String, Object> param = new ParamMap<>();
       int i = 0;
       for (Map.Entry<Integer, String> entry : names.entrySet()) {
@@ -146,6 +149,7 @@ public class ParamNameResolver {
    * @return a {@link ParamMap}
    * @since 3.5.5
    */
+  // 如果参数类型是list或者collection 则把参数包装为map
   public static Object wrapToMapIfCollection(Object object, String actualParamName) {
     if (object instanceof Collection) {
       ParamMap<Object> map = new ParamMap<>();

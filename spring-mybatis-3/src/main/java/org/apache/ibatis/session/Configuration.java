@@ -105,6 +105,7 @@ public class Configuration {
   protected Integer defaultStatementTimeout;
   protected Integer defaultFetchSize;
   protected ResultSetType defaultResultSetType;
+  // 默认的执行器类型
   protected ExecutorType defaultExecutorType = ExecutorType.SIMPLE;
   protected AutoMappingBehavior autoMappingBehavior = AutoMappingBehavior.PARTIAL;
   protected AutoMappingUnknownColumnBehavior autoMappingUnknownColumnBehavior = AutoMappingUnknownColumnBehavior.NONE;
@@ -632,11 +633,14 @@ public class Configuration {
     } else if (ExecutorType.REUSE == executorType) {
       executor = new ReuseExecutor(this, transaction);
     } else {
+    	// 一般都使用这个simple执行器
       executor = new SimpleExecutor(this, transaction);
     }
+    // 如果有cahce的话,或对此executor进行包装一下
     if (cacheEnabled) {
       executor = new CachingExecutor(executor);
     }
+    // 对执行器设置拦截器
     executor = (Executor) interceptorChain.pluginAll(executor);
     return executor;
   }

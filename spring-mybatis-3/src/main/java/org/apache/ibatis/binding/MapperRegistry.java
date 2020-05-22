@@ -52,7 +52,7 @@ public class MapperRegistry {
   public <T> boolean hasMapper(Class<T> type) {
     return knownMappers.containsKey(type);
   }
-
+	// todo 这里可以看到,其实每一个mapper文件,就对应一个MapperProxyFactory,这样获取mapper对应的实例时,其实获取的就是MapperProxyFactory
   public <T> void addMapper(Class<T> type) {
     if (type.isInterface()) {
       if (hasMapper(type)) {
@@ -64,7 +64,10 @@ public class MapperRegistry {
         // It's important that the type is added before the parser is run
         // otherwise the binding may automatically be attempted by the
         // mapper parser. If the type is already known, it won't try.
+		  // 解析注解配置的信息
+		  // 也会解析package目录下对应的mapper.xml文件
         MapperAnnotationBuilder parser = new MapperAnnotationBuilder(config, type);
+        // 具体的解析操作
         parser.parse();
         loadCompleted = true;
       } finally {
@@ -94,10 +97,14 @@ public class MapperRegistry {
    *          the super type
    * @since 3.2.2
    */
+  // 把一个package下的类添加到mapper中
   public void addMappers(String packageName, Class<?> superType) {
     ResolverUtil<Class<?>> resolverUtil = new ResolverUtil<>();
+    // 查找一个package下的所有的class,查找方式:1.从jar包中查找; 2. 如果是file,就回去file中的entry数
     resolverUtil.find(new ResolverUtil.IsA(superType), packageName);
+    // 获取那些符合的class文件
     Set<Class<? extends Class<?>>> mapperSet = resolverUtil.getClasses();
+    // 遍历那些class文件, 添加到configuration中
     for (Class<?> mapperClass : mapperSet) {
       addMapper(mapperClass);
     }
@@ -110,6 +117,8 @@ public class MapperRegistry {
    *          the package name
    * @since 3.2.2
    */
+  // 添加packageName目录下,并且父类是Object的类到configuration中
+  // 注意:Object的子类,也就是所有的类
   public void addMappers(String packageName) {
     addMappers(packageName, Object.class);
   }

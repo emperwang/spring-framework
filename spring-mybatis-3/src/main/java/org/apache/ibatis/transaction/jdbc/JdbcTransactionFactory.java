@@ -35,7 +35,7 @@ public class JdbcTransactionFactory implements TransactionFactory {
   public Transaction newTransaction(Connection conn) {
     return new JdbcTransaction(conn);
   }
-
+	// 创建一个新事务
   @Override
   public Transaction newTransaction(DataSource ds, TransactionIsolationLevel level, boolean autoCommit) {
     return new JdbcTransaction(ds, level, autoCommit);

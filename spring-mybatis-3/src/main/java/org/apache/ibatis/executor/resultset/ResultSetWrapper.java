@@ -134,18 +134,26 @@ public class ResultSetWrapper {
   }
 
   private void loadMappedAndUnmappedColumnNames(ResultMap resultMap, String columnPrefix) throws SQLException {
-    List<String> mappedColumnNames = new ArrayList<>();
+    // 存储能够映射的列
+  	List<String> mappedColumnNames = new ArrayList<>();
+  	// 获取不能映射的列
     List<String> unmappedColumnNames = new ArrayList<>();
     final String upperColumnPrefix = columnPrefix == null ? null : columnPrefix.toUpperCase(Locale.ENGLISH);
+    // 获取resultMap设置的映射列
     final Set<String> mappedColumns = prependPrefixes(resultMap.getMappedColumns(), upperColumnPrefix);
+    // 遍历所有columne, 判断哪些列能够映射,哪些column不能映射
     for (String columnName : columnNames) {
       final String upperColumnName = columnName.toUpperCase(Locale.ENGLISH);
+      // 看查询到的列,是否包含resultMap中设置的列
+		// 如果包含,那么就是能映射的列
+		// 如果不包含,那么就不能映射
       if (mappedColumns.contains(upperColumnName)) {
         mappedColumnNames.add(upperColumnName);
       } else {
         unmappedColumnNames.add(columnName);
       }
     }
+    // 把能够映射的列 和  不能映射的列  存放到缓存中
     mappedColumnNamesMap.put(getMapKey(resultMap, columnPrefix), mappedColumnNames);
     unMappedColumnNamesMap.put(getMapKey(resultMap, columnPrefix), unmappedColumnNames);
   }
@@ -160,8 +168,11 @@ public class ResultSetWrapper {
   }
 
   public List<String> getUnmappedColumnNames(ResultMap resultMap, String columnPrefix) throws SQLException {
-    List<String> unMappedColumnNames = unMappedColumnNamesMap.get(getMapKey(resultMap, columnPrefix));
+    // 看看缓存中是否有
+	  // 缓存没有则创建
+  	List<String> unMappedColumnNames = unMappedColumnNamesMap.get(getMapKey(resultMap, columnPrefix));
     if (unMappedColumnNames == null) {
+    	// 加载能够映射和不能映射的列到缓存中
       loadMappedAndUnmappedColumnNames(resultMap, columnPrefix);
       unMappedColumnNames = unMappedColumnNamesMap.get(getMapKey(resultMap, columnPrefix));
     }

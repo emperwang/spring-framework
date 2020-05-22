@@ -50,19 +50,29 @@ public class MapperMethod {
   private final MethodSignature method;
 
   public MapperMethod(Class<?> mapperInterface, Method method, Configuration config) {
+  	// 根据配置, mapper接口,以及方法, 创建command
     this.command = new SqlCommand(config, mapperInterface, method);
+    // 创建方法签名
+	  // 主要是获取返回值  以及 对应的解析handler
     this.method = new MethodSignature(config, mapperInterface, method);
   }
 
-    /**根据是sql的类型 insert update来执行不同的操作, 可以看到所有的操作是委托SqlSession来执行的
+    /**
+	 * 第一种情况：和spring整合的情况
+	 * 根据是sql的类型 insert update来执行不同的操作, 可以看到所有的操作是委托SqlSession来执行的
 	 * 而此处的sqlsession就是sqlsessionTemplate,通过前面的代码了解到sqlSessionTemplate是委托sqlSession的代理类来执行具体的操作
 	 * 也就是说,此处的sql语句的执行,最终还是委托到sqlSession的那个代理类来执行
+	 *
+	 * 第二种情况：
+	 * mybatis自身执行
 	 */
   public Object execute(SqlSession sqlSession, Object[] args) {
     Object result;
     switch (command.getType()) {
       case INSERT: {
+      	// 把参数转换为sql中的参数
         Object param = method.convertArgsToSqlCommandParam(args);
+        // 具体的sql执行，以及解析返回值
         result = rowCountResult(sqlSession.insert(command.getName(), param));
         break;
       }
@@ -80,6 +90,7 @@ public class MapperMethod {
         if (method.returnsVoid() && method.hasResultHandler()) {
           executeWithResultHandler(sqlSession, args);
           result = null;
+          // 返回多个值
         } else if (method.returnsMany()) {
           result = executeForMany(sqlSession, args);
         } else if (method.returnsMap()) {
@@ -107,15 +118,19 @@ public class MapperMethod {
     }
     return result;
   }
-
+	// 处理插入数据的返回值
   private Object rowCountResult(int rowCount) {
     final Object result;
+    // 如果方法返回值为  void, 那么返回null
     if (method.returnsVoid()) {
       result = null;
+      // 返回integer类型
     } else if (Integer.class.equals(method.getReturnType()) || Integer.TYPE.equals(method.getReturnType())) {
       result = rowCount;
+      // 返回long类型
     } else if (Long.class.equals(method.getReturnType()) || Long.TYPE.equals(method.getReturnType())) {
       result = (long) rowCount;
+      // 返回boolean类型
     } else if (Boolean.class.equals(method.getReturnType()) || Boolean.TYPE.equals(method.getReturnType())) {
       result = rowCount > 0;
     } else {
@@ -143,7 +158,10 @@ public class MapperMethod {
 
   private <E> Object executeForMany(SqlSession sqlSession, Object[] args) {
     List<E> result;
+    // 把用户传入的参数转换为 sql命令的参数
+	  // 如果传递的是list或者collection或者多个参数这里就是把参数转换为map
     Object param = method.convertArgsToSqlCommandParam(args);
+    // 可以看到,rowBounds是 进行limit的限制
     if (method.hasRowBounds()) {
       RowBounds rowBounds = method.extractRowBounds(args);
       result = sqlSession.selectList(command.getName(), param, rowBounds);
@@ -228,6 +246,7 @@ public class MapperMethod {
     public SqlCommand(Configuration configuration, Class<?> mapperInterface, Method method) {
       final String methodName = method.getName();
       final Class<?> declaringClass = method.getDeclaringClass();
+      // 通过mapper接口以及方法名字,获取对应的statement
       MappedStatement ms = resolveMappedStatement(mapperInterface, methodName, declaringClass,
           configuration);
       if (ms == null) {
@@ -239,7 +258,9 @@ public class MapperMethod {
               + mapperInterface.getName() + "." + methodName);
         }
       } else {
+      	// 获取此statme的id,也就是 全限定类型+.+方法名
         name = ms.getId();
+        // 获取sql的类型
         type = ms.getSqlCommandType();
         if (type == SqlCommandType.UNKNOWN) {
           throw new BindingException("Unknown execution method for: " + name);
@@ -254,9 +275,10 @@ public class MapperMethod {
     public SqlCommandType getType() {
       return type;
     }
-
+	// 根据接口以及方法名字,具体来获取其对应的statement的方法
     private MappedStatement resolveMappedStatement(Class<?> mapperInterface, String methodName,
         Class<?> declaringClass, Configuration configuration) {
+    	// 获取statementid,就是 全限定类名+.+方法名
       String statementId = mapperInterface.getName() + "." + methodName;
       if (configuration.hasStatement(statementId)) {
         return configuration.getMappedStatement(statementId);
@@ -290,6 +312,7 @@ public class MapperMethod {
     private final ParamNameResolver paramNameResolver;
 
     public MethodSignature(Configuration configuration, Class<?> mapperInterface, Method method) {
+    	// 解析方法的返回值
       Type resolvedReturnType = TypeParameterResolver.resolveReturnType(method, mapperInterface);
       if (resolvedReturnType instanceof Class<?>) {
         this.returnType = (Class<?>) resolvedReturnType;
@@ -298,9 +321,13 @@ public class MapperMethod {
       } else {
         this.returnType = method.getReturnType();
       }
+      // 是否是返回void
       this.returnsVoid = void.class.equals(this.returnType);
+      // 是否是返回集合
       this.returnsMany = configuration.getObjectFactory().isCollection(this.returnType) || this.returnType.isArray();
+      // 是否返回Cursor
       this.returnsCursor = Cursor.class.equals(this.returnType);
+      // 返回optional
       this.returnsOptional = Optional.class.equals(this.returnType);
       this.mapKey = getMapKey(method);
       this.returnsMap = this.mapKey != null;

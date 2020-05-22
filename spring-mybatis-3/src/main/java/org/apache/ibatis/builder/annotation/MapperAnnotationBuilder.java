@@ -60,7 +60,7 @@ public class MapperAnnotationBuilder {
   private final Configuration configuration;
   private final MapperBuilderAssistant assistant;
   private final Class<?> type;
-
+	// 静态注册一些类型
   static {
     SQL_ANNOTATION_TYPES.add(Select.class);
     SQL_ANNOTATION_TYPES.add(Insert.class);
@@ -82,16 +82,22 @@ public class MapperAnnotationBuilder {
 
   public void parse() {
     String resource = type.toString();
+    // 判断此class对应的xml文件有没有加载
     if (!configuration.isResourceLoaded(resource)) {
+    	// 加载并解析此class对应的mapper.xml文件
       loadXmlResource();
+      // 记录加载的文件
       configuration.addLoadedResource(resource);
       assistant.setCurrentNamespace(type.getName());
+      // 解析注解 cache
       parseCache();
+      // 解析注解 cacheRef
       parseCacheRef();
       for (Method method : type.getMethods()) {
         if (!canHaveStatement(method)) {
           continue;
         }
+        // 解析注解resultMap
         if (getSqlCommandType(method) == SqlCommandType.SELECT && method.getAnnotation(ResultMap.class) == null) {
           parseResultMap(method);
         }
@@ -130,6 +136,8 @@ public class MapperAnnotationBuilder {
     // to prevent loading again a resource twice
     // this flag is set at XMLMapperBuilder#bindMapperForNamespace
     if (!configuration.isResourceLoaded("namespace:" + type.getName())) {
+    	// 可以看到这里加载xml文件时,就是把全限定类名的.替换为/,并添加.xml尾缀,来定位文件
+		// todo 所以这里就可以断定package的xml文件和mappe文件必须在同一个目录下
       String xmlResource = type.getName().replace('.', '/') + ".xml";
       // #1347
       InputStream inputStream = type.getResourceAsStream("/" + xmlResource);
@@ -142,6 +150,7 @@ public class MapperAnnotationBuilder {
         }
       }
       if (inputStream != null) {
+      	// xml文件的解析操作
         XMLMapperBuilder xmlParser = new XMLMapperBuilder(inputStream, assistant.getConfiguration(), xmlResource, configuration.getSqlFragments(), type.getName());
         xmlParser.parse();
       }

@@ -18,7 +18,9 @@ public class SourceStarter {
     SqlSessionFactory sessionFactory;
     Reader reader = Resources.getResourceAsReader("MyBatis-config.xml");
     // 创建sqlSessionFactory,在这里对xml文件进行了解析
+	  // 处理创建的sessionFacory,是DefaultSqlSessionFactory
     sessionFactory = new SqlSessionFactoryBuilder().build(reader);
+    // 这里进入DefaultSqlSessionFactory的方法
     SqlSession sqlSession = sessionFactory.openSession();
     UserMapper mapper = sqlSession.getMapper(UserMapper.class);
     User user = mapper.selectById(1);
