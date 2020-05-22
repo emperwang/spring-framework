@@ -869,6 +869,7 @@ public abstract class FrameworkServlet extends HttpServletBean implements Applic
 
 	/**
 	 * Override the parent class implementation in order to intercept PATCH requests.
+	 * 处理http请求的入口
 	 */
 	@Override
 	protected void service(HttpServletRequest request, HttpServletResponse response)
@@ -879,6 +880,8 @@ public abstract class FrameworkServlet extends HttpServletBean implements Applic
 			processRequest(request, response);
 		}
 		else {
+			// 如父类进行处理
+			// 到父类只是对不同的httpMethod的路由功能,如doGet,doPost等方法,还是调用到本类的doGet  doPost
 			super.service(request, response);
 		}
 	}
@@ -890,10 +893,12 @@ public abstract class FrameworkServlet extends HttpServletBean implements Applic
 	 * @see #doService
 	 * @see #doHead
 	 */
+	// 看到对于各种方法的处理,都会有processRequest类进行具体的处理
+	// 那继续看此方法
 	@Override
 	protected final void doGet(HttpServletRequest request, HttpServletResponse response)
 			throws ServletException, IOException {
-
+		// 继续处理请求的方法
 		processRequest(request, response);
 	}
 
@@ -984,24 +989,26 @@ public abstract class FrameworkServlet extends HttpServletBean implements Applic
 	 * <p>The actual event handling is performed by the abstract
 	 * {@link #doService} template method.
 	 */
+	// 具体处理请求
 	protected final void processRequest(HttpServletRequest request, HttpServletResponse response)
 			throws ServletException, IOException {
-
+		// 记录请求处理的开始时间
 		long startTime = System.currentTimeMillis();
 		Throwable failureCause = null;
-
+		// 此和国际化有关系
 		LocaleContext previousLocaleContext = LocaleContextHolder.getLocaleContext();
 		LocaleContext localeContext = buildLocaleContext(request);
-
+		//
 		RequestAttributes previousAttributes = RequestContextHolder.getRequestAttributes();
 		ServletRequestAttributes requestAttributes = buildRequestAttributes(request, response, previousAttributes);
-
+		// request的异步处理
 		WebAsyncManager asyncManager = WebAsyncUtils.getAsyncManager(request);
 		asyncManager.registerCallableInterceptor(FrameworkServlet.class.getName(), new RequestBindingInterceptor());
-
+		// 把上面获取的locale 和 requestAttributes放到threadLocal中
 		initContextHolders(request, localeContext, requestAttributes);
 
 		try {
+			// 继续处理
 			doService(request, response);
 		}
 		catch (ServletException | IOException ex) {
