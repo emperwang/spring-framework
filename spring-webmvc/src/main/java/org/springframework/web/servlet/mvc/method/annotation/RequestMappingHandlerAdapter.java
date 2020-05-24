@@ -562,14 +562,19 @@ public class RequestMappingHandlerAdapter extends AbstractHandlerMethodAdapter
 		initControllerAdviceCache();
 
 		if (this.argumentResolvers == null) {
+			// getDefaultArgumentResolvers 注册了各种处理器
+			// 如 @RequestBody
 			List<HandlerMethodArgumentResolver> resolvers = getDefaultArgumentResolvers();
 			this.argumentResolvers = new HandlerMethodArgumentResolverComposite().addResolvers(resolvers);
 		}
 		if (this.initBinderArgumentResolvers == null) {
+			// getDefaultInitBinderArgumentResolvers 各种参数绑定器
+			// 如 @Pathvariable
 			List<HandlerMethodArgumentResolver> resolvers = getDefaultInitBinderArgumentResolvers();
 			this.initBinderArgumentResolvers = new HandlerMethodArgumentResolverComposite().addResolvers(resolvers);
 		}
 		if (this.returnValueHandlers == null) {
+			// getDefaultReturnValueHandlers 参数返回值解析如 @Respnsebody的使用
 			List<HandlerMethodReturnValueHandler> handlers = getDefaultReturnValueHandlers();
 			this.returnValueHandlers = new HandlerMethodReturnValueHandlerComposite().addHandlers(handlers);
 		}
@@ -579,7 +584,7 @@ public class RequestMappingHandlerAdapter extends AbstractHandlerMethodAdapter
 		if (getApplicationContext() == null) {
 			return;
 		}
-
+		// 查找有ControllerAdvice注解的bean
 		List<ControllerAdviceBean> adviceBeans = ControllerAdviceBean.findAnnotatedBeans(getApplicationContext());
 		AnnotationAwareOrderComparator.sort(adviceBeans);
 
@@ -638,6 +643,7 @@ public class RequestMappingHandlerAdapter extends AbstractHandlerMethodAdapter
 	 * Return the list of argument resolvers to use including built-in resolvers
 	 * and custom resolvers provided via {@link #setCustomArgumentResolvers}.
 	 */
+	// 参数解析器
 	private List<HandlerMethodArgumentResolver> getDefaultArgumentResolvers() {
 		List<HandlerMethodArgumentResolver> resolvers = new ArrayList<>();
 
@@ -685,6 +691,7 @@ public class RequestMappingHandlerAdapter extends AbstractHandlerMethodAdapter
 	 * Return the list of argument resolvers to use for {@code @InitBinder}
 	 * methods including built-in and custom resolvers.
 	 */
+	// 参数 binder
 	private List<HandlerMethodArgumentResolver> getDefaultInitBinderArgumentResolvers() {
 		List<HandlerMethodArgumentResolver> resolvers = new ArrayList<>();
 
@@ -774,6 +781,7 @@ public class RequestMappingHandlerAdapter extends AbstractHandlerMethodAdapter
 		return true;
 	}
 
+	// 真正调用requestMapping 方法
 	@Override
 	protected ModelAndView handleInternal(HttpServletRequest request,
 			HttpServletResponse response, HandlerMethod handlerMethod) throws Exception {
@@ -796,6 +804,7 @@ public class RequestMappingHandlerAdapter extends AbstractHandlerMethodAdapter
 			}
 		}
 		else {
+			// 调用方法
 			// No synchronization on session demanded at all...
 			mav = invokeHandlerMethod(request, response, handlerMethod);
 		}
@@ -856,14 +865,17 @@ public class RequestMappingHandlerAdapter extends AbstractHandlerMethodAdapter
 		try {
 			WebDataBinderFactory binderFactory = getDataBinderFactory(handlerMethod);
 			ModelFactory modelFactory = getModelFactory(handlerMethod, binderFactory);
-
+   			// 把httpMethod封装为ServletInvocableHandlerMethod
 			ServletInvocableHandlerMethod invocableMethod = createInvocableHandlerMethod(handlerMethod);
 			if (this.argumentResolvers != null) {
+				// 设置参数解析器
 				invocableMethod.setHandlerMethodArgumentResolvers(this.argumentResolvers);
 			}
 			if (this.returnValueHandlers != null) {
+				// 设置返回值解析器
 				invocableMethod.setHandlerMethodReturnValueHandlers(this.returnValueHandlers);
 			}
+			// 解析init-binder的工厂
 			invocableMethod.setDataBinderFactory(binderFactory);
 			invocableMethod.setParameterNameDiscoverer(this.parameterNameDiscoverer);
 
@@ -871,7 +883,7 @@ public class RequestMappingHandlerAdapter extends AbstractHandlerMethodAdapter
 			mavContainer.addAllAttributes(RequestContextUtils.getInputFlashMap(request));
 			modelFactory.initModel(webRequest, mavContainer, invocableMethod);
 			mavContainer.setIgnoreDefaultModelOnRedirect(this.ignoreDefaultModelOnRedirect);
-
+			// 异步处理
 			AsyncWebRequest asyncWebRequest = WebAsyncUtils.createAsyncWebRequest(request, response);
 			asyncWebRequest.setTimeout(this.asyncRequestTimeout);
 
@@ -891,7 +903,7 @@ public class RequestMappingHandlerAdapter extends AbstractHandlerMethodAdapter
 				});
 				invocableMethod = invocableMethod.wrapConcurrentResult(result);
 			}
-
+			// 方法调用
 			invocableMethod.invokeAndHandle(webRequest, mavContainer);
 			if (asyncManager.isConcurrentHandlingStarted()) {
 				return null;

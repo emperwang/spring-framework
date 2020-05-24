@@ -100,6 +100,8 @@ public class ContextLoaderListener extends ContextLoader implements ServletConte
 	 */
 	@Override
 	public void contextInitialized(ServletContextEvent event) {
+		// 在监听器中创建root容器，也就是其他的业务bean存放
+		// 正常情况下,没有controller相关的bean
 		initWebApplicationContext(event.getServletContext());
 	}
 

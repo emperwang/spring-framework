@@ -11,7 +11,8 @@ public class WkSpringBootApplication {
 		tomcat.setPort(8080);
 		try {
 			//tomcat.addWebapp("//","E:\\code-workSpace\\gitHub\\spring-framework\\spring-wk-boot\\out\\production\\classes");
-			tomcat.addWebapp("//","D:\\");
+			tomcat.addWebapp("//","/Users/whitejenney/code_workspace/spring-framework/spring-wk-boot/build/classes");
+			//tomcat.addWebapp("//","D:\\");
 			tomcat.start();
 			tomcat.getServer().await();
 		} catch (ServletException e) {

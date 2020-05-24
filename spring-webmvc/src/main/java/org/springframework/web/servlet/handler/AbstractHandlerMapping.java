@@ -398,6 +398,7 @@ public abstract class AbstractHandlerMapping extends WebApplicationObjectSupport
 	@Override
 	@Nullable
 	public final HandlerExecutionChain getHandler(HttpServletRequest request) throws Exception {
+		// 根据request来找到对应的handler,也就是根据url去寻找 beanMatch的方法
 		Object handler = getHandlerInternal(request);
 		if (handler == null) {
 			handler = getDefaultHandler();
@@ -410,7 +411,7 @@ public abstract class AbstractHandlerMapping extends WebApplicationObjectSupport
 			String handlerName = (String) handler;
 			handler = obtainApplicationContext().getBean(handlerName);
 		}
-
+		// 如果找到了 handler, 那么也寻找适合此 handler的interceptor, 来创建此handler的调用链
 		HandlerExecutionChain executionChain = getHandlerExecutionChain(handler, request);
 
 		if (logger.isTraceEnabled()) {

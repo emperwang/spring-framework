@@ -196,6 +196,7 @@ public abstract class AbstractHandlerMethodMapping<T> extends AbstractHandlerMap
 	 */
 	@Override
 	public void afterPropertiesSet() {
+		// 初始化容器中的handler,也就是@Controller  @RequestMapping注册的bean
 		initHandlerMethods();
 	}
 
@@ -206,8 +207,11 @@ public abstract class AbstractHandlerMethodMapping<T> extends AbstractHandlerMap
 	 * @see #handlerMethodsInitialized
 	 */
 	protected void initHandlerMethods() {
+		// getCandidateBeanNames 获取容器中所有的bean的name
 		for (String beanName : getCandidateBeanNames()) {
 			if (!beanName.startsWith(SCOPED_TARGET_NAME_PREFIX)) {
+				// 对候选的bean进行处理
+				// todo 重要 重要 此函数处理完后,就会把 handler 和mapping的关系建立完毕
 				processCandidateBean(beanName);
 			}
 		}
@@ -240,6 +244,7 @@ public abstract class AbstractHandlerMethodMapping<T> extends AbstractHandlerMap
 	protected void processCandidateBean(String beanName) {
 		Class<?> beanType = null;
 		try {
+			// beanName对应的class类型
 			beanType = obtainApplicationContext().getType(beanName);
 		}
 		catch (Throwable ex) {
@@ -248,7 +253,9 @@ public abstract class AbstractHandlerMethodMapping<T> extends AbstractHandlerMap
 				logger.trace("Could not resolve type for bean '" + beanName + "'", ex);
 			}
 		}
+		// isHandler 是否是handler,也就是是否有controller  requestmapping 注解
 		if (beanType != null && isHandler(beanType)) {
+			// 如果此bean是handler,那么处理此bean对应的method
 			detectHandlerMethods(beanName);
 		}
 	}
@@ -277,6 +284,7 @@ public abstract class AbstractHandlerMethodMapping<T> extends AbstractHandlerMap
 			if (logger.isTraceEnabled()) {
 				logger.trace(formatMappings(userType, methods));
 			}
+			// 遍历所有方法,把 handler和mapping的映射关系保存起来
 			methods.forEach((method, mapping) -> {
 				Method invocableMethod = AopUtils.selectInvocableMethod(method, userType);
 				registerHandlerMethod(handler, invocableMethod, mapping);
