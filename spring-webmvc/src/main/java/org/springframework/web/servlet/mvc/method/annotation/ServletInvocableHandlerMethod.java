@@ -99,7 +99,8 @@ public class ServletInvocableHandlerMethod extends InvocableHandlerMethod {
 	// 调用requestMapping方法并使用HandlerMethodReturnValueHandler对返回值进行处理
 	public void invokeAndHandle(ServletWebRequest webRequest, ModelAndViewContainer mavContainer,
 			Object... providedArgs) throws Exception {
-		// 调用方法
+		// 1. 正常的http请求,调用controller方法
+		// 2. 统一异常处理时,调用异常的方法来处理exception
 		Object returnValue = invokeForRequest(webRequest, mavContainer, providedArgs);
 		setResponseStatus(webRequest);
 

@@ -130,9 +130,10 @@ public abstract class AbstractHandlerExceptionResolver implements HandlerExcepti
 	@Nullable
 	public ModelAndView resolveException(
 			HttpServletRequest request, HttpServletResponse response, @Nullable Object handler, Exception ex) {
-
+		// 判断此handler是否有对应的exceptionHandler来进行处理
 		if (shouldApplyTo(request, handler)) {
 			prepareResponse(ex, response);
+			// 调用exceptionHandler来对exception进行处理
 			ModelAndView result = doResolveException(request, response, handler, ex);
 			if (result != null) {
 				// Print warn message when warn logger is not enabled...

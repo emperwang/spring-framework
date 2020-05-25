@@ -52,7 +52,7 @@ public abstract class AbstractHandlerMethodExceptionResolver extends AbstractHan
 			return false;
 		}
 	}
-
+	// 对exception进行处理
 	@Override
 	@Nullable
 	protected final ModelAndView doResolveException(

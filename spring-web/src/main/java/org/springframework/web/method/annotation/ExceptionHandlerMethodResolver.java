@@ -60,8 +60,12 @@ public class ExceptionHandlerMethodResolver {
 	 * @param handlerType the type to introspect
 	 */
 	public ExceptionHandlerMethodResolver(Class<?> handlerType) {
+		// MethodIntrospector.selectMethods找到此class有ExceptionHandler注解的方法
 		for (Method method : MethodIntrospector.selectMethods(handlerType, EXCEPTION_HANDLER_METHODS)) {
+			 // detectExceptionMappings 获取到方法中设置的全部的exception
 			for (Class<? extends Throwable> exceptionType : detectExceptionMappings(method)) {
+				// 添加exception到此method的映射关系,如果出现此异常,那么就执行此方法来进行处理
+				// 记录在mappedMethods
 				addExceptionMapping(exceptionType, method);
 			}
 		}
@@ -75,6 +79,7 @@ public class ExceptionHandlerMethodResolver {
 	@SuppressWarnings("unchecked")
 	private List<Class<? extends Throwable>> detectExceptionMappings(Method method) {
 		List<Class<? extends Throwable>> result = new ArrayList<>();
+		// 获取到ExceptionHandler注解中value的所有的值
 		detectAnnotationExceptionMappings(method, result);
 		if (result.isEmpty()) {
 			for (Class<?> paramType : method.getParameterTypes()) {
@@ -148,9 +153,12 @@ public class ExceptionHandlerMethodResolver {
 	 */
 	@Nullable
 	public Method resolveMethodByExceptionType(Class<? extends Throwable> exceptionType) {
+		// 先从exceptionLookupCache中来根据exception类型来查找对应的处理method
 		Method method = this.exceptionLookupCache.get(exceptionType);
 		if (method == null) {
+			// 如果没有找打,则再次根据exception类型去mappedMethods中进行查找
 			method = getMappedMethod(exceptionType);
+			// 然后把查找到关系放入到exceptionLookupCache中
 			this.exceptionLookupCache.put(exceptionType, method);
 		}
 		return method;
@@ -162,11 +170,13 @@ public class ExceptionHandlerMethodResolver {
 	@Nullable
 	private Method getMappedMethod(Class<? extends Throwable> exceptionType) {
 		List<Class<? extends Throwable>> matches = new ArrayList<>();
+		// 从mappedMethods找到所有可以处理此exception的method
 		for (Class<? extends Throwable> mappedException : this.mappedMethods.keySet()) {
 			if (mappedException.isAssignableFrom(exceptionType)) {
 				matches.add(mappedException);
 			}
 		}
+		// 此处ExceptionDepthComparator会根据抛出的exception来查找一个关系最近的一个handler来进行处理
 		if (!matches.isEmpty()) {
 			matches.sort(new ExceptionDepthComparator(exceptionType));
 			return this.mappedMethods.get(matches.get(0));

@@ -508,6 +508,10 @@ public class DispatcherServlet extends FrameworkServlet {
 		initHandlerMappings(context);
 		// 初始化HandlerAdapter
 		initHandlerAdapters(context);
+		// 初始化异常处理器
+		// 此处会在此类ExceptionHandlerExceptionResolver中进行如下:
+		// 1. controllerAdvice注解的bean的解析
+		// 2. requestBodyAdvice  responseBodyAdvice切面
 		initHandlerExceptionResolvers(context);
 		initRequestToViewNameTranslator(context);
 		initViewResolvers(context);
@@ -1076,7 +1080,7 @@ public class DispatcherServlet extends FrameworkServlet {
 				// making them available for @ExceptionHandler methods and other scenarios.
 				dispatchException = new NestedServletException("Handler dispatch failed", err);
 			}
-			// todo 统一异常处理
+			// todo 对modalAndView进行返回 或者 异常进行统一处理
 			processDispatchResult(processedRequest, response, mappedHandler, mv, dispatchException);
 		}
 		catch (Exception ex) {
@@ -1130,6 +1134,7 @@ public class DispatcherServlet extends FrameworkServlet {
 				mv = ((ModelAndViewDefiningException) exception).getModelAndView();
 			}
 			else {
+				// 统一异常处理
 				Object handler = (mappedHandler != null ? mappedHandler.getHandler() : null);
 				mv = processHandlerException(request, response, handler, exception);
 				errorView = (mv != null);
@@ -1137,6 +1142,7 @@ public class DispatcherServlet extends FrameworkServlet {
 		}
 
 		// Did the handler return a view to render?
+		// html的渲染
 		if (mv != null && !mv.wasCleared()) {
 			render(mv, request, response);
 			if (errorView) {
@@ -1153,7 +1159,7 @@ public class DispatcherServlet extends FrameworkServlet {
 			// Concurrent handling started during a forward
 			return;
 		}
-
+		// filter中的afterCompletion的执行
 		if (mappedHandler != null) {
 			mappedHandler.triggerAfterCompletion(request, response, null);
 		}
@@ -1310,6 +1316,7 @@ public class DispatcherServlet extends FrameworkServlet {
 	 * @return a corresponding ModelAndView to forward to
 	 * @throws Exception if no error ModelAndView found
 	 */
+	// 对异常的统一处理
 	@Nullable
 	protected ModelAndView processHandlerException(HttpServletRequest request, HttpServletResponse response,
 			@Nullable Object handler, Exception ex) throws Exception {
@@ -1319,6 +1326,7 @@ public class DispatcherServlet extends FrameworkServlet {
 
 		// Check registered HandlerExceptionResolvers...
 		ModelAndView exMv = null;
+		// 遍历异常的 handlerExceptionResolver 对异常进行处理
 		if (this.handlerExceptionResolvers != null) {
 			for (HandlerExceptionResolver resolver : this.handlerExceptionResolvers) {
 				exMv = resolver.resolveException(request, response, handler, ex);

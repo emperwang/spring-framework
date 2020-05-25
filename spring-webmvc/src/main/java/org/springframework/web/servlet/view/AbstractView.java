@@ -301,6 +301,7 @@ public abstract class AbstractView extends WebApplicationObjectSupport implement
 	 * Delegates to renderMergedOutputModel for the actual rendering.
 	 * @see #renderMergedOutputModel
 	 */
+	// render渲染,也就是把数据写入到response中,也就是写会到浏览器
 	@Override
 	public void render(@Nullable Map<String, ?> model, HttpServletRequest request,
 			HttpServletResponse response) throws Exception {
@@ -313,6 +314,7 @@ public abstract class AbstractView extends WebApplicationObjectSupport implement
 
 		Map<String, Object> mergedModel = createMergedOutputModel(model, request, response);
 		prepareResponse(request, response);
+		// 把数据写入到response
 		renderMergedOutputModel(mergedModel, getRequestToExpose(request), response);
 	}
 
