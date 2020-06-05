@@ -63,6 +63,7 @@ abstract class ConfigurationClassUtils {
 	private static final Set<String> candidateIndicators = new HashSet<>(8);
 
 	static {
+		// 静态块初始  要解析的类型
 		candidateIndicators.add(Component.class.getName());
 		candidateIndicators.add(ComponentScan.class.getName());
 		candidateIndicators.add(Import.class.getName());
@@ -99,6 +100,7 @@ abstract class ConfigurationClassUtils {
 			metadata = new StandardAnnotationMetadata(beanClass, true);
 		}
 		else {
+			// 获取注解信息
 			try {
 				MetadataReader metadataReader = metadataReaderFactory.getMetadataReader(className);
 				metadata = metadataReader.getAnnotationMetadata();
@@ -111,10 +113,13 @@ abstract class ConfigurationClassUtils {
 				return false;
 			}
 		}
-
+		// 判断类上是否有 configuration注解
+		// 有则设置对应的beanDefinition的配置属性
+		// full 属性为有 configuration注解
 		if (isFullConfigurationCandidate(metadata)) {
 			beanDef.setAttribute(CONFIGURATION_CLASS_ATTRIBUTE, CONFIGURATION_CLASS_FULL);
 		}
+		// lite 属性为有 component componentScan  import importResource 注解
 		else if (isLiteConfigurationCandidate(metadata)) {
 			beanDef.setAttribute(CONFIGURATION_CLASS_ATTRIBUTE, CONFIGURATION_CLASS_LITE);
 		}
@@ -123,8 +128,10 @@ abstract class ConfigurationClassUtils {
 		}
 
 		// It's a full or lite configuration candidate... Let's determine the order value, if any.
+		// 是否有 order排序的注解
 		Integer order = getOrder(metadata);
 		if (order != null) {
+			// 有则设置排序属性
 			beanDef.setAttribute(ORDER_ATTRIBUTE, order);
 		}
 
@@ -168,6 +175,7 @@ abstract class ConfigurationClassUtils {
 		}
 
 		// Any of the typical annotations found?
+		// 在此类上是否有 component componentScan import importResource的注解 信息,有则任务同样是配置类
 		for (String indicator : candidateIndicators) {
 			if (metadata.isAnnotated(indicator)) {
 				return true;
@@ -176,6 +184,7 @@ abstract class ConfigurationClassUtils {
 
 		// Finally, let's look for @Bean methods...
 		try {
+			// 判断方法上  是否有 bean注解,有也认为是配置类
 			return metadata.hasAnnotatedMethods(Bean.class.getName());
 		}
 		catch (Throwable ex) {
@@ -191,6 +200,7 @@ abstract class ConfigurationClassUtils {
 	 * class, through checking {@link #checkConfigurationClassCandidate}'s metadata marker.
 	 */
 	public static boolean isFullConfigurationClass(BeanDefinition beanDef) {
+		// 通过beanDefinition中的属性  来判断是否是 配置类
 		return CONFIGURATION_CLASS_FULL.equals(beanDef.getAttribute(CONFIGURATION_CLASS_ATTRIBUTE));
 	}
 
