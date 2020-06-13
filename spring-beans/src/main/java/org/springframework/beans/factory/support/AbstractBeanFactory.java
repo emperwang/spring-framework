@@ -369,17 +369,23 @@ public abstract class AbstractBeanFactory extends FactoryBeanRegistrySupport imp
 					// 真正从factoryBean获取实例的方法
 					bean = getObjectForBeanInstance(sharedInstance, name, beanName, mbd);
 				}
-
+				// 原型创建
 				else if (mbd.isPrototype()) {
 					// It's a prototype -> create a new instance.
 					Object prototypeInstance = null;
 					try {
+						// 创建前的操作
 						beforePrototypeCreation(beanName);
+						// 1. 创建bean实例
+						// 2. 组装bean的field
+						// 3. 调用postProcessor
 						prototypeInstance = createBean(beanName, mbd, args);
 					}
 					finally {
+						// 创建后的操作
 						afterPrototypeCreation(beanName);
 					}
+					// 如果上面创建的prototypeInstance是一个工厂,则调用此工厂来获取最终要得到的bean
 					bean = getObjectForBeanInstance(prototypeInstance, name, beanName, mbd);
 				}
 
