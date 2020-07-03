@@ -373,6 +373,8 @@ class ConstructorResolver {
 	 * method, or {@code null} if none (-> use constructor argument values from bean definition)
 	 * @return a BeanWrapper for the new instance
 	 */
+	// 1. 使用named factory method 实例化bean
+	// 2. 并注入参数
 	public BeanWrapper instantiateUsingFactoryMethod(
 			String beanName, RootBeanDefinition mbd, @Nullable Object[] explicitArgs) {
 
@@ -453,6 +455,7 @@ class ConstructorResolver {
 						mbd.constructorArgumentsResolved = true;
 						mbd.resolvedConstructorArguments = EMPTY_ARGS;
 					}
+					// instantiate 实例化bean的地方,调用factory method; 也就是调用具体创建bean实例的那个工厂方法
 					bw.setBeanInstance(instantiate(beanName, mbd, factoryBean, uniqueCandidate, EMPTY_ARGS));
 					return bw;
 				}
@@ -604,6 +607,7 @@ class ConstructorResolver {
 		}
 
 		Assert.state(argsToUse != null, "Unresolved factory method arguments");
+		// 调用工厂方法类,实例化bean
 		bw.setBeanInstance(instantiate(beanName, mbd, factoryBean, factoryMethodToUse, argsToUse));
 		return bw;
 	}
