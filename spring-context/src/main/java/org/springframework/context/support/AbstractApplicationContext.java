@@ -584,6 +584,7 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 				// Last step: publish corresponding event.
 				// 完成refresh
 				// 第十二步
+				// LifeCycle 的调用在这里
 				finishRefresh();
 			}
 
@@ -842,6 +843,8 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 	// 初始化Lifecycle类型的bean
 	protected void initLifecycleProcessor() {
 		ConfigurableListableBeanFactory beanFactory = getBeanFactory();
+		// 先看容器中是否有 LifeCycle processor(LifeCycle 处理器)
+		// 如果容器中已经存在,则使用已经存在的
 		if (beanFactory.containsLocalBean(LIFECYCLE_PROCESSOR_BEAN_NAME)) {
 			this.lifecycleProcessor =
 					beanFactory.getBean(LIFECYCLE_PROCESSOR_BEAN_NAME, LifecycleProcessor.class);
@@ -850,9 +853,13 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 			}
 		}
 		else {
+			// 如果容器中目前没有 LifeCycle 的处理器,则创建一个默认的: DefaultLifecycleProcessor
 			DefaultLifecycleProcessor defaultProcessor = new DefaultLifecycleProcessor();
+			// 记录bean工厂到 处理器中
 			defaultProcessor.setBeanFactory(beanFactory);
+			// 记录处理器
 			this.lifecycleProcessor = defaultProcessor;
+			// 把处理器注册到容器中
 			beanFactory.registerSingleton(LIFECYCLE_PROCESSOR_BEAN_NAME, this.lifecycleProcessor);
 			if (logger.isTraceEnabled()) {
 				logger.trace("No '" + LIFECYCLE_PROCESSOR_BEAN_NAME + "' bean, using " +
@@ -951,11 +958,14 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 		clearResourceCaches();
 
 		// Initialize lifecycle processor for this context.
-		// 初始化此上下文中Lifecycle类型的bean, 也就是在开始的阶段调用其start,stop阶段调用bean的stop方法
+		// 此处主要是获取 LifeCycle的处理器
+		// 1. 先去容器中获取,也就是说用户可以自定义,如果用户自定义了,则使用用户自己的
+		// 2. 如果用户没有自定义处理器,则创建一个默认的DefaultLifecycleProcessor
 		initLifecycleProcessor();
 
 		// Propagate refresh to lifecycle processor first.
 		// 重新调用一次Lifecycle类型bean的start方法
+		//
 		getLifecycleProcessor().onRefresh();
 
 		// Publish the final event.
