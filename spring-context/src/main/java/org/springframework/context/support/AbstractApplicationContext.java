@@ -162,6 +162,7 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 	protected final Log logger = LogFactory.getLog(getClass());
 
 	/** Unique id for this context, if any. */
+	// 对容器生成一个唯一标志位
 	private String id = ObjectUtils.identityToString(this);
 
 	/** Display name. */
@@ -176,6 +177,7 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 	private ConfigurableEnvironment environment;
 
 	/** BeanFactoryPostProcessors to apply on refresh. */
+	// 记录容器中所有的 BeanFactoryPostProcessor
 	private final List<BeanFactoryPostProcessor> beanFactoryPostProcessors = new ArrayList<>();
 
 	/** System time in milliseconds when this context started. */
@@ -214,6 +216,7 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 	private ApplicationEventMulticaster applicationEventMulticaster;
 
 	/** Statically specified listeners. */
+	// 存储容器中的 ApplicationListener 监听器
 	private final Set<ApplicationListener<?>> applicationListeners = new LinkedHashSet<>();
 
 	/** ApplicationEvents published early. */
@@ -355,6 +358,7 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 	 * @param event the event to publish (may be application-specific or a
 	 * standard framework event)
 	 */
+	// 发布事件到所有的listener
 	@Override
 	public void publishEvent(ApplicationEvent event) {
 		publishEvent(event, null);
@@ -380,6 +384,7 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 	 * @param eventType the resolved event type, if known
 	 * @since 4.2
 	 */
+	// 发布事件
 	protected void publishEvent(Object event, @Nullable ResolvableType eventType) {
 		Assert.notNull(event, "Event must not be null");
 
@@ -397,13 +402,16 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 
 		// Multicast right now if possible - or lazily once the multicaster is initialized
 		if (this.earlyApplicationEvents != null) {
+			// 暂时把事件存储起来
 			this.earlyApplicationEvents.add(applicationEvent);
 		}
 		else {
+			// 事件发布
 			getApplicationEventMulticaster().multicastEvent(applicationEvent, eventType);
 		}
 
 		// Publish event via parent context as well...
+		// 如果还有 父容器,则在父容器中也进行事件的分发
 		if (this.parent != null) {
 			if (this.parent instanceof AbstractApplicationContext) {
 				((AbstractApplicationContext) this.parent).publishEvent(event, eventType);
@@ -616,13 +624,14 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 	 * Prepare this context for refreshing, setting its startup date and
 	 * active flag as well as performing any initialization of property sources.
 	 */
+	// 准备进行容器刷新操作前的准备
 	protected void prepareRefresh() {
 		// 记录容器启动的时间
 		this.startupDate = System.currentTimeMillis();
 		// 设置容器的标志
 		this.closed.set(false);
 		this.active.set(true);
-
+		// 日志的打印
 		if (logger.isDebugEnabled()) {
 			if (logger.isTraceEnabled()) {
 				logger.trace("Refreshing " + this);
@@ -634,6 +643,7 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 
 		// Initialize any placeholder property sources in the context environment
 		// do nothing  此方法用于子类的扩展
+		// 对servlet中的 servletContextInitParams  servletConfigInitParams属性的配置
 		initPropertySources();
 
 		// Validate that all properties marked as required are resolvable
@@ -643,6 +653,7 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 
 		// Allow for the collection of early ApplicationEvents,
 		// to be published once the multicaster is available...
+		// applicationd的前期的事件, 此处创建了一个hashSet,用于存储事件
 		this.earlyApplicationEvents = new LinkedHashSet<>();
 	}
 
@@ -661,8 +672,12 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 	 * @see #refreshBeanFactory()
 	 * @see #getBeanFactory()
 	 */
+	// 获取 beanFactory,也就是bean容器
 	protected ConfigurableListableBeanFactory obtainFreshBeanFactory() {
+		// 刷新容器
+		// 也就是设置容器刷新的标志位
 		refreshBeanFactory();
+		// 获取beanFactory,就是获取创建好的 DefaultListableBeanFactory
 		return getBeanFactory();
 	}
 
@@ -675,7 +690,7 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 	// 1. 配置类加载器
 	// 2. 配置EL表达式解析器
 	// 3. 配置ResourceEditorRegistrar
-	// 4. 添加ApplicationContextAwareProcessor  ApplicationListenerDetector 后置处理器
+	// 4. 添加ApplicationContextAwareProcessor  ApplicationListenerDetector 后置处理器 以及各种 Aware接口处理器
 	// 5. 配置一些不需要自动装配的bean
 	// 6. 配置一些固定类型的bean
 	// 7. 添加环境相关的bean到容器中
@@ -781,10 +796,14 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 	 * Use parent's if none defined in this context.
 	 */
 	protected void initMessageSource() {
+		// 获取beanFactory
 		ConfigurableListableBeanFactory beanFactory = getBeanFactory();
+		// 查看beanFactory中有没有messageSource 类型的bean
 		if (beanFactory.containsLocalBean(MESSAGE_SOURCE_BEAN_NAME)) {
+			// 有,则进行初始化
 			this.messageSource = beanFactory.getBean(MESSAGE_SOURCE_BEAN_NAME, MessageSource.class);
 			// Make MessageSource aware of parent MessageSource.
+			// 后去parent source
 			if (this.parent != null && this.messageSource instanceof HierarchicalMessageSource) {
 				HierarchicalMessageSource hms = (HierarchicalMessageSource) this.messageSource;
 				if (hms.getParentMessageSource() == null) {
@@ -799,6 +818,8 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 		}
 		else {
 			// Use empty MessageSource to be able to accept getMessage calls.
+			// 如果 beanFactory中没有 messageSource
+			// 则创建一个 DelegatingMessageSource 实例
 			DelegatingMessageSource dms = new DelegatingMessageSource();
 			dms.setParentMessageSource(getInternalParentMessageSource());
 			this.messageSource = dms;
@@ -817,8 +838,11 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 	// 初始化applicationEventMulticaster, 如果容器中已经存在,则使用容器中的
 	// 如果没有存在,则使用SimpleApplicationEventMulticaster
 	protected void initApplicationEventMulticaster() {
+		// 获取beanFactory
 		ConfigurableListableBeanFactory beanFactory = getBeanFactory();
+		// 查看容器中是否有 applicationEventMulticaster 类型的bean
 		if (beanFactory.containsLocalBean(APPLICATION_EVENT_MULTICASTER_BEAN_NAME)) {
+			// 如果存在,则实例化
 			this.applicationEventMulticaster =
 					beanFactory.getBean(APPLICATION_EVENT_MULTICASTER_BEAN_NAME, ApplicationEventMulticaster.class);
 			if (logger.isTraceEnabled()) {
@@ -826,6 +850,7 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 			}
 		}
 		else {
+			// 如果不存在,则创建一个SimpleApplicationEventMulticaster, 并注册到 容器中
 			this.applicationEventMulticaster = new SimpleApplicationEventMulticaster(beanFactory);
 			beanFactory.registerSingleton(APPLICATION_EVENT_MULTICASTER_BEAN_NAME, this.applicationEventMulticaster);
 			if (logger.isTraceEnabled()) {
@@ -900,8 +925,10 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 
 		// 发布earlyApplicationEvents 事件
 		// Publish early application events now that we finally have a multicaster...
+		// 此earlyApplicationEvents 是在 refresh开始时就创建的一个容器,用于存储创建期间发布的事件
 		Set<ApplicationEvent> earlyEventsToProcess = this.earlyApplicationEvents;
 		this.earlyApplicationEvents = null;
+		// 如果有事件,则现在把事件发送到 listener
 		if (earlyEventsToProcess != null) {
 			for (ApplicationEvent earlyEvent : earlyEventsToProcess) {
 				getApplicationEventMulticaster().multicastEvent(earlyEvent);
@@ -916,7 +943,7 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 	// 初始化所有的单例bean
 	protected void finishBeanFactoryInitialization(ConfigurableListableBeanFactory beanFactory) {
 		// Initialize conversion service for this context.
-		// 设置容器的 ConversionService, 也就是前端参数到controller参数的转换,例如:前端传递的字符串转换为date
+		// 设置容器的 conversionService, 也就是前端参数到controller参数的转换,例如:前端传递的字符串转换为date
 		if (beanFactory.containsBean(CONVERSION_SERVICE_BEAN_NAME) &&
 				beanFactory.isTypeMatch(CONVERSION_SERVICE_BEAN_NAME, ConversionService.class)) {
 			beanFactory.setConversionService(
@@ -931,15 +958,18 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 		}
 
 		// Initialize LoadTimeWeaverAware beans early to allow for registering their transformers early.
+		// waverAware 相关的配置,此处不表
 		String[] weaverAwareNames = beanFactory.getBeanNamesForType(LoadTimeWeaverAware.class, false, false);
 		for (String weaverAwareName : weaverAwareNames) {
 			getBean(weaverAwareName);
 		}
 
 		// Stop using the temporary ClassLoader for type matching.
+		// 清空临时加载器
 		beanFactory.setTempClassLoader(null);
 
 		// Allow for caching all bean definition metadata, not expecting further changes.
+		// 设置标志位, 表示不允许再进行修改
 		beanFactory.freezeConfiguration();
 
 		// Instantiate all remaining (non-lazy-init) singletons.

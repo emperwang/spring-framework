@@ -376,6 +376,7 @@ public abstract class AbstractBeanDefinition extends BeanMetadataAttributeAccess
 	/**
 	 * Return the current bean class name of this bean definition.
 	 */
+	// 返回当前 beanDefinition的 beanClass
 	@Override
 	@Nullable
 	public String getBeanClassName() {
@@ -430,11 +431,15 @@ public abstract class AbstractBeanDefinition extends BeanMetadataAttributeAccess
 	 */
 	@Nullable
 	public Class<?> resolveBeanClass(@Nullable ClassLoader classLoader) throws ClassNotFoundException {
+		// getBeanClassName 获取当前的beanDefinition的beanClass
 		String className = getBeanClassName();
+		// 如果存在beanClass则直接返回
 		if (className == null) {
 			return null;
 		}
+		// 不存在,则进行一些转换,之后使用class.forname来加载类
 		Class<?> resolvedClass = ClassUtils.forName(className, classLoader);
+		// 记录解析出来的class
 		this.beanClass = resolvedClass;
 		return resolvedClass;
 	}
@@ -1089,7 +1094,9 @@ public abstract class AbstractBeanDefinition extends BeanMetadataAttributeAccess
 	 * @param mo the MethodOverride object to validate
 	 * @throws BeanDefinitionValidationException in case of validation failure
 	 */
+	// check 参数中的method 是否需要 重载
 	protected void prepareMethodOverride(MethodOverride mo) throws BeanDefinitionValidationException {
+		// get到 beanClass中此 mo方法的数量
 		int count = ClassUtils.getMethodCountForName(getBeanClass(), mo.getMethodName());
 		if (count == 0) {
 			throw new BeanDefinitionValidationException(
@@ -1098,6 +1105,7 @@ public abstract class AbstractBeanDefinition extends BeanMetadataAttributeAccess
 		}
 		else if (count == 1) {
 			// Mark override as not overloaded, to avoid the overhead of arg type checking.
+			// 设置非 overLoad, 避免重载中的参数检测
 			mo.setOverloaded(false);
 		}
 	}

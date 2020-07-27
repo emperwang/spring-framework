@@ -49,7 +49,7 @@ public class SessionScope extends AbstractRequestAttributesScope {
 	public String getConversationId() {
 		return RequestContextHolder.currentRequestAttributes().getSessionId();
 	}
-
+	// sessionScope获取:先从session中获取bean,如果不存在,则调用工厂类进行创建
 	@Override
 	public Object get(String name, ObjectFactory<?> objectFactory) {
 		Object mutex = RequestContextHolder.currentRequestAttributes().getSessionMutex();

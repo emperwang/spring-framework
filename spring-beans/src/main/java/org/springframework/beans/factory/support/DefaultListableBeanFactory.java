@@ -137,6 +137,7 @@ public class DefaultListableBeanFactory extends AbstractAutowireCapableBeanFacto
 			new ConcurrentHashMap<>(8);
 
 	/** Optional id for this factory, for serialization purposes. */
+	// 一个标志容器的唯一性 码
 	@Nullable
 	private String serializationId;
 
@@ -154,28 +155,36 @@ public class DefaultListableBeanFactory extends AbstractAutowireCapableBeanFacto
 	private AutowireCandidateResolver autowireCandidateResolver = new SimpleAutowireCandidateResolver();
 
 	/** Map from dependency type to corresponding autowired value. */
+	// 设置的 对某某些类型的注入时,使用此处设置的 value
 	private final Map<Class<?>, Object> resolvableDependencies = new ConcurrentHashMap<>(16);
 
 	/** Map of bean definition objects, keyed by bean name. */
+	// 存储所有的beanDefinition,可以为名字
 	private final Map<String, BeanDefinition> beanDefinitionMap = new ConcurrentHashMap<>(256);
 
 	/** Map of singleton and non-singleton bean names, keyed by dependency type. */
+	// 所有的bean的名字,单例的bean  非单例的bean 都包括了
 	private final Map<Class<?>, String[]> allBeanNamesByType = new ConcurrentHashMap<>(64);
 
 	/** Map of singleton-only bean names, keyed by dependency type. */
+	// 单例bean的名字,key为类型, value为名字,可见名字可以有多个
 	private final Map<Class<?>, String[]> singletonBeanNamesByType = new ConcurrentHashMap<>(64);
 
 	/** List of bean definition names, in registration order. */
+	// 存储所有beanDefinition的name
 	private volatile List<String> beanDefinitionNames = new ArrayList<>(256);
 
 	/** List of names of manually registered singletons, in registration order. */
+	//
 	private volatile Set<String> manualSingletonNames = new LinkedHashSet<>(16);
 
 	/** Cached array of bean definition names in case of frozen configuration. */
+	// 缓存冻结的的beanDefinition的name
 	@Nullable
 	private volatile String[] frozenBeanDefinitionNames;
 
 	/** Whether bean definition metadata may be cached for all beans. */
+	// 表示此beanFactory 是否已经 冻结,如果冻结则不允许再 进行修改
 	private volatile boolean configurationFrozen = false;
 
 
@@ -199,6 +208,7 @@ public class DefaultListableBeanFactory extends AbstractAutowireCapableBeanFacto
 	 * Specify an id for serialization purposes, allowing this BeanFactory to be
 	 * deserialized from this id back into the BeanFactory object, if needed.
 	 */
+	// 记录此容器的唯一标识位
 	public void setSerializationId(@Nullable String serializationId) {
 		if (serializationId != null) {
 			serializableFactories.put(serializationId, new WeakReference<>(this));
@@ -692,7 +702,7 @@ public class DefaultListableBeanFactory extends AbstractAutowireCapableBeanFacto
 	//---------------------------------------------------------------------
 	// Implementation of ConfigurableListableBeanFactory interface
 	//---------------------------------------------------------------------
-
+	// 设置指定类型的 自动注入的 value
 	@Override
 	public void registerResolvableDependency(Class<?> dependencyType, @Nullable Object autowiredValue) {
 		Assert.notNull(dependencyType, "Dependency type must not be null");
@@ -701,6 +711,7 @@ public class DefaultListableBeanFactory extends AbstractAutowireCapableBeanFacto
 				throw new IllegalArgumentException("Value [" + autowiredValue +
 						"] does not implement specified dependency type [" + dependencyType.getName() + "]");
 			}
+			// 记录 dependencyType 类型自动注入的value为 autowiredValue
 			this.resolvableDependencies.put(dependencyType, autowiredValue);
 		}
 	}
@@ -794,6 +805,7 @@ public class DefaultListableBeanFactory extends AbstractAutowireCapableBeanFacto
 
 	@Override
 	public void freezeConfiguration() {
+		// 设置容器不可在设置的标志
 		this.configurationFrozen = true;
 		this.frozenBeanDefinitionNames = StringUtils.toStringArray(this.beanDefinitionNames);
 	}
@@ -812,7 +824,7 @@ public class DefaultListableBeanFactory extends AbstractAutowireCapableBeanFacto
 	protected boolean isBeanEligibleForMetadataCaching(String beanName) {
 		return (this.configurationFrozen || super.isBeanEligibleForMetadataCaching(beanName));
 	}
-
+	// 实例化单例的前奏
 	@Override
 	public void preInstantiateSingletons() throws BeansException {
 		if (logger.isTraceEnabled()) {
@@ -840,6 +852,8 @@ public class DefaultListableBeanFactory extends AbstractAutowireCapableBeanFacto
 						final FactoryBean<?> factory = (FactoryBean<?>) bean;
 						boolean isEagerInit;
 						if (System.getSecurityManager() != null && factory instanceof SmartFactoryBean) {
+							// 此bean是否需要 eager 初始化
+							// 如果需要,则会调用工厂方法,获取实例
 							isEagerInit = AccessController.doPrivileged((PrivilegedAction<Boolean>)
 											((SmartFactoryBean<?>) factory)::isEagerInit,
 									getAccessControlContext());
@@ -848,6 +862,7 @@ public class DefaultListableBeanFactory extends AbstractAutowireCapableBeanFacto
 							isEagerInit = (factory instanceof SmartFactoryBean &&
 									((SmartFactoryBean<?>) factory).isEagerInit());
 						}
+						// 如果需要eager 初始化,则实例化bean
 						if (isEagerInit) {
 							// 如果急需初始化,则从容器中获取,也就是实例化bean
 							getBean(beanName);
@@ -856,6 +871,7 @@ public class DefaultListableBeanFactory extends AbstractAutowireCapableBeanFacto
 				}
 				else {
 					// 如果不是factorybean,则直接从容器中获取
+					// getBean操作,就是对bean的初始化
 					getBean(beanName);
 				}
 			}
@@ -1045,13 +1061,14 @@ public class DefaultListableBeanFactory extends AbstractAutowireCapableBeanFacto
 	protected boolean allowAliasOverriding() {
 		return isAllowBeanDefinitionOverriding();
 	}
-
+	// 注册单例操作
 	@Override
 	public void registerSingleton(String beanName, Object singletonObject) throws IllegalStateException {
-		super.registerSingleton(beanName, singletonObject);
-
+		super.registerSingleton(beanName, singletonObject); // 父类的注册动作
+		// 如果容器已经开始创建
 		if (hasBeanCreationStarted()) {
 			// Cannot modify startup-time collection elements anymore (for stable iteration)
+			// 则在添加时,使用 synchronized 同步字段进行添加
 			synchronized (this.beanDefinitionMap) {
 				if (!this.beanDefinitionMap.containsKey(beanName)) {
 					Set<String> updatedSingletons = new LinkedHashSet<>(this.manualSingletonNames.size() + 1);
@@ -1063,6 +1080,7 @@ public class DefaultListableBeanFactory extends AbstractAutowireCapableBeanFacto
 		}
 		else {
 			// Still in startup registration phase
+			// 如果还没有开始创建,则直接进行添加
 			if (!this.beanDefinitionMap.containsKey(beanName)) {
 				this.manualSingletonNames.add(beanName);
 			}
@@ -1077,7 +1095,7 @@ public class DefaultListableBeanFactory extends AbstractAutowireCapableBeanFacto
 		this.manualSingletonNames.remove(beanName);
 		clearByTypeCache();
 	}
-
+	// 销毁单例
 	@Override
 	public void destroySingletons() {
 		super.destroySingletons();
@@ -1164,7 +1182,7 @@ public class DefaultListableBeanFactory extends AbstractAutowireCapableBeanFacto
 
 		return null;
 	}
-
+	// 解析依赖
 	@Override
 	@Nullable
 	public Object resolveDependency(DependencyDescriptor descriptor, @Nullable String requestingBeanName,

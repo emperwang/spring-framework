@@ -40,7 +40,9 @@ public abstract class AbstractRequestAttributesScope implements Scope {
 	@Override
 	public Object get(String name, ObjectFactory<?> objectFactory) {
 		RequestAttributes attributes = RequestContextHolder.currentRequestAttributes();
+		// 先从scope中获取bean
 		Object scopedObject = attributes.getAttribute(name, getScope());
+		// 如果此scope中不存在bean,则调用工厂类 创建具体的实例
 		if (scopedObject == null) {
 			scopedObject = objectFactory.getObject();
 			attributes.setAttribute(name, scopedObject, getScope());

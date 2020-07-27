@@ -269,12 +269,13 @@ public abstract class AbstractNestablePropertyAccessor extends AbstractPropertyA
 			setPropertyValue(tokens, pv);
 		}
 	}
-
+	// 属性注入
 	protected void setPropertyValue(PropertyTokenHolder tokens, PropertyValue pv) throws BeansException {
 		if (tokens.keys != null) {
 			processKeyedProperty(tokens, pv);
 		}
 		else {
+			// 反射 注入 value
 			processLocalProperty(tokens, pv);
 		}
 	}
@@ -455,6 +456,8 @@ public abstract class AbstractNestablePropertyAccessor extends AbstractPropertyA
 				}
 				pv.getOriginalPropertyValue().conversionNecessary = (valueToApply != originalValue);
 			}
+			// 注入value
+			// 可以看到依然是使用 反射
 			ph.setValue(valueToApply);
 		}
 		catch (TypeMismatchException ex) {

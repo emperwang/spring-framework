@@ -130,14 +130,19 @@ public class SimpleApplicationEventMulticaster extends AbstractApplicationEventM
 	// 调用容器中的监听器(ApplicationListener)对事件进行处理
 	@Override
 	public void multicastEvent(final ApplicationEvent event, @Nullable ResolvableType eventType) {
+		// 解析事件类型
 		ResolvableType type = (eventType != null ? eventType : resolveDefaultEventType(event));
+		// 获取所有的listener 来对事件进行处理
 		for (final ApplicationListener<?> listener : getApplicationListeners(event, type)) {
+			// 获取线程池
 			Executor executor = getTaskExecutor();
+			// 如果有线程池,则在线程池中进行事件的处理
 			if (executor != null) {
 				executor.execute(() -> invokeListener(listener, event));
 			}
 			else {
 				// 调用监听器
+				// 如果没有线程池,则在当前线程中进行 事件的处理
 				invokeListener(listener, event);
 			}
 		}

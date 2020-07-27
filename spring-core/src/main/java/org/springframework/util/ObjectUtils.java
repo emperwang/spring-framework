@@ -605,10 +605,12 @@ public abstract class ObjectUtils {
 	 * @return the object's identity as String representation,
 	 * or an empty String if the object was {@code null}
 	 */
+	// 对容器生成一个 唯一性名字
 	public static String identityToString(@Nullable Object obj) {
 		if (obj == null) {
 			return EMPTY_STRING;
 		}
+		// 类名 + @ + 生成的 Hex码
 		return obj.getClass().getName() + "@" + getIdentityHexString(obj);
 	}
 

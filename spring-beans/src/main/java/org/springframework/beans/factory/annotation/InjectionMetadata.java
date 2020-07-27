@@ -58,7 +58,9 @@ public class InjectionMetadata {
 
 
 	public InjectionMetadata(Class<?> targetClass, Collection<InjectedElement> elements) {
+		// 目标class
 		this.targetClass = targetClass;
+		// 要注入的element
 		this.injectedElements = elements;
 	}
 
@@ -77,9 +79,10 @@ public class InjectionMetadata {
 		}
 		this.checkedElements = checkedElements;
 	}
-
+	// value注入的操作
 	public void inject(Object target, @Nullable String beanName, @Nullable PropertyValues pvs) throws Throwable {
 		Collection<InjectedElement> checkedElements = this.checkedElements;
+		// 获取要注入的元素 injectedElements 中存储了要注入的元素
 		Collection<InjectedElement> elementsToIterate =
 				(checkedElements != null ? checkedElements : this.injectedElements);
 		if (!elementsToIterate.isEmpty()) {
@@ -87,6 +90,9 @@ public class InjectionMetadata {
 				if (logger.isTraceEnabled()) {
 					logger.trace("Processing injected element of bean '" + beanName + "': " + element);
 				}
+				// 属性注入
+				// 1. field属性注入
+				// 2. method属性注入
 				element.inject(target, beanName, pvs);
 			}
 		}
@@ -171,12 +177,14 @@ public class InjectionMetadata {
 		/**
 		 * Either this or {@link #getResourceToInject} needs to be overridden.
 		 */
+		// 属性注入操作
 		protected void inject(Object target, @Nullable String requestingBeanName, @Nullable PropertyValues pvs)
 				throws Throwable {
 
 			if (this.isField) {
 				Field field = (Field) this.member;
 				ReflectionUtils.makeAccessible(field);
+				// field 反射注入
 				field.set(target, getResourceToInject(target, requestingBeanName));
 			}
 			else {
@@ -186,6 +194,7 @@ public class InjectionMetadata {
 				try {
 					Method method = (Method) this.member;
 					ReflectionUtils.makeAccessible(method);
+					// 方法的注入
 					method.invoke(target, getResourceToInject(target, requestingBeanName));
 				}
 				catch (InvocationTargetException ex) {

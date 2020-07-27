@@ -136,10 +136,11 @@ public class DirectFieldAccessor extends AbstractNestablePropertyAccessor {
 						this.field.getName(), "Field is not accessible", ex);
 			}
 		}
-
+		// 反射 注入value
 		@Override
 		public void setValue(@Nullable Object value) throws Exception {
 			try {
+				// 可以看到 依然是使用反射 来注入value
 				ReflectionUtils.makeAccessible(this.field);
 				this.field.set(getWrappedInstance(), value);
 			}

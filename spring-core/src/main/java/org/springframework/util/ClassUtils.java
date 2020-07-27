@@ -1187,20 +1187,25 @@ public abstract class ClassUtils {
 	 * @param methodName the name of the method
 	 * @return the number of methods with the given name
 	 */
+	// 获取一个class中method出现的次数
 	public static int getMethodCountForName(Class<?> clazz, String methodName) {
 		Assert.notNull(clazz, "Class must not be null");
 		Assert.notNull(methodName, "Method name must not be null");
 		int count = 0;
+		// 先获取此class中的method
 		Method[] declaredMethods = clazz.getDeclaredMethods();
 		for (Method method : declaredMethods) {
 			if (methodName.equals(method.getName())) {
 				count++;
 			}
 		}
+		// 获取此class的接口
 		Class<?>[] ifcs = clazz.getInterfaces();
+		// 查看接口中是否有此方法,及其出现的个数
 		for (Class<?> ifc : ifcs) {
 			count += getMethodCountForName(ifc, methodName);
 		}
+		// 获取 父类的方法中此 方法出现的个数
 		if (clazz.getSuperclass() != null) {
 			count += getMethodCountForName(clazz.getSuperclass(), methodName);
 		}

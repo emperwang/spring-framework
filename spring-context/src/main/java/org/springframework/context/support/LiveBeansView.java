@@ -74,6 +74,7 @@ public class LiveBeansView implements LiveBeansViewMBean, ApplicationContextAwar
 			synchronized (applicationContexts) {
 				if (applicationContexts.isEmpty()) {
 					try {
+						// MXBean的注册
 						MBeanServer server = ManagementFactory.getPlatformMBeanServer();
 						applicationName = applicationContext.getApplicationName();
 						server.registerMBean(new LiveBeansView(),

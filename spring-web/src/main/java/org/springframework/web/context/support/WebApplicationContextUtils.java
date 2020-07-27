@@ -179,6 +179,7 @@ public abstract class WebApplicationContextUtils {
 	 * @param beanFactory the BeanFactory to configure
 	 * @param sc the ServletContext that we're running within
 	 */
+	// 向beanFactory中注册 servletContext
 	public static void registerWebApplicationScopes(ConfigurableListableBeanFactory beanFactory,
 			@Nullable ServletContext sc) {
 
@@ -190,7 +191,8 @@ public abstract class WebApplicationContextUtils {
 			// Register as ServletContext attribute, for ContextCleanupListener to detect it.
 			sc.setAttribute(ServletContextScope.class.getName(), appScope);
 		}
-
+		// 记录 特定 type对应的 value
+		// 从这里 RequestObjectFactory  ResponseObjectFactory等都是从 ThreadLocal中来进行值的获取
 		beanFactory.registerResolvableDependency(ServletRequest.class, new RequestObjectFactory());
 		beanFactory.registerResolvableDependency(ServletResponse.class, new ResponseObjectFactory());
 		beanFactory.registerResolvableDependency(HttpSession.class, new SessionObjectFactory());
@@ -206,6 +208,7 @@ public abstract class WebApplicationContextUtils {
 	 * @param bf the BeanFactory to configure
 	 * @param sc the ServletContext that we're running within
 	 */
+	// 注册 servlet的环境变量值
 	public static void registerEnvironmentBeans(ConfigurableListableBeanFactory bf, @Nullable ServletContext sc) {
 		registerEnvironmentBeans(bf, sc, null);
 	}
@@ -217,17 +220,21 @@ public abstract class WebApplicationContextUtils {
 	 * @param servletContext the ServletContext that we're running within
 	 * @param servletConfig the ServletConfig
 	 */
+	// 1. 向beanFactory中注册 servletContext
+	// 2. 向beanFactory中注册 servletConfig
+	// 3. 向beanFactory中注册 contextParameters
+	// 4. 向beanFactory中注册 contextAttributes
 	public static void registerEnvironmentBeans(ConfigurableListableBeanFactory bf,
 			@Nullable ServletContext servletContext, @Nullable ServletConfig servletConfig) {
-
+		// 把servletContext 注册到 beanFactory中
 		if (servletContext != null && !bf.containsBean(WebApplicationContext.SERVLET_CONTEXT_BEAN_NAME)) {
 			bf.registerSingleton(WebApplicationContext.SERVLET_CONTEXT_BEAN_NAME, servletContext);
 		}
-
+		// 把servletConfig 注册到 beanFactory中
 		if (servletConfig != null && !bf.containsBean(ConfigurableWebApplicationContext.SERVLET_CONFIG_BEAN_NAME)) {
 			bf.registerSingleton(ConfigurableWebApplicationContext.SERVLET_CONFIG_BEAN_NAME, servletConfig);
 		}
-
+		// 把servletContext.getInitParameterNames 注册到 beanFactory中
 		if (!bf.containsBean(WebApplicationContext.CONTEXT_PARAMETERS_BEAN_NAME)) {
 			Map<String, String> parameterMap = new HashMap<>();
 			if (servletContext != null) {
@@ -247,7 +254,7 @@ public abstract class WebApplicationContextUtils {
 			bf.registerSingleton(WebApplicationContext.CONTEXT_PARAMETERS_BEAN_NAME,
 					Collections.unmodifiableMap(parameterMap));
 		}
-
+		// 把servletContext.getAttributeNames 注册到 beanFactory中
 		if (!bf.containsBean(WebApplicationContext.CONTEXT_ATTRIBUTES_BEAN_NAME)) {
 			Map<String, Object> attributeMap = new HashMap<>();
 			if (servletContext != null) {

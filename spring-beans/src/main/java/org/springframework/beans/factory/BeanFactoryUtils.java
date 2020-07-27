@@ -57,6 +57,7 @@ public abstract class BeanFactoryUtils {
 	 * @since 5.1
 	 * @see BeanFactory#FACTORY_BEAN_PREFIX
 	 */
+	// 缓存下 beanName
 	private static final Map<String, String> transformedBeanNameCache = new ConcurrentHashMap<>();
 
 
@@ -78,11 +79,16 @@ public abstract class BeanFactoryUtils {
 	 * @return the transformed name
 	 * @see BeanFactory#FACTORY_BEAN_PREFIX
 	 */
+	// 对bean的名字进行一下转换
+	// 如果不是&开头的factoryBean的名字,直接返回
+	// 如果是 & 开头的name,则去除此& 符号
 	public static String transformedBeanName(String name) {
 		Assert.notNull(name, "'name' must not be null");
+		// 如果beanName不是以 & 开头,则直接返回
 		if (!name.startsWith(BeanFactory.FACTORY_BEAN_PREFIX)) {
 			return name;
 		}
+		// 如果beanName是以& 开头的,则把此 & 开头去除
 		return transformedBeanNameCache.computeIfAbsent(name, beanName -> {
 			do {
 				beanName = beanName.substring(BeanFactory.FACTORY_BEAN_PREFIX.length());

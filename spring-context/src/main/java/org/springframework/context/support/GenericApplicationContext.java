@@ -99,7 +99,7 @@ public class GenericApplicationContext extends AbstractApplicationContext implem
 	private ResourceLoader resourceLoader;
 
 	private boolean customClassLoader = false;
-
+	// 标志容器是否进行了 refresh操作
 	private final AtomicBoolean refreshed = new AtomicBoolean();
 
 
@@ -265,10 +265,12 @@ public class GenericApplicationContext extends AbstractApplicationContext implem
 	 */
 	@Override
 	protected final void refreshBeanFactory() throws IllegalStateException {
+		// 容器刷新操作,更新标志位
 		if (!this.refreshed.compareAndSet(false, true)) {
 			throw new IllegalStateException(
 					"GenericApplicationContext does not support multiple refresh attempts: just call 'refresh' once");
 		}
+		// 相当于记录一个容器的唯一标志位
 		this.beanFactory.setSerializationId(getId());
 	}
 
@@ -291,6 +293,7 @@ public class GenericApplicationContext extends AbstractApplicationContext implem
 	 * Return the single internal BeanFactory held by this context
 	 * (as ConfigurableListableBeanFactory).
 	 */
+	// 此beanFactory是在 GenericApplicationContext的构造方法中生成的
 	@Override
 	public final ConfigurableListableBeanFactory getBeanFactory() {
 		return this.beanFactory;

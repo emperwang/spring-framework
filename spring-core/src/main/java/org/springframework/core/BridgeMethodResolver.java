@@ -80,6 +80,7 @@ public final class BridgeMethodResolver {
 		}
 
 		// Search for candidate match.
+		// 查找候选的方法
 		Method bridgedMethod = searchCandidates(candidateMethods, bridgeMethod);
 		if (bridgedMethod != null) {
 			// Bridged method found...
