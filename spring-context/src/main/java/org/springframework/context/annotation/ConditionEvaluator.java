@@ -100,7 +100,7 @@ class ConditionEvaluator {
 		}
 
 		AnnotationAwareOrderComparator.sort(conditions);
-
+		// 查看条件是否符合,不符合则跳过
 		for (Condition condition : conditions) {
 			ConfigurationPhase requiredPhase = null;
 			if (condition instanceof ConfigurationCondition) {
@@ -123,6 +123,7 @@ class ConditionEvaluator {
 
 	private Condition getCondition(String conditionClassName, @Nullable ClassLoader classloader) {
 		Class<?> conditionClass = ClassUtils.resolveClassName(conditionClassName, classloader);
+		// 通过构造器方法 实例化一个类
 		return (Condition) BeanUtils.instantiateClass(conditionClass);
 	}
 

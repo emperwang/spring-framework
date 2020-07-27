@@ -115,6 +115,7 @@ import org.springframework.util.StringUtils;
  * @see Autowired
  * @see Value
  */
+// 处理自动注入的操作
 public class AutowiredAnnotationBeanPostProcessor extends InstantiationAwareBeanPostProcessorAdapter
 		implements MergedBeanDefinitionPostProcessor, PriorityOrdered, BeanFactoryAware {
 
@@ -617,6 +618,7 @@ public class AutowiredAnnotationBeanPostProcessor extends InstantiationAwareBean
 				}
 			}
 			if (value != null) {
+				// field 的注入操作
 				ReflectionUtils.makeAccessible(field);
 				field.set(bean, value);
 			}
@@ -704,6 +706,7 @@ public class AutowiredAnnotationBeanPostProcessor extends InstantiationAwareBean
 			}
 			if (arguments != null) {
 				try {
+					// 通过方法进行注入操作
 					ReflectionUtils.makeAccessible(method);
 					method.invoke(bean, arguments);
 				}

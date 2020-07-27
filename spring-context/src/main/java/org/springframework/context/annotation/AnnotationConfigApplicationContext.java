@@ -68,6 +68,7 @@ public class AnnotationConfigApplicationContext extends GenericApplicationContex
 		 */
 		// AnnotatedBeanDefinitionReader 此初始化会注册一些注解的公共处理类到容器
 		this.reader = new AnnotatedBeanDefinitionReader(this);
+		// 此ClassPathBeanDefinitionScanner 主要是获取classpath中的 类并封装为 beanDefinition
 		this.scanner = new ClassPathBeanDefinitionScanner(this);
 	}
 
