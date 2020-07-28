@@ -77,6 +77,8 @@ public class BeanFactoryAdvisorRetrievalHelper {
 			// 把获取到的所有的advisorName缓存起来
 			this.cachedAdvisorBeanNames = advisorNames;
 		}
+		// 如果没有找到合适的名字
+		// 则返回一个空数组
 		if (advisorNames.length == 0) {
 			return new ArrayList<>();
 		}

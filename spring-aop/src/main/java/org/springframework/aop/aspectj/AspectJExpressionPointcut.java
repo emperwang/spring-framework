@@ -288,10 +288,12 @@ public class AspectJExpressionPointcut extends AbstractExpressionPointcut
 		}
 		return false;
 	}
-
+	// 使用pointcut expression 来进行match
 	@Override
 	public boolean matches(Method method, Class<?> targetClass, boolean hasIntroductions) {
+		// 获取pointcut expression
 		obtainPointcutExpression();
+		// 进行匹配操作
 		ShadowMatch shadowMatch = getTargetShadowMatch(method, targetClass);
 
 		// Special handling for this, target, @this, @target, @annotation
@@ -424,9 +426,10 @@ public class AspectJExpressionPointcut extends AbstractExpressionPointcut
 		// are guaranteed to bind in exactly the same way.
 		invocation.setUserAttribute(resolveExpression(), jpm);
 	}
-
+	// 根据pointcut expression 进行匹配
 	private ShadowMatch getTargetShadowMatch(Method method, Class<?> targetClass) {
 		Method targetMethod = AopUtils.getMostSpecificMethod(method, targetClass);
+		// 如果目标类是一个接口
 		if (targetMethod.getDeclaringClass().isInterface()) {
 			// Try to build the most specific interface possible for inherited methods to be
 			// considered for sub-interface matches as well, in particular for proxy classes.
@@ -444,9 +447,10 @@ public class AspectJExpressionPointcut extends AbstractExpressionPointcut
 				}
 			}
 		}
+		// 匹配操作
 		return getShadowMatch(targetMethod, method);
 	}
-
+	// pointcut expression的匹配
 	private ShadowMatch getShadowMatch(Method targetMethod, Method originalMethod) {
 		// Avoid lock contention for known Methods through concurrent access...
 		ShadowMatch shadowMatch = this.shadowMatchCache.get(targetMethod);
@@ -459,6 +463,7 @@ public class AspectJExpressionPointcut extends AbstractExpressionPointcut
 					Method methodToMatch = targetMethod;
 					try {
 						try {
+							// 这里调用 aspectJ 进行匹配
 							shadowMatch = obtainPointcutExpression().matchesMethodExecution(methodToMatch);
 						}
 						catch (ReflectionWorldException ex) {

@@ -189,6 +189,8 @@ final class JdkDynamicAopProxy implements AopProxy, InvocationHandler, Serializa
 
 			Object retVal;
 			//  此就对应aop设置中的一个属性 exposeProxy
+			// 在外面可以使用AopContext.currentProxy 来得到threadLocal中的代理对象,可以通过代理对象来嵌套调用方法
+			// 这样每个方法都会被 aop代理,也就是都会进行方法增强
 			if (this.advised.exposeProxy) {
 				// 把代理放入到threadLocal中
 				// Make invocation available if necessary.
@@ -220,10 +222,13 @@ final class JdkDynamicAopProxy implements AopProxy, InvocationHandler, Serializa
 				// 创建方法执行的调用链
 				invocation = new ReflectiveMethodInvocation(proxy, target, method, args, targetClass, chain);
 				// Proceed to the joinpoint through the interceptor chain.
+				// 开始方法的调用
+				// 入口点  重点
 				retVal = invocation.proceed();
 			}
 
 			// Massage return value if necessary.
+			// 方法的返回值 类型
 			Class<?> returnType = method.getReturnType();
 			if (retVal != null && retVal == target &&
 					returnType != Object.class && returnType.isInstance(proxy) &&

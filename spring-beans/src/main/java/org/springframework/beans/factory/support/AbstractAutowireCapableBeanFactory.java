@@ -511,6 +511,7 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 			// 在这里调用InstantiationAwareBeanPostProcessor这个后置处理器，有可能会创建代理对象
 			// 因为到这里换没有创建好bean实例, 故大可能不会创建代理对象,但是可以解析一些切面等信息
 			// applyBeanPostProcessorsBeforeInstantiation
+			// 这里初始化了 aop的advisor
 			Object bean = resolveBeforeInstantiation(beanName, mbdToUse);
 			if (bean != null) {
 				return bean;
@@ -1122,6 +1123,7 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 				Class<?> targetType = determineTargetType(beanName, mbd);
 				if (targetType != null) {
 					// 调用 InstantiationAwareBeanPostProcessor 后置处理器
+					// 如果创建了代理对象,则在后面在 调用 初始化后处理
 					bean = applyBeanPostProcessorsBeforeInstantiation(targetType, beanName);
 					if (bean != null) {
 						bean = applyBeanPostProcessorsAfterInitialization(bean, beanName);

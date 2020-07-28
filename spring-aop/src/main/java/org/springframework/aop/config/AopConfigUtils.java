@@ -113,13 +113,13 @@ public abstract class AopConfigUtils {
 			definition.getPropertyValues().add("exposeProxy", Boolean.TRUE);
 		}
 	}
-
+	// 注册或者 包装
 	@Nullable
 	private static BeanDefinition registerOrEscalateApcAsRequired(
 			Class<?> cls, BeanDefinitionRegistry registry, @Nullable Object source) {
 
 		Assert.notNull(registry, "BeanDefinitionRegistry must not be null");
-
+		// 如果容器中存在 这个AUTO_PROXY_CREATOR_BEAN_NAME bean,则进行一定的包装操作
 		if (registry.containsBeanDefinition(AUTO_PROXY_CREATOR_BEAN_NAME)) {
 			BeanDefinition apcDefinition = registry.getBeanDefinition(AUTO_PROXY_CREATOR_BEAN_NAME);
 			if (!cls.getName().equals(apcDefinition.getBeanClassName())) {
@@ -131,7 +131,7 @@ public abstract class AopConfigUtils {
 			}
 			return null;
 		}
-
+		// 如果容器中不存在 AUTO_PROXY_CREATOR_BEAN_NAME 这个bean,那么就创建一个  并注册到容器中
 		RootBeanDefinition beanDefinition = new RootBeanDefinition(cls);
 		beanDefinition.setSource(source);
 		beanDefinition.getPropertyValues().add("order", Ordered.HIGHEST_PRECEDENCE);

@@ -38,17 +38,19 @@ import org.springframework.util.Assert;
  * @since 2.0.2
  * @see AnnotationAwareAspectJAutoProxyCreator
  */
+// aspect 对注解 Around.class, Before.class, After.class, AfterReturning.class, AfterThrowing.class
+// 处理
 public class BeanFactoryAspectJAdvisorsBuilder {
 
 	private final ListableBeanFactory beanFactory;
 
 	private final AspectJAdvisorFactory advisorFactory;
-
+	// 记录那些 aspect 注解的bean的beanname
 	@Nullable
 	private volatile List<String> aspectBeanNames;
-
+	// 此存储单例的 advisor
 	private final Map<String, List<Advisor>> advisorsCache = new ConcurrentHashMap<>();
-
+	// 此存储不是单例的 advisor
 	private final Map<String, MetadataAwareAspectInstanceFactory> aspectFactoryCache = new ConcurrentHashMap<>();
 
 
@@ -56,6 +58,9 @@ public class BeanFactoryAspectJAdvisorsBuilder {
 	 * Create a new BeanFactoryAspectJAdvisorsBuilder for the given BeanFactory.
 	 * @param beanFactory the ListableBeanFactory to scan
 	 */
+	// 重点  重点  重点
+	// ReflectiveAspectJAdvisorFactory 的反射对Around.class,
+	// Before.class, After.class, AfterReturning.class, AfterThrowing.class 注解的处理
 	public BeanFactoryAspectJAdvisorsBuilder(ListableBeanFactory beanFactory) {
 		this(beanFactory, new ReflectiveAspectJAdvisorFactory(beanFactory));
 	}
@@ -89,6 +94,8 @@ public class BeanFactoryAspectJAdvisorsBuilder {
 				if (aspectNames == null) {
 					List<Advisor> advisors = new ArrayList<>();
 					aspectNames = new ArrayList<>();
+					// 这里是获取 Object类型的bean的beanName
+					// 相当于是获取容器中所有的bean了
 					String[] beanNames = BeanFactoryUtils.beanNamesForTypeIncludingAncestors(
 							this.beanFactory, Object.class, true, false);
 					for (String beanName : beanNames) {
@@ -97,21 +104,30 @@ public class BeanFactoryAspectJAdvisorsBuilder {
 						}
 						// We must be careful not to instantiate beans eagerly as in this case they
 						// would be cached by the Spring container but would not have been weaved.
+						// 获取一个bean的 class 类型
 						Class<?> beanType = this.beanFactory.getType(beanName);
 						if (beanType == null) {
 							continue;
 						}
+						// 判断一个beanTpe是否是 advisor
+						// 1. 查看类上是否有 Aspect 注解
+						// 2. 不是被Ajc 编译
 						if (this.advisorFactory.isAspect(beanType)) {
+							// 如果是 aspect 则记录下来
 							aspectNames.add(beanName);
+							// 保存此 aspect的 源数据
 							AspectMetadata amd = new AspectMetadata(beanType, beanName);
 							if (amd.getAjType().getPerClause().getKind() == PerClauseKind.SINGLETON) {
 								MetadataAwareAspectInstanceFactory factory =
 										new BeanFactoryAspectInstanceFactory(this.beanFactory, beanName);
+								// 此操作就会获取 容器中所有的advisor 以及 aspect
+								// ****重点*****
 								List<Advisor> classAdvisors = this.advisorFactory.getAdvisors(factory);
 								if (this.beanFactory.isSingleton(beanName)) {
 									this.advisorsCache.put(beanName, classAdvisors);
 								}
 								else {
+									// 如果不是单例,则存储进缓存
 									this.aspectFactoryCache.put(beanName, factory);
 								}
 								advisors.addAll(classAdvisors);
@@ -124,6 +140,7 @@ public class BeanFactoryAspectJAdvisorsBuilder {
 								}
 								MetadataAwareAspectInstanceFactory factory =
 										new PrototypeAspectInstanceFactory(this.beanFactory, beanName);
+								// 记录非单例的advisor
 								this.aspectFactoryCache.put(beanName, factory);
 								advisors.addAll(this.advisorFactory.getAdvisors(factory));
 							}

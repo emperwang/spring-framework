@@ -46,6 +46,7 @@ import org.springframework.util.Assert;
  * @author Juergen Hoeller
  * @see #findCandidateAdvisors
  */
+// 对Advisor的处理
 @SuppressWarnings("serial")
 public abstract class AbstractAdvisorAutoProxyCreator extends AbstractAutoProxyCreator {
 
@@ -60,10 +61,13 @@ public abstract class AbstractAdvisorAutoProxyCreator extends AbstractAutoProxyC
 			throw new IllegalArgumentException(
 					"AdvisorAutoProxyCreator requires a ConfigurableListableBeanFactory: " + beanFactory);
 		}
+		// 这里的初始化,创建了 处理 advisor类的方法
 		initBeanFactory((ConfigurableListableBeanFactory) beanFactory);
 	}
 
 	protected void initBeanFactory(ConfigurableListableBeanFactory beanFactory) {
+		// advisor retrieval : 获取advisor的帮助 handler
+		// 重点 重点 重点
 		this.advisorRetrievalHelper = new BeanFactoryAdvisorRetrievalHelperAdapter(beanFactory);
 	}
 
@@ -74,6 +78,7 @@ public abstract class AbstractAdvisorAutoProxyCreator extends AbstractAutoProxyC
 	protected Object[] getAdvicesAndAdvisorsForBean(
 			Class<?> beanClass, String beanName, @Nullable TargetSource targetSource) {
 		// 查找合格的advisor
+		// 重点 重点
 		List<Advisor> advisors = findEligibleAdvisors(beanClass, beanName);
 		if (advisors.isEmpty()) {
 			return DO_NOT_PROXY;
@@ -112,6 +117,7 @@ public abstract class AbstractAdvisorAutoProxyCreator extends AbstractAutoProxyC
 	// Todo 解析容器中advisor
 	protected List<Advisor> findCandidateAdvisors() {
 		Assert.state(this.advisorRetrievalHelper != null, "No BeanFactoryAdvisorRetrievalHelper available");
+		// 从容器中找到所有 Advisor 的实例
 		return this.advisorRetrievalHelper.findAdvisorBeans();
 	}
 
@@ -126,7 +132,7 @@ public abstract class AbstractAdvisorAutoProxyCreator extends AbstractAutoProxyC
 	 */
 	protected List<Advisor> findAdvisorsThatCanApply(
 			List<Advisor> candidateAdvisors, Class<?> beanClass, String beanName) {
-
+		// 记录正在进行aop 的beanName
 		ProxyCreationContext.setCurrentProxiedBeanName(beanName);
 		try {
 			// 从candidateAdvisors中找到适合于beanClass的advisor

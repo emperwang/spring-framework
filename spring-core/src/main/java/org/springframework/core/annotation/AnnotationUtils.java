@@ -470,6 +470,7 @@ public abstract class AnnotationUtils {
 	private static <A extends Annotation> A findAnnotation(
 			AnnotatedElement annotatedElement, Class<A> annotationType, Set<Annotation> visited) {
 		try {
+			// 获取annotatedElement 上的注解信息
 			A annotation = annotatedElement.getDeclaredAnnotation(annotationType);
 			if (annotation != null) {
 				return annotation;
@@ -505,6 +506,10 @@ public abstract class AnnotationUtils {
 	 * @return the first matching annotation, or {@code null} if not found
 	 * @see #getAnnotation(Method, Class)
 	 */
+	// 查找方法上的注解
+	// 1. 直接在方法上查找
+	// 2. 在接口方法上查找
+	// 3. 在父类方法中查找
 	@SuppressWarnings("unchecked")
 	@Nullable
 	public static <A extends Annotation> A findAnnotation(Method method, @Nullable Class<A> annotationType) {
@@ -512,18 +517,25 @@ public abstract class AnnotationUtils {
 		if (annotationType == null) {
 			return null;
 		}
-
+		// 用于缓存的key
+		//************缓存中查找***************
 		AnnotationCacheKey cacheKey = new AnnotationCacheKey(method, annotationType);
+		// 查看缓存中是否有
 		A result = (A) findAnnotationCache.get(cacheKey);
-
+		// 缓存中没有,则进行查找
 		if (result == null) {
 			Method resolvedMethod = BridgeMethodResolver.findBridgedMethod(method);
+			//************直接在方法  中查找***************
 			result = findAnnotation((AnnotatedElement) resolvedMethod, annotationType);
 			if (result == null) {
+				// 从接口方法中 查找是否有注解
+				//************接口中 查找***************
 				result = searchOnInterfaces(method, annotationType, method.getDeclaringClass().getInterfaces());
 			}
 
 			Class<?> clazz = method.getDeclaringClass();
+			// 如果接口中还没有查找到,则从父类中查找注解信息
+			//************父类  中 查找***************
 			while (result == null) {
 				clazz = clazz.getSuperclass();
 				if (clazz == null || clazz == Object.class) {
@@ -542,6 +554,8 @@ public abstract class AnnotationUtils {
 					}
 				}
 				if (result == null) {
+					// 从接口方法中查找 注解信息
+					//************接口中 查找***************
 					result = searchOnInterfaces(method, annotationType, clazz.getInterfaces());
 				}
 			}

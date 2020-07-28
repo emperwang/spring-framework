@@ -225,7 +225,7 @@ public abstract class AopUtils {
 		if (!pc.getClassFilter().matches(targetClass)) {
 			return false;
 		}
-
+		// 如果pointcut为AnnotationMatchingPointcut,则其 matchet,就是MethodMatcher.TRUE
 		MethodMatcher methodMatcher = pc.getMethodMatcher();
 		if (methodMatcher == MethodMatcher.TRUE) {
 			// No need to iterate the methods if we're matching any method anyway...
@@ -244,9 +244,11 @@ public abstract class AopUtils {
 		classes.addAll(ClassUtils.getAllInterfacesForClassAsSet(targetClass));
 
 		for (Class<?> clazz : classes) {
+			// 获取所有声明的方法
 			Method[] methods = ReflectionUtils.getAllDeclaredMethods(clazz);
 			for (Method method : methods) {
 				// 如果是事务创建代理, 会走methodMatcher.matches这里,这个方法会解析方法的注解信息
+				// introductionAwareMethodMatcher.matches 使用pointCut表达式调用AspectJ 来进行匹配操作
 				if (introductionAwareMethodMatcher != null ?
 						introductionAwareMethodMatcher.matches(method, targetClass, hasIntroductions) :
 						methodMatcher.matches(method, targetClass)) {
@@ -307,10 +309,13 @@ public abstract class AopUtils {
 	 * @return sublist of Advisors that can apply to an object of the given class
 	 * (may be the incoming List as-is)
 	 */
+	// 查到 对于 clazz 可用的 advisor
 	public static List<Advisor> findAdvisorsThatCanApply(List<Advisor> candidateAdvisors, Class<?> clazz) {
+		// 没有候选的 advisor,直接返回空列表
 		if (candidateAdvisors.isEmpty()) {
 			return candidateAdvisors;
 		}
+		//
 		List<Advisor> eligibleAdvisors = new ArrayList<>();
 		for (Advisor candidate : candidateAdvisors) {
 			// 条件: 首先候选的advisor必须是IntroductionAdvisor类型
@@ -346,6 +351,7 @@ public abstract class AopUtils {
 			throws Throwable {
 
 		// Use reflection to invoke the method.
+		// 利用反射 调用目标方法
 		try {
 			ReflectionUtils.makeAccessible(method);
 			return method.invoke(target, args);

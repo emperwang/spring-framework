@@ -108,12 +108,17 @@ public class ReflectiveMethodInvocation implements ProxyMethodInvocation, Clonea
 	protected ReflectiveMethodInvocation(
 			Object proxy, @Nullable Object target, Method method, @Nullable Object[] arguments,
 			@Nullable Class<?> targetClass, List<Object> interceptorsAndDynamicMethodMatchers) {
-
+		// 代理
 		this.proxy = proxy;
+		// 目标实例
 		this.target = target;
+		// 目标class
 		this.targetClass = targetClass;
+		// 要调用目标方法
 		this.method = BridgeMethodResolver.findBridgedMethod(method);
+		// 方法的参数
 		this.arguments = AopProxyUtils.adaptArgumentsIfNecessary(method, arguments);
+		// 记录调用chain; 也就是配置的拦截方法
 		this.interceptorsAndDynamicMethodMatchers = interceptorsAndDynamicMethodMatchers;
 	}
 
@@ -201,6 +206,7 @@ public class ReflectiveMethodInvocation implements ProxyMethodInvocation, Clonea
 	 * @return the return value of the joinpoint
 	 * @throws Throwable if invoking the joinpoint resulted in an exception
 	 */
+	// 调用目标方法
 	@Nullable
 	protected Object invokeJoinpoint() throws Throwable {
 		return AopUtils.invokeJoinpointUsingReflection(this.target, this.method, this.arguments);

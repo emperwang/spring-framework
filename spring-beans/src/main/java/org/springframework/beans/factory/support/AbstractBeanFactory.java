@@ -541,9 +541,10 @@ public abstract class AbstractBeanFactory extends FactoryBeanRegistrySupport imp
 			return false;
 		}
 	}
-
+	// 判断 beanName 是指定类型是否 match
 	@Override
 	public boolean isTypeMatch(String name, ResolvableType typeToMatch) throws NoSuchBeanDefinitionException {
+		// beanname转换
 		String beanName = transformedBeanName(name);
 
 		// Check manually registered singletons.
@@ -658,27 +659,33 @@ public abstract class AbstractBeanFactory extends FactoryBeanRegistrySupport imp
 	public boolean isTypeMatch(String name, Class<?> typeToMatch) throws NoSuchBeanDefinitionException {
 		return isTypeMatch(name, ResolvableType.forRawClass(typeToMatch));
 	}
-
+	// 获取容器中一个bean的type
 	@Override
 	@Nullable
 	public Class<?> getType(String name) throws NoSuchBeanDefinitionException {
+		// 对beanName 进行转换
 		String beanName = transformedBeanName(name);
 
 		// Check manually registered singletons.
+		// 获取此bean的 单例对象
 		Object beanInstance = getSingleton(beanName, false);
 		if (beanInstance != null && beanInstance.getClass() != NullBean.class) {
+			// 如果获取的bean实例是一个factoryBean,那么获取此bean的真实的type
 			if (beanInstance instanceof FactoryBean && !BeanFactoryUtils.isFactoryDereference(name)) {
 				return getTypeForFactoryBean((FactoryBean<?>) beanInstance);
 			}
 			else {
+				// 实例不是factoryBean,那么就直接返回bean的class
 				return beanInstance.getClass();
 			}
 		}
 
 		// No singleton instance found -> check bean definition.
+		// 获取 父容器
 		BeanFactory parentBeanFactory = getParentBeanFactory();
 		if (parentBeanFactory != null && !containsBeanDefinition(beanName)) {
 			// No bean definition found in this factory -> delegate to parent.
+			// 从 父容器 中获取一个bean的type
 			return parentBeanFactory.getType(originalBeanName(name));
 		}
 
@@ -694,7 +701,7 @@ public abstract class AbstractBeanFactory extends FactoryBeanRegistrySupport imp
 				return targetClass;
 			}
 		}
-
+		// 预测bean 的type类型
 		Class<?> beanClass = predictBeanType(beanName, mbd);
 
 		// Check bean class whether we're dealing with a FactoryBean.

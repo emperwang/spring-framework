@@ -26,6 +26,16 @@ public class AspectConfig {
 		System.out.println("after advise");
 	}
 
+	@AfterThrowing(value = "MyPointcut()")
+	public void exception(JoinPoint joinPoint){
+		System.out.println("AfterThrowing ex: ");
+	}
+
+	@AfterReturning(value = "MyPointcut()")
+	public void afterReturn(JoinPoint joinPoint){
+		System.out.println("afterReturn ");
+	}
+
 	@Around(value = "MyPointcut()")
 	public Object around(ProceedingJoinPoint pjp){
 		System.out.println("start around.");
