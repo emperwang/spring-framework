@@ -4,6 +4,7 @@ import com.wk.entity.User;
 import com.wk.springdemo.config.MybatisConfig;
 import com.wk.springdemo.mapper.UserMapper;
 import com.wk.springdemo.service.UserService;
+import com.wk.springdemo.service.s2.UserService2;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 
@@ -11,6 +12,18 @@ public class SpringStarter {
 	public static void main(String[] args) {
 		AnnotationConfigApplicationContext context = new AnnotationConfigApplicationContext(MybatisConfig.class);
 		insertAndGet(context);
+		//insertAndGet2(context);
+	}
+
+	public static void insertAndGet2(ApplicationContext context){
+		User user = new User();
+		user.setAge(1);
+		user.setAddress("bj");
+		user.setName("zhangsan");
+
+		UserService2 service2 = context.getBean(UserService2.class);
+		service2.insertOne(user);
+		service2.selectAll();
 	}
 
 	public static void insertAndGet(ApplicationContext context){
