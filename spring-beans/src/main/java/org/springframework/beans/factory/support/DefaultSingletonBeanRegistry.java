@@ -197,6 +197,7 @@ public class DefaultSingletonBeanRegistry extends SimpleAliasRegistry implements
 	// 获取单里的方法
 	// 1. 先从单例池中获取,池中有,则直接返回
 	// 2. 单例池中没有, 则尝试此 beanname是否是工厂类, 如果是工厂类,则使用工厂类创建一个实例
+	// 3. 单例创建好之后 放入到 earlySingletonObjects中
 	// 工厂类创建完实例后,会删除此工厂类
 	@Nullable
 	protected Object getSingleton(String beanName, boolean allowEarlyReference) {

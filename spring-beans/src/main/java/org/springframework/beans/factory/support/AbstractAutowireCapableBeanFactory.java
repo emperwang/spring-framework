@@ -601,6 +601,7 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 		// Eagerly cache singletons to be able to resolve circular references
 		// even when triggered by lifecycle interfaces like BeanFactoryAware.
 		// 此处是解决循环注入问题
+		// allowCircularReferences 是否允许 循环注入
 		boolean earlySingletonExposure = (mbd.isSingleton() && this.allowCircularReferences &&
 				isSingletonCurrentlyInCreation(beanName));
 		if (earlySingletonExposure) {
@@ -637,7 +638,7 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 						mbd.getResourceDescription(), beanName, "Initialization of bean failed", ex);
 			}
 		}
-		// 如果是要获取获取一个还没有初始化好的单例对象
+		// 允许循环注入
 		if (earlySingletonExposure) {
 			// 从单例缓存池和earlySingletonObjects中去获取要得到的bean
 			Object earlySingletonReference = getSingleton(beanName, false);
@@ -668,6 +669,7 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 
 		// Register bean as disposable.
 		try {
+			// 注册一个带有销毁方法的bean
 			registerDisposableBeanIfNecessary(beanName, bean, mbd);
 		}
 		catch (BeanDefinitionValidationException ex) {
@@ -1857,6 +1859,10 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 			 *  2. InitializingBean.afterPropertiesSet
 			 *  3. init-method
 			 */
+			// CommonAnnotationBeanPostProcessor extends InitDestroyAnnotationBeanPostProcessor
+			// 这里对 PostConstruct 注解的处理主要通过 InitDestroyAnnotationBeanPostProcessor来做的
+			// 但是 CommonAnnotationBeanPostProcessor是子类,并且早在 reader初始化时就已经注册了,故具体的处理是由CommonAnnotationBeanPostProcessor
+			// 调用父类方法 来操作的
 			wrappedBean = applyBeanPostProcessorsBeforeInitialization(wrappedBean, beanName);
 		}
 

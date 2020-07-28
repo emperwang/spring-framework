@@ -108,10 +108,12 @@ class DisposableBeanAdapter implements DisposableBean, Runnable, Serializable {
 				(this.bean instanceof DisposableBean && !beanDefinition.isExternallyManagedDestroyMethod("destroy"));
 		this.nonPublicAccessAllowed = beanDefinition.isNonPublicAccessAllowed();
 		this.acc = acc;
+		// 推断一个 bean的销毁方法
 		String destroyMethodName = inferDestroyMethodIfNecessary(bean, beanDefinition);
 		if (destroyMethodName != null && !(this.invokeDisposableBean && "destroy".equals(destroyMethodName)) &&
 				!beanDefinition.isExternallyManagedDestroyMethod(destroyMethodName)) {
 			this.destroyMethodName = destroyMethodName;
+			// 查找销毁方法
 			this.destroyMethod = determineDestroyMethod(destroyMethodName);
 			if (this.destroyMethod == null) {
 				if (beanDefinition.isEnforceDestroyMethod()) {
@@ -131,6 +133,7 @@ class DisposableBeanAdapter implements DisposableBean, Runnable, Serializable {
 				}
 			}
 		}
+		// 过滤出 DestructionAwareBeanPostProcessor 类型的后置处理器
 		this.beanPostProcessors = filterPostProcessors(postProcessors, bean);
 	}
 
@@ -180,8 +183,10 @@ class DisposableBeanAdapter implements DisposableBean, Runnable, Serializable {
 	 * <p>Also processes the {@link java.io.Closeable} and {@link java.lang.AutoCloseable}
 	 * interfaces, reflectively calling the "close" method on implementing beans as well.
 	 */
+	// 推断 一个bean的 销毁方法
 	@Nullable
 	private String inferDestroyMethodIfNecessary(Object bean, RootBeanDefinition beanDefinition) {
+		// 获取beanDefinition中 记录的销毁方法
 		String destroyMethodName = beanDefinition.getDestroyMethodName();
 		if (AbstractBeanDefinition.INFER_METHOD.equals(destroyMethodName) ||
 				(destroyMethodName == null && bean instanceof AutoCloseable)) {
@@ -189,10 +194,12 @@ class DisposableBeanAdapter implements DisposableBean, Runnable, Serializable {
 			// in case of the bean not explicitly implementing DisposableBean
 			if (!(bean instanceof DisposableBean)) {
 				try {
+					// 获取方法名字为 close 的方法名字
 					return bean.getClass().getMethod(CLOSE_METHOD_NAME).getName();
 				}
 				catch (NoSuchMethodException ex) {
 					try {
+						// 获取名字为 shutdown 的方法名字
 						return bean.getClass().getMethod(SHUTDOWN_METHOD_NAME).getName();
 					}
 					catch (NoSuchMethodException ex2) {
@@ -202,6 +209,7 @@ class DisposableBeanAdapter implements DisposableBean, Runnable, Serializable {
 			}
 			return null;
 		}
+		// 返回beanDefinition中记录的 销毁方法
 		return (StringUtils.hasLength(destroyMethodName) ? destroyMethodName : null);
 	}
 
