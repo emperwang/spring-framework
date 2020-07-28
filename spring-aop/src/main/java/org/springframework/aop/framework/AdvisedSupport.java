@@ -93,6 +93,7 @@ public class AdvisedSupport extends ProxyConfig implements Advised {
 	 * List of Advisors. If an Advice is added, it will be wrapped
 	 * in an Advisor before being added to this List.
 	 */
+	// 记录 advisor
 	private List<Advisor> advisors = new ArrayList<>();
 
 	/**

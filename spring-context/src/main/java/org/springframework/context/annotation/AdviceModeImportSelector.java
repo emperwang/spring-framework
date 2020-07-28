@@ -73,8 +73,9 @@ public abstract class AdviceModeImportSelector<A extends Annotation> implements 
 					"@%s is not present on importing class '%s' as expected",
 					annType.getSimpleName(), importingClassMetadata.getClassName()));
 		}
-
+		// 事务代理的模式
 		AdviceMode adviceMode = attributes.getEnum(getAdviceModeAttributeName());
+		// 根据模式的不同 来注入不同的bean到容器中
 		String[] imports = selectImports(adviceMode);
 		if (imports == null) {
 			throw new IllegalArgumentException("Unknown AdviceMode: " + adviceMode);

@@ -91,6 +91,7 @@ public class AnnotationTransactionAttributeSource extends AbstractFallbackTransa
 	 */
 	public AnnotationTransactionAttributeSource(boolean publicMethodsOnly) {
 		this.publicMethodsOnly = publicMethodsOnly;
+		// 根据不同的属性 来创建不同的解析器
 		if (jta12Present || ejb3Present) {
 			this.annotationParsers = new LinkedHashSet<>(4);
 			this.annotationParsers.add(new SpringTransactionAnnotationParser());
@@ -147,6 +148,7 @@ public class AnnotationTransactionAttributeSource extends AbstractFallbackTransa
 	@Override
 	@Nullable
 	protected TransactionAttribute findTransactionAttribute(Method method) {
+		// 根据method上的注解 来判断是否对此方法创建事务
 		return determineTransactionAttribute(method);
 	}
 
@@ -164,7 +166,10 @@ public class AnnotationTransactionAttributeSource extends AbstractFallbackTransa
 	// 这里咱们分析注解配置
 	@Nullable
 	protected TransactionAttribute determineTransactionAttribute(AnnotatedElement element) {
+		// 因为根据不同的属性,创建了多种解析器
+		// 使用不同的解析器 来对method进行解析
 		for (TransactionAnnotationParser annotationParser : this.annotationParsers) {
+			// 使用解析器 对方法上的注解进行解析
 			TransactionAttribute attr = annotationParser.parseTransactionAnnotation(element);
 			if (attr != null) {
 				return attr;

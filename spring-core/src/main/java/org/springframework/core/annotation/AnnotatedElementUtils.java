@@ -632,9 +632,10 @@ public abstract class AnnotatedElementUtils {
 	@Nullable
 	public static AnnotationAttributes findMergedAnnotationAttributes(AnnotatedElement element,
 			Class<? extends Annotation> annotationType, boolean classValuesAsString, boolean nestedAnnotationsAsMap) {
-
+		// searchWithFindSemantics 搜寻方法上的注解信息
 		AnnotationAttributes attributes = searchWithFindSemantics(element, annotationType, null,
 				new MergedAnnotationAttributesProcessor(classValuesAsString, nestedAnnotationsAsMap));
+		// 处理注解的 属性信息
 		AnnotationUtils.postProcessAnnotationAttributes(element, attributes, classValuesAsString, nestedAnnotationsAsMap);
 		return attributes;
 	}
@@ -1037,7 +1038,8 @@ public abstract class AnnotatedElementUtils {
 	private static <T> T searchWithFindSemantics(AnnotatedElement element,
 			@Nullable Class<? extends Annotation> annotationType,
 			@Nullable String annotationName, Processor<T> processor) {
-
+		// 搜寻方法上的注解 及其 信息
+		// 查找自定的类的信息
 		return searchWithFindSemantics(element,
 				(annotationType != null ? Collections.singleton(annotationType) : Collections.emptySet()),
 				annotationName, null, processor);
@@ -1057,6 +1059,7 @@ public abstract class AnnotatedElementUtils {
 	 * @return the result of the processor (potentially {@code null})
 	 * @since 4.3
 	 */
+	// 找到指定的 注解信息
 	@Nullable
 	private static <T> T searchWithFindSemantics(AnnotatedElement element,
 			Set<Class<? extends Annotation>> annotationTypes, @Nullable String annotationName,
@@ -1068,6 +1071,14 @@ public abstract class AnnotatedElementUtils {
 		}
 
 		try {
+			// 分析类 或者 方法上的注解 以及注解上的属性信息
+			// 1. 先分析方法本身的注解
+			// 2. 分析方法所在类 的接口的信息
+			// 3. 分析方法的父类的注解信息
+			// 4. 分析方法所在的类的父类的接口的注解信息
+			// 分析类时 :
+			// 1. 分析类的注解信息
+			// 2. 分析类的父类的注解信息
 			return searchWithFindSemantics(
 					element, annotationTypes, annotationName, containerType, processor, new HashSet<>(), 0);
 		}
@@ -1095,6 +1106,14 @@ public abstract class AnnotatedElementUtils {
 	 * @return the result of the processor (potentially {@code null})
 	 * @since 4.2
 	 */
+	// 分析类 或者 方法上的注解 以及注解上的属性信息
+	// 1. 先分析方法本身的注解
+	// 2. 分析方法所在类 的接口的信息
+	// 3. 分析方法的父类的注解信息
+	// 4. 分析方法所在的类的父类的接口的注解信息
+	// 分析类时 :
+	// 1. 分析类的注解信息
+	// 2. 分析类的父类的注解信息
 	@Nullable
 	private static <T> T searchWithFindSemantics(AnnotatedElement element,
 			Set<Class<? extends Annotation>> annotationTypes, @Nullable String annotationName,
@@ -1104,7 +1123,7 @@ public abstract class AnnotatedElementUtils {
 		if (visited.add(element)) {
 			try {
 				// Locally declared annotations (ignoring @Inherited)
-				// 第一步: 先从分析本方法上的注解信息
+				// ****************: 先从分析本方法上的注解信息
 				Annotation[] annotations = AnnotationUtils.getDeclaredAnnotations(element);
 				if (annotations.length > 0) {
 					List<T> aggregatedResults = (processor.aggregates() ? new ArrayList<>() : null);
@@ -1112,10 +1131,13 @@ public abstract class AnnotatedElementUtils {
 					// Search in local annotations
 					for (Annotation annotation : annotations) {
 						Class<? extends Annotation> currentAnnotationType = annotation.annotationType();
+						// AnnotationUtils.isInJavaLangAnnotationPackage 判断是否是java自带的注解
 						if (!AnnotationUtils.isInJavaLangAnnotationPackage(currentAnnotationType)) {
 							if (annotationTypes.contains(currentAnnotationType) ||
 									currentAnnotationType.getName().equals(annotationName) ||
 									processor.alwaysProcesses()) {
+								// 对注解 及其 属性进行处理
+								// 重点 重点
 								T result = processor.process(element, annotation, metaDepth);
 								if (result != null) {
 									if (aggregatedResults != null && metaDepth == 0) {
@@ -1179,6 +1201,7 @@ public abstract class AnnotatedElementUtils {
 					}
 
 					// Search on methods in interfaces declared locally
+					// ****************: 分析此方法对应的类的接口 上的 注解信息
 					Class<?>[] ifcs = method.getDeclaringClass().getInterfaces();
 					if (ifcs.length > 0) {
 						result = searchOnInterfaces(method, annotationTypes, annotationName,
@@ -1190,6 +1213,7 @@ public abstract class AnnotatedElementUtils {
 
 					// Search on methods in class hierarchy and interface hierarchy
 					Class<?> clazz = method.getDeclaringClass();
+					// ****************: 分析此方法对应的类的 父类 上的注解信息
 					while (true) {
 						clazz = clazz.getSuperclass();
 						if (clazz == null || clazz == Object.class) {
@@ -1209,6 +1233,7 @@ public abstract class AnnotatedElementUtils {
 							}
 						}
 						// Search on interfaces declared on superclass
+						// ****************: 分析此方法对应的类的 父类的接口 上的注解信息
 						result = searchOnInterfaces(method, annotationTypes, annotationName,
 								containerType, processor, visited, metaDepth, clazz.getInterfaces());
 						if (result != null) {
@@ -1216,6 +1241,7 @@ public abstract class AnnotatedElementUtils {
 						}
 					}
 				}
+				// ****************: 此时分析的元素原始 方法而是类
 				else if (element instanceof Class) {
 					Class<?> clazz = (Class<?>) element;
 					if (!Annotation.class.isAssignableFrom(clazz)) {
@@ -1228,6 +1254,7 @@ public abstract class AnnotatedElementUtils {
 							}
 						}
 						// Search on superclass
+						// ****************: 此时分析的元素原始 父类的注解信息
 						Class<?> superclass = clazz.getSuperclass();
 						if (superclass != null && superclass != Object.class) {
 							T result = searchWithFindSemantics(superclass, annotationTypes, annotationName,
@@ -1566,10 +1593,11 @@ public abstract class AnnotatedElementUtils {
 		public List<AnnotationAttributes> getAggregatedResults() {
 			return this.aggregatedResults;
 		}
-
+		// 对注解及其信息进行处理
 		@Override
 		@Nullable
 		public AnnotationAttributes process(@Nullable AnnotatedElement annotatedElement, Annotation annotation, int metaDepth) {
+			// 遍历属性上的各个属性
 			return AnnotationUtils.retrieveAnnotationAttributes(annotatedElement, annotation,
 					this.classValuesAsString, this.nestedAnnotationsAsMap);
 		}
