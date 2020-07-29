@@ -57,7 +57,7 @@ public class ConnectionHolder extends ResourceHolderSupport {
 
 	@Nullable
 	private Boolean savepointsSupported;
-
+	// savepoint的尾缀
 	private int savepointCounter = 0;
 
 
@@ -182,8 +182,10 @@ public class ConnectionHolder extends ResourceHolderSupport {
 	 * @return the new Savepoint
 	 * @throws SQLException if thrown by the JDBC driver
 	 */
+	// 创建事务的savepoint
 	public Savepoint createSavepoint() throws SQLException {
 		this.savepointCounter++;
+		// 创建savepoint
 		return getConnection().setSavepoint(SAVEPOINT_NAME_PREFIX + this.savepointCounter);
 	}
 

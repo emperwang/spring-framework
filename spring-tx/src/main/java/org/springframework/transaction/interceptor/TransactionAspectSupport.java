@@ -85,7 +85,8 @@ public abstract class TransactionAspectSupport implements BeanFactoryAware, Init
 	 * (e.g. before and after advice) if the aspect involves more than a
 	 * single method (as will be the case for around advice).
 	 */
-	// 记录当前线程的transactionInfo, 其中包括了 transactionAttribute  transactionManager  transactionStatus  transactionName(全限定类型+"."+方法名)
+	// 记录当前线程的transactionInfo, 其中包括了
+	// transactionAttribute  transactionManager  transactionStatus  transactionName(全限定类型+"."+方法名)
 	private static final ThreadLocal<TransactionInfo> transactionInfoHolder =
 			new NamedThreadLocal<>("Current aspect-driven transaction");
 
@@ -129,19 +130,19 @@ public abstract class TransactionAspectSupport implements BeanFactoryAware, Init
 
 
 	protected final Log logger = LogFactory.getLog(getClass());
-
+	// 事务管理器的名字
 	@Nullable
 	private String transactionManagerBeanName;
 
 	@Nullable
 	private PlatformTransactionManager transactionManager;
-
+	// 注解性事务,此时值为 AnnotationTransactionAttributeSource
 	@Nullable
 	private TransactionAttributeSource transactionAttributeSource;
 
 	@Nullable
 	private BeanFactory beanFactory;
-
+	// 存储事务管理器的缓存
 	private final ConcurrentMap<Object, PlatformTransactionManager> transactionManagerCache =
 			new ConcurrentReferenceHashMap<>(4);
 
@@ -219,6 +220,7 @@ public abstract class TransactionAspectSupport implements BeanFactoryAware, Init
 	 * @see NameMatchTransactionAttributeSource
 	 * @see org.springframework.transaction.annotation.AnnotationTransactionAttributeSource
 	 */
+	// 注解性事务 此时参数为 AnnotationTransactionAttributeSource
 	public void setTransactionAttributeSource(@Nullable TransactionAttributeSource transactionAttributeSource) {
 		this.transactionAttributeSource = transactionAttributeSource;
 	}
@@ -280,9 +282,13 @@ public abstract class TransactionAspectSupport implements BeanFactoryAware, Init
 			final InvocationCallback invocation) throws Throwable {
 
 		// If the transaction attribute is null, the method is non-transactional.
+		// 相当于获取 AnnotationTransactionAttributeSource,也就是事务的 pointcut
 		TransactionAttributeSource tas = getTransactionAttributeSource();
+		// 获取方法上事务的 属性
 		final TransactionAttribute txAttr = (tas != null ? tas.getTransactionAttribute(method, targetClass) : null);
+		// 获取事务管理器
 		final PlatformTransactionManager tm = determineTransactionManager(txAttr);
+		// 获取一个方法的 标识
 		final String joinpointIdentification = methodIdentification(method, targetClass, txAttr);
 
 		// 代理式事务管理
@@ -380,13 +386,15 @@ public abstract class TransactionAspectSupport implements BeanFactoryAware, Init
 	/**
 	 * Determine the specific transaction manager to use for the given transaction.
 	 */
+	// 决定使用哪个特定的事务管理器
 	@Nullable
 	protected PlatformTransactionManager determineTransactionManager(@Nullable TransactionAttribute txAttr) {
 		// Do not attempt to lookup tx manager if no tx attributes are set
 		if (txAttr == null || this.beanFactory == null) {
 			return getTransactionManager();
 		}
-
+		// 如果事务注解的参数中 有指定事务管理器
+		// 那么就使用指定的事务管理器
 		String qualifier = txAttr.getQualifier();
 		if (StringUtils.hasText(qualifier)) {
 			return determineQualifiedTransactionManager(this.beanFactory, qualifier);
@@ -395,11 +403,15 @@ public abstract class TransactionAspectSupport implements BeanFactoryAware, Init
 			return determineQualifiedTransactionManager(this.beanFactory, this.transactionManagerBeanName);
 		}
 		else {
+			// 如果上面都没有获取到,则在这里继续获取
 			PlatformTransactionManager defaultTransactionManager = getTransactionManager();
 			if (defaultTransactionManager == null) {
+				// 获取默认类型的事务管理器
 				defaultTransactionManager = this.transactionManagerCache.get(DEFAULT_TRANSACTION_MANAGER_KEY);
 				if (defaultTransactionManager == null) {
+					// 如容器中获取 类型为 PlatformTransactionManager的事务管理器 bean
 					defaultTransactionManager = this.beanFactory.getBean(PlatformTransactionManager.class);
+					// 存储起来 获取到的管理器
 					this.transactionManagerCache.putIfAbsent(
 							DEFAULT_TRANSACTION_MANAGER_KEY, defaultTransactionManager);
 				}
@@ -409,10 +421,13 @@ public abstract class TransactionAspectSupport implements BeanFactoryAware, Init
 	}
 
 	private PlatformTransactionManager determineQualifiedTransactionManager(BeanFactory beanFactory, String qualifier) {
+		// 先去缓存中获取
 		PlatformTransactionManager txManager = this.transactionManagerCache.get(qualifier);
+		// 缓存中没有,则去容器中去获取指定的管理器
 		if (txManager == null) {
 			txManager = BeanFactoryAnnotationUtils.qualifiedBeanOfType(
 					beanFactory, PlatformTransactionManager.class, qualifier);
+			// 存储获取到的事务管理器
 			this.transactionManagerCache.putIfAbsent(qualifier, txManager);
 		}
 		return txManager;
@@ -463,6 +478,7 @@ public abstract class TransactionAspectSupport implements BeanFactoryAware, Init
 	 * tell if there was a transaction created.
 	 * @see #getTransactionAttributeSource()
 	 */
+	// 创建事务
 	@SuppressWarnings("serial")
 	protected TransactionInfo createTransactionIfNecessary(@Nullable PlatformTransactionManager tm,
 			@Nullable TransactionAttribute txAttr, final String joinpointIdentification) {
@@ -507,7 +523,10 @@ public abstract class TransactionAspectSupport implements BeanFactoryAware, Init
 	protected TransactionInfo prepareTransactionInfo(@Nullable PlatformTransactionManager tm,
 			@Nullable TransactionAttribute txAttr, String joinpointIdentification,
 			@Nullable TransactionStatus status) {
-
+		// 创建事务信息
+		// tm  事务管理器
+		// txAttr 事务注解的属性
+		// joinpointIdentification  事务的名字,一般是 全限定类名 + . + method
 		TransactionInfo txInfo = new TransactionInfo(tm, txAttr, joinpointIdentification);
 		if (txAttr != null) {
 			// We need a transaction for this method...
@@ -625,18 +644,21 @@ public abstract class TransactionAspectSupport implements BeanFactoryAware, Init
 		private final TransactionAttribute transactionAttribute;
 
 		private final String joinpointIdentification;
-
+		// 保存数据的状态信息
 		@Nullable
 		private TransactionStatus transactionStatus;
-
+		// 记录当前线程老的 线程信息,其中包括了
+		// transactionAttribute  transactionManager  transactionStatus  transactionName(全限定类型+"."+方法名)
 		@Nullable
 		private TransactionInfo oldTransactionInfo;
 
 		public TransactionInfo(@Nullable PlatformTransactionManager transactionManager,
 				@Nullable TransactionAttribute transactionAttribute, String joinpointIdentification) {
-
+			// 事务管理器
 			this.transactionManager = transactionManager;
+			// 事务的注解的属性值
 			this.transactionAttribute = transactionAttribute;
+			// 事务的名字
 			this.joinpointIdentification = joinpointIdentification;
 		}
 

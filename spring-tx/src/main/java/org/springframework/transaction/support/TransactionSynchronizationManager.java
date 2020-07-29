@@ -150,7 +150,9 @@ public abstract class TransactionSynchronizationManager {
 	 */
 	@Nullable
 	private static Object doGetResource(Object actualKey) {
+		// 从threadLocal中去获取当前线程中存储的 数据路连接
 		Map<Object, Object> map = resources.get();
+		// 没有,则返回null
 		if (map == null) {
 			return null;
 		}
@@ -174,6 +176,7 @@ public abstract class TransactionSynchronizationManager {
 	 * @throws IllegalStateException if there is already a value bound to the thread
 	 * @see ResourceTransactionManager#getResourceFactory()
 	 */
+	// 绑定资源到当前的线程中,也就是设置到 threadLocal中
 	public static void bindResource(Object key, Object value) throws IllegalStateException {
 		Object actualKey = TransactionSynchronizationUtils.unwrapResourceIfNecessary(key);
 		Assert.notNull(value, "Value must not be null");
@@ -312,6 +315,7 @@ public abstract class TransactionSynchronizationManager {
 	 * @see TransactionSynchronization
 	 */
 	public static List<TransactionSynchronization> getSynchronizations() throws IllegalStateException {
+		// 获取当前线程正在同步中的事务
 		Set<TransactionSynchronization> synchs = synchronizations.get();
 		if (synchs == null) {
 			throw new IllegalStateException("Transaction synchronization is not active");
@@ -319,11 +323,13 @@ public abstract class TransactionSynchronizationManager {
 		// Return unmodifiable snapshot, to avoid ConcurrentModificationExceptions
 		// while iterating and invoking synchronization callbacks that in turn
 		// might register further synchronizations.
+		// 如果没有正在同步的事务,则返回空列表
 		if (synchs.isEmpty()) {
 			return Collections.emptyList();
 		}
 		else {
 			// Sort lazily here, not in registerSynchronization.
+			// 对正在同步的事务进行排序,并返回
 			List<TransactionSynchronization> sortedSynchs = new ArrayList<>(synchs);
 			AnnotationAwareOrderComparator.sort(sortedSynchs);
 			return Collections.unmodifiableList(sortedSynchs);

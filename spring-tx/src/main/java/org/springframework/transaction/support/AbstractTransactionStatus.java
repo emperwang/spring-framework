@@ -49,7 +49,7 @@ public abstract class AbstractTransactionStatus implements TransactionStatus {
 	private boolean rollbackOnly = false;
 
 	private boolean completed = false;
-
+	// 保存事务最近的一个savepoint
 	@Nullable
 	private Object savepoint;
 
@@ -143,6 +143,7 @@ public abstract class AbstractTransactionStatus implements TransactionStatus {
 	 * @throws org.springframework.transaction.NestedTransactionNotSupportedException
 	 * if the underlying transaction does not support savepoints
 	 */
+	// 创建事务的savepoint
 	public void createAndHoldSavepoint() throws TransactionException {
 		setSavepoint(getSavepointManager().createSavepoint());
 	}
@@ -151,14 +152,18 @@ public abstract class AbstractTransactionStatus implements TransactionStatus {
 	 * Roll back to the savepoint that is held for the transaction
 	 * and release the savepoint right afterwards.
 	 */
+	// 对事务中的保存点的回滚
 	public void rollbackToHeldSavepoint() throws TransactionException {
 		Object savepoint = getSavepoint();
 		if (savepoint == null) {
 			throw new TransactionUsageException(
 					"Cannot roll back to savepoint - no savepoint associated with current transaction");
 		}
+		// 回滚到 保存点
 		getSavepointManager().rollbackToSavepoint(savepoint);
+		// 释放回滚点
 		getSavepointManager().releaseSavepoint(savepoint);
+		// 把保存的回滚点也进行释放
 		setSavepoint(null);
 	}
 
