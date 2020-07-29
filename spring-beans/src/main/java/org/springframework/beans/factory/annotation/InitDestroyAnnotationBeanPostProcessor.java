@@ -138,6 +138,7 @@ public class InitDestroyAnnotationBeanPostProcessor
 		LifecycleMetadata metadata = findLifecycleMetadata(bean.getClass());
 		try {
 			// 调用方法
+			// 在这里调用初始化方法
 			metadata.invokeInitMethods(bean, beanName);
 		}
 		catch (InvocationTargetException ex) {
@@ -156,8 +157,10 @@ public class InitDestroyAnnotationBeanPostProcessor
 
 	@Override
 	public void postProcessBeforeDestruction(Object bean, String beanName) throws BeansException {
+		// 构建 生命周期的源数据
 		LifecycleMetadata metadata = findLifecycleMetadata(bean.getClass());
 		try {
+			// 在destory前 先调用 设置的 preDestory 方法
 			metadata.invokeDestroyMethods(bean, beanName);
 		}
 		catch (InvocationTargetException ex) {
@@ -179,7 +182,7 @@ public class InitDestroyAnnotationBeanPostProcessor
 		return findLifecycleMetadata(bean.getClass()).hasDestroyMethods();
 	}
 
-
+	// 查找跟生命周期相关的  源数据
 	private LifecycleMetadata findLifecycleMetadata(Class<?> clazz) {
 		if (this.lifecycleMetadataCache == null) {
 			// Happens after deserialization, during destruction...
@@ -199,16 +202,20 @@ public class InitDestroyAnnotationBeanPostProcessor
 		}
 		return metadata;
 	}
-
+	// 构建生命周期的 源数据
 	private LifecycleMetadata buildLifecycleMetadata(final Class<?> clazz) {
+		// 初始化方法
 		List<LifecycleElement> initMethods = new ArrayList<>();
+		// 销毁方法
 		List<LifecycleElement> destroyMethods = new ArrayList<>();
 		Class<?> targetClass = clazz;
 
 		do {
 			final List<LifecycleElement> currInitMethods = new ArrayList<>();
 			final List<LifecycleElement> currDestroyMethods = new ArrayList<>();
-
+			// 对目标clas的所有方法进行遍历
+			// 查找存在 initAnnotationType注解的方法,此处是PostConstruct
+			// 查找存在destroyAnnotationType注解的方法,此处是PreDestroy
 			ReflectionUtils.doWithLocalMethods(targetClass, method -> {
 				if (this.initAnnotationType != null && method.isAnnotationPresent(this.initAnnotationType)) {
 					LifecycleElement element = new LifecycleElement(method);
@@ -224,9 +231,12 @@ public class InitDestroyAnnotationBeanPostProcessor
 					}
 				}
 			});
-
+			// 记录initMethod
 			initMethods.addAll(0, currInitMethods);
+			// 记录 destory method
 			destroyMethods.addAll(currDestroyMethods);
+			// 获取 目标方法的父类
+			// 由此可见,在父类中添加了注解,也是可以检测到的
 			targetClass = targetClass.getSuperclass();
 		}
 		while (targetClass != null && targetClass != Object.class);
@@ -267,9 +277,11 @@ public class InitDestroyAnnotationBeanPostProcessor
 
 		public LifecycleMetadata(Class<?> targetClass, Collection<LifecycleElement> initMethods,
 				Collection<LifecycleElement> destroyMethods) {
-
+			// 目标类
 			this.targetClass = targetClass;
+			// 通过注解得到的 初始化方法
 			this.initMethods = initMethods;
+			// 通过注解得到的 destory 方法
 			this.destroyMethods = destroyMethods;
 		}
 
@@ -299,7 +311,7 @@ public class InitDestroyAnnotationBeanPostProcessor
 			this.checkedInitMethods = checkedInitMethods;
 			this.checkedDestroyMethods = checkedDestroyMethods;
 		}
-
+		// 调用初始化方法
 		public void invokeInitMethods(Object target, String beanName) throws Throwable {
 			Collection<LifecycleElement> checkedInitMethods = this.checkedInitMethods;
 			Collection<LifecycleElement> initMethodsToIterate =

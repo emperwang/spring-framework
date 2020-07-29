@@ -198,10 +198,16 @@ public class CommonAnnotationBeanPostProcessor extends InitDestroyAnnotationBean
 	 * {@link javax.annotation.PostConstruct} and {@link javax.annotation.PreDestroy},
 	 * respectively.
 	 */
+	// 可以看到此类在构造器中初始化了一些属性
+	// 设置了 order
+	// 设置了init的注解类型为 PostConstruct
+	// 设置了destory的注解类型为 PreDestroy
+	// 忽略的 资源类型
 	public CommonAnnotationBeanPostProcessor() {
 		setOrder(Ordered.LOWEST_PRECEDENCE - 3);
 		setInitAnnotationType(PostConstruct.class);
 		setDestroyAnnotationType(PreDestroy.class);
+		// 忽略的资源类型
 		ignoreResourceType("javax.xml.ws.WebServiceContext");
 	}
 
