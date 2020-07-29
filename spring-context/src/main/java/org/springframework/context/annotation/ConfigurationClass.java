@@ -131,6 +131,7 @@ final class ConfigurationClass {
 	 */
 	public ConfigurationClass(AnnotationMetadata metadata, String beanName) {
 		Assert.notNull(beanName, "Bean name must not be null");
+		// bean的 注解源信息
 		this.metadata = metadata;
 		this.resource = new DescriptiveResource(metadata.getClassName());
 		this.beanName = beanName;

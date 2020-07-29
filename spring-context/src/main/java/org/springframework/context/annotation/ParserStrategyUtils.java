@@ -41,6 +41,7 @@ abstract class ParserStrategyUtils {
 	 * {@link EnvironmentAware}, and {@link ResourceLoaderAware} contracts
 	 * if implemented by the given object.
 	 */
+	// 回调各种Aware解接口,来进行 各种的属性回调注入
 	public static void invokeAwareMethods(Object parserStrategyBean, Environment environment,
 			ResourceLoader resourceLoader, BeanDefinitionRegistry registry) {
 

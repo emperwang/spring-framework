@@ -92,13 +92,15 @@ class ConditionEvaluator {
 		}
 
 		List<Condition> conditions = new ArrayList<>();
+		// 获取注解上配置的 依赖的类
 		for (String[] conditionClasses : getConditionClasses(metadata)) {
 			for (String conditionClass : conditionClasses) {
+				// 使用反射来尝试实例化依赖类 getCondition
 				Condition condition = getCondition(conditionClass, this.context.getClassLoader());
 				conditions.add(condition);
 			}
 		}
-
+		// 对实例化后的类进行排序
 		AnnotationAwareOrderComparator.sort(conditions);
 		// 查看条件是否符合,不符合则跳过
 		for (Condition condition : conditions) {

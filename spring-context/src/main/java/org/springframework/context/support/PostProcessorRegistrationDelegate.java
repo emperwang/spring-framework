@@ -74,6 +74,7 @@ final class PostProcessorRegistrationDelegate {
 					registryProcessors.add(registryProcessor);
 				}
 				else {
+					// regularPostProcessors 存储BeanFactoryPostProcessor
 					regularPostProcessors.add(postProcessor);
 				}
 			}
@@ -99,6 +100,7 @@ final class PostProcessorRegistrationDelegate {
 			sortPostProcessors(currentRegistryProcessors, beanFactory);
 			registryProcessors.addAll(currentRegistryProcessors);
 			// 按顺序调用currentRegistryProcessors中的后置处理器
+			// 调用 BeanDefinitionRegistryPostProcessor 后置处理器
 			invokeBeanDefinitionRegistryPostProcessors(currentRegistryProcessors, registry);
 			// 调用完之后，清空
 			currentRegistryProcessors.clear();
@@ -117,6 +119,7 @@ final class PostProcessorRegistrationDelegate {
 			sortPostProcessors(currentRegistryProcessors, beanFactory);
 			registryProcessors.addAll(currentRegistryProcessors);
 			// 调用排好序的后置处理器,调用完成后情况容器
+			// 调用BeanDefinitionRegistryPostProcessor 后置处理器
 			invokeBeanDefinitionRegistryPostProcessors(currentRegistryProcessors, registry);
 			currentRegistryProcessors.clear();
 
@@ -141,8 +144,10 @@ final class PostProcessorRegistrationDelegate {
 			}
 
 			// Now, invoke the postProcessBeanFactory callback of all processors handled so far.
-			// 现在调用所有的BeanFactoryPostProcessor.postProcessBeanFactory 方法,对ioc容器中的beanDefinition进行修改
+			// 现在调用所有的BeanDefinitionRegistryPostProcessor.postProcessBeanFactory 方法,对ioc容器中的beanDefinition进行修改
 			invokeBeanFactoryPostProcessors(registryProcessors, beanFactory);
+			// regularPostProcessors 存储BeanFactoryPostProcessor
+			// 这里调用BeanFactoryPostProcessor.postProcessBeanFactory
 			invokeBeanFactoryPostProcessors(regularPostProcessors, beanFactory);
 		}
 

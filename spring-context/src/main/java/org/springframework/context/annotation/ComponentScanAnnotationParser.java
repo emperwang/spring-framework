@@ -72,28 +72,34 @@ class ComponentScanAnnotationParser {
 		this.registry = registry;
 	}
 
-
+	// 解析componentScan 路径上的组件
 	public Set<BeanDefinitionHolder> parse(AnnotationAttributes componentScan, final String declaringClass) {
 		// ClassPathBeanDefinitionScanner 是具体的扫描实现
+		// componentScan.getBoolean("useDefaultFilters") 获取注解的属性值,是否使用默认的过滤
 		ClassPathBeanDefinitionScanner scanner = new ClassPathBeanDefinitionScanner(this.registry,
 				componentScan.getBoolean("useDefaultFilters"), this.environment, this.resourceLoader);
 		// 名字生成器
+		// componentScan.getClass("nameGenerator") 获取注解中指定的名字生成器
 		Class<? extends BeanNameGenerator> generatorClass = componentScan.getClass("nameGenerator");
+		// 如果没有设置则使用默认的名字生成器
 		boolean useInheritedGenerator = (BeanNameGenerator.class == generatorClass);
 		scanner.setBeanNameGenerator(useInheritedGenerator ? this.beanNameGenerator :
 				BeanUtils.instantiateClass(generatorClass));
 		// scope mode
+		// componentScan.getEnum("scopedProxy") 获取注解中 属性值
 		ScopedProxyMode scopedProxyMode = componentScan.getEnum("scopedProxy");
 		if (scopedProxyMode != ScopedProxyMode.DEFAULT) {
 			scanner.setScopedProxyMode(scopedProxyMode);
 		}
 		else {
+			// componentScan.getClass("scopeResolver") 获取属性值 解析scope
 			Class<? extends ScopeMetadataResolver> resolverClass = componentScan.getClass("scopeResolver");
 			scanner.setScopeMetadataResolver(BeanUtils.instantiateClass(resolverClass));
 		}
-		//
+		//componentScan.getString("resourcePattern") 获取属性值 得到资源的正则
 		scanner.setResourcePattern(componentScan.getString("resourcePattern"));
 		// 添加 includeFilter 过滤器
+		// 获取属性中 componentScan.getAnnotationArray("includeFilters") 包含的过滤器
 		for (AnnotationAttributes filter : componentScan.getAnnotationArray("includeFilters")) {
 			for (TypeFilter typeFilter : typeFiltersFor(filter)) {
 				scanner.addIncludeFilter(typeFilter);
@@ -132,6 +138,8 @@ class ComponentScanAnnotationParser {
 			}
 		});
 		// 万事俱备, 开始扫描
+		// 重点  重点  重点
+		// 前面配置了过滤器 资源正则 等属性,现在开始扫描
 		return scanner.doScan(StringUtils.toStringArray(basePackages));
 	}
 

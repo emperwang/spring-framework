@@ -112,9 +112,9 @@ public class ConfigurationClassPostProcessor implements BeanDefinitionRegistryPo
 	private MetadataReaderFactory metadataReaderFactory = new CachingMetadataReaderFactory();
 
 	private boolean setMetadataReaderFactoryCalled = false;
-
+	// 记录处理过的BeanDefinitionRegistry
 	private final Set<Integer> registriesPostProcessed = new HashSet<>();
-
+	// 记录 bean容器
 	private final Set<Integer> factoriesPostProcessed = new HashSet<>();
 
 	@Nullable
@@ -126,6 +126,8 @@ public class ConfigurationClassPostProcessor implements BeanDefinitionRegistryPo
 	private BeanNameGenerator componentScanBeanNameGenerator = new AnnotationBeanNameGenerator();
 
 	/* Using fully qualified class names as default bean names */
+	// 使用类的全限定名 作为 beanname
+	// 这也是beanName生成器的使用
 	private BeanNameGenerator importBeanNameGenerator = new AnnotationBeanNameGenerator() {
 		@Override
 		protected String buildDefaultBeanName(BeanDefinition definition) {
@@ -221,6 +223,7 @@ public class ConfigurationClassPostProcessor implements BeanDefinitionRegistryPo
 	/**
 	 * Derive further bean definitions from the configuration classes in the registry.
 	 */
+	// BeanDefinitionRegistry 其实就是bean容器
 	@Override
 	public void postProcessBeanDefinitionRegistry(BeanDefinitionRegistry registry) {
 		// 生成一个唯一性 id, 防止重复解析
@@ -229,12 +232,14 @@ public class ConfigurationClassPostProcessor implements BeanDefinitionRegistryPo
 			throw new IllegalStateException(
 					"postProcessBeanDefinitionRegistry already called on this post-processor against " + registry);
 		}
+		// 记录一个新的 bean容器
 		if (this.factoriesPostProcessed.contains(registryId)) {
 			throw new IllegalStateException(
 					"postProcessBeanFactory already called on this post-processor against " + registry);
 		}
 		this.registriesPostProcessed.add(registryId);
 		// 具体的解析操作
+		// 重点
 		processConfigBeanDefinitions(registry);
 	}
 
@@ -250,6 +255,8 @@ public class ConfigurationClassPostProcessor implements BeanDefinitionRegistryPo
 					"postProcessBeanFactory already called on this post-processor against " + beanFactory);
 		}
 		this.factoriesPostProcessed.add(factoryId);
+		// 如果这个 beanFactory 是新的,也就是创建一个新的bean容器
+		// 那就会在这里再次进行一次 Configuration 类的解析操作
 		if (!this.registriesPostProcessed.contains(factoryId)) {
 			// BeanDefinitionRegistryPostProcessor hook apparently not supported...
 			// Simply call processConfigurationClasses lazily at this point then.
@@ -257,6 +264,7 @@ public class ConfigurationClassPostProcessor implements BeanDefinitionRegistryPo
 		}
 
 		enhanceConfigurationClasses(beanFactory);
+		// 添加一个后置处理器到容器
 		beanFactory.addBeanPostProcessor(new ImportAwareBeanPostProcessor(beanFactory));
 	}
 
@@ -264,6 +272,7 @@ public class ConfigurationClassPostProcessor implements BeanDefinitionRegistryPo
 	 * Build and validate a configuration model based on the registry of
 	 * {@link Configuration} classes.
 	 */
+	// 具体的对 Configuration 类的解析,并加载其 生成的beanDefinition 到容器中
 	public void processConfigBeanDefinitions(BeanDefinitionRegistry registry) {
 		List<BeanDefinitionHolder> configCandidates = new ArrayList<>();
 		// 获取所有的beanDefinition的name
@@ -329,6 +338,7 @@ public class ConfigurationClassPostProcessor implements BeanDefinitionRegistryPo
 		do {
 			// 解析
 			parser.parse(candidates);
+			// 校验
 			parser.validate();
 			// 获取刚解析到的配置类
 			Set<ConfigurationClass> configClasses = new LinkedHashSet<>(parser.getConfigurationClasses());
@@ -343,10 +353,14 @@ public class ConfigurationClassPostProcessor implements BeanDefinitionRegistryPo
 			}
 			// 把配置类注册到容器
 			// todo 注册动作
+			// 1. 注入@Bean 到容器
+			// 2. 注入Import 的beanDefinition 到容器
+			// 3. 注入ImportSource 的beanDefinition 到容器
+			// 4. 调用ImportBeanDefinitionRegistrar 的注入操作,来注入beanDefinition到容器中
 			this.reader.loadBeanDefinitions(configClasses);
 			// 记录注册类
 			alreadyParsed.addAll(configClasses);
-
+			// 注册完成后, 就清空候选类
 			candidates.clear();
 			if (registry.getBeanDefinitionCount() > candidateNames.length) {
 				String[] newCandidateNames = registry.getBeanDefinitionNames();
@@ -373,7 +387,7 @@ public class ConfigurationClassPostProcessor implements BeanDefinitionRegistryPo
 		if (sbr != null && !sbr.containsSingleton(IMPORT_REGISTRY_BEAN_NAME)) {
 			sbr.registerSingleton(IMPORT_REGISTRY_BEAN_NAME, parser.getImportRegistry());
 		}
-
+		// 清空缓存
 		if (this.metadataReaderFactory instanceof CachingMetadataReaderFactory) {
 			// Clear cache in externally provided MetadataReaderFactory; this is a no-op
 			// for a shared cache since it'll be cleared by the ApplicationContext.

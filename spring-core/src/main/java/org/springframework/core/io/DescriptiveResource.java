@@ -33,7 +33,7 @@ import org.springframework.lang.Nullable;
  * @since 1.2.6
  */
 public class DescriptiveResource extends AbstractResource {
-
+	// 一般存储全类名
 	private final String description;
 
 
