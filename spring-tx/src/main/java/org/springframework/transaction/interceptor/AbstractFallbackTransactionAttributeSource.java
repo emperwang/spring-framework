@@ -87,6 +87,7 @@ public abstract class AbstractFallbackTransactionAttributeSource implements Tran
 	 * @return a TransactionAttribute for this method, or {@code null} if the method
 	 * is not transactional
 	 */
+	// 获取事务属性,以此来进行判断,一个bean是否需要创建事务代理
 	@Override
 	@Nullable
 	public TransactionAttribute getTransactionAttribute(Method method, @Nullable Class<?> targetClass) {
@@ -111,6 +112,8 @@ public abstract class AbstractFallbackTransactionAttributeSource implements Tran
 		else {
 			// We need to work it out.
 			// 如果缓存中不存在,则需要计算此targetClass的method方法的属性
+			// 重点 重点 重点
+			// 计算事务属性
 			TransactionAttribute txAttr = computeTransactionAttribute(method, targetClass);
 			// Put it in the cache.
 			// 把找到的事务声明信息存放到缓存中

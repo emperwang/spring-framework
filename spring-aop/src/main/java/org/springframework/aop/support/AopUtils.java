@@ -290,6 +290,7 @@ public abstract class AopUtils {
 			return ((IntroductionAdvisor) advisor).getClassFilter().matches(targetClass);
 		}
 		// 根据pointCut是进行匹配
+		// 注意此 pca.getPointcut(),当是事务的时候,其返回的是 TransactionAttributeSourcePointcut
 		else if (advisor instanceof PointcutAdvisor) {
 			PointcutAdvisor pca = (PointcutAdvisor) advisor;
 			return canApply(pca.getPointcut(), targetClass, hasIntroductions);

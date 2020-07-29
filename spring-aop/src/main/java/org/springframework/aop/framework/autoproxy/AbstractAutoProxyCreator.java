@@ -253,6 +253,7 @@ public abstract class AbstractAutoProxyCreator extends ProxyProcessorSupport
 				return null;
 			}
 			// 重点 重点
+			// 此解析advisor 只是针对 Aop的操作,当是事务的时候,就不是在这里了
 			// 判读class是否是Infrastructure类型的  判断是否需要跳过(根据beanName进行判断)
 			// shouldSkip AspectJAwareAdvisorAutoProxyCreator.shouldSkip的方法
 			// 之后再 AspectJAwareAdvisorAutoProxyCreator.shouldSkip中就会对容器中的advisors 进行解析
