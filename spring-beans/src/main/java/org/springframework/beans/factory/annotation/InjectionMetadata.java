@@ -185,6 +185,7 @@ public class InjectionMetadata {
 				Field field = (Field) this.member;
 				ReflectionUtils.makeAccessible(field);
 				// field 反射注入
+				// 重点 重点 在这
 				field.set(target, getResourceToInject(target, requestingBeanName));
 			}
 			else {
@@ -195,6 +196,7 @@ public class InjectionMetadata {
 					Method method = (Method) this.member;
 					ReflectionUtils.makeAccessible(method);
 					// 方法的注入
+					// 重点 重点 在这
 					method.invoke(target, getResourceToInject(target, requestingBeanName));
 				}
 				catch (InvocationTargetException ex) {

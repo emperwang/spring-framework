@@ -146,6 +146,7 @@ public class AutowiredAnnotationBeanPostProcessor extends InstantiationAwareBean
 	 * for Spring's standard {@link Autowired} annotation.
 	 * <p>Also supports JSR-330's {@link javax.inject.Inject} annotation, if available.
 	 */
+	// 初始化那些注解 要进行自动注入
 	@SuppressWarnings("unchecked")
 	public AutowiredAnnotationBeanPostProcessor() {
 		this.autowiredAnnotationTypes.add(Autowired.class);
@@ -376,6 +377,7 @@ public class AutowiredAnnotationBeanPostProcessor extends InstantiationAwareBean
 		InjectionMetadata metadata = findAutowiringMetadata(beanName, bean.getClass(), pvs);
 		try {
 			// 注入操作
+			// 查找到 要注入的信息后,现在开始进行注入操作
 			metadata.inject(bean, beanName, pvs);
 		}
 		catch (BeanCreationException ex) {
@@ -442,7 +444,9 @@ public class AutowiredAnnotationBeanPostProcessor extends InstantiationAwareBean
 	}
 	// 创建自动注入的 metaData
 	private InjectionMetadata buildAutowiringMetadata(final Class<?> clazz) {
+		// 存储要进行注入的element
 		List<InjectionMetadata.InjectedElement> elements = new ArrayList<>();
+		// 记录目标类
 		Class<?> targetClass = clazz;
 
 		do {
@@ -463,6 +467,7 @@ public class AutowiredAnnotationBeanPostProcessor extends InstantiationAwareBean
 					// 根据注解中的信息,判断此 field 是否是必须注入
 					boolean required = determineRequiredStatus(ann);
 					// 记录需要注入的field, 并记录了是否是必需的注入
+					// 使用一个 AutowiredFieldElement包装要注入的field,以及此field 是否必须注入的
 					currElements.add(new AutowiredFieldElement(field, required));
 				}
 			});
@@ -498,6 +503,7 @@ public class AutowiredAnnotationBeanPostProcessor extends InstantiationAwareBean
 			});
 			// 记录最终需要注入的 原信息
 			elements.addAll(0, currElements);
+			// 父类的信息也要进行分析
 			targetClass = targetClass.getSuperclass();
 		}
 		while (targetClass != null && targetClass != Object.class);
