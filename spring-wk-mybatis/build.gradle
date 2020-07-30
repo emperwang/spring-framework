@@ -11,6 +11,8 @@ repositories {
 }
 
 dependencies {
+    annotationProcessor 'org.projectlombok:lombok:1.18.2'
+    compileOnly 'org.projectlombok:lombok:1.18.2'
     compile (project(':spring-mybatis-3'))
     compile 'mysql:mysql-connector-java:5.1.47'
     compile (project(":spring-mybatis-spring-bridge"))

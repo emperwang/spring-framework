@@ -16,7 +16,7 @@ public class UserServiceImpl2 implements UserService2{
 	public int insertOne(User user) {
 		int count = 0;
 		count += userMapper.insertOne(user);
-		int i = 1/0;
+		//int i = 1/0;
 		return count;
 	}
 
