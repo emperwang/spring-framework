@@ -93,7 +93,7 @@ public class XMLMapperBuilder extends BaseBuilder {
   public XNode getSqlFragment(String refid) {
     return sqlFragments.get(refid);
   }
-
+	// 解析 mapper.xml 文件
   private void configurationElement(XNode context) {
     try {
     	// 获取namespace节点内容,此内容就是对应接口类的全限定类名
@@ -414,7 +414,7 @@ public class XMLMapperBuilder extends BaseBuilder {
       }
     }
   }
-
+	// 绑定mapper到 configuration中
   private void bindMapperForNamespace() {
     String namespace = builderAssistant.getCurrentNamespace();
     if (namespace != null) {

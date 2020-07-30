@@ -1458,6 +1458,7 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 			// 根据类型来进行注入
 			// 也就是根据类型来获取要注入的 value
 			if (mbd.getResolvedAutowireMode() == AUTOWIRE_BY_TYPE) {
+				// 注入模式是 按照类型注入时, 获取要注入的属性
 				autowireByType(beanName, mbd, bw, newPvs);
 			}
 			pvs = newPvs;
@@ -1612,9 +1613,15 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 	protected String[] unsatisfiedNonSimpleProperties(AbstractBeanDefinition mbd, BeanWrapper bw) {
 		Set<String> result = new TreeSet<>();
 		PropertyValues pvs = mbd.getPropertyValues();
+		// 此会获取所有的 bw代表的bean的所有 propertyDescriptors
 		PropertyDescriptor[] pds = bw.getPropertyDescriptors();
 		// 遍历所有 property,获取需要注入的property
+		// 根据条件判断,什么情况下一个peoperty需要进行注入
 		for (PropertyDescriptor pd : pds) {
+			// 1. 首先由 set方法
+			// 2. 没有 依赖的排除名单中
+			// 3. pvs设置的要注入的属性中 不包含
+			// 4. 不是基本类型
 			if (pd.getWriteMethod() != null && !isExcludedFromDependencyCheck(pd) && !pvs.contains(pd.getName()) &&
 					!BeanUtils.isSimpleProperty(pd.getPropertyType())) {
 				result.add(pd.getName());

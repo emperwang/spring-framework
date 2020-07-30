@@ -211,12 +211,14 @@ public class ClassPathMapperScanner extends ClassPathBeanDefinitionScanner {
       // the mapper interface is the original class of the bean
       // but, the actual class of the bean is MapperFactoryBean
 		// 添加一个构造器参数, 参数是原来的beanClass全限定类名
+		// 也就是初始化时,为构造器添加一个参数,参数为此mapper的的真实全类名
       definition.getConstructorArgumentValues().addGenericArgumentValue(beanClassName); // issue #59
 		// todo 重点  重点  重点------偷梁换柱的具体操作就是这句话
+		// 真正创建类实例时,是对MapperFactoryBean的实例
       definition.setBeanClass(this.mapperFactoryBeanClass);
 		// 添加一个属性
       definition.getPropertyValues().add("addToConfig", this.addToConfig);
-
+		// 此标志 表示是否制定了  具体的sqlSessionFactory
       boolean explicitFactoryUsed = false;
       // 是否判断是否在注解中 设置了  SqlSessionFactory的信息
       if (StringUtils.hasText(this.sqlSessionFactoryBeanName)) {
@@ -244,11 +246,12 @@ public class ClassPathMapperScanner extends ClassPathBeanDefinitionScanner {
         definition.getPropertyValues().add("sqlSessionTemplate", this.sqlSessionTemplate);
         explicitFactoryUsed = true;
       }
-
+		// 如果没有具体制定  sqlSessionFactory,那么设置自动注入模式为 按照类型注入
       if (!explicitFactoryUsed) {
         LOGGER.debug(() -> "Enabling autowire by type for MapperFactoryBean with name '" + holder.getBeanName() + "'.");
         definition.setAutowireMode(AbstractBeanDefinition.AUTOWIRE_BY_TYPE);
       }
+      // 是否是 懒加载
       definition.setLazyInit(lazyInitialization);
     }
   }

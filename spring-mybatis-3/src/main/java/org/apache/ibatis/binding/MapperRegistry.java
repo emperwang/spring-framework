@@ -35,7 +35,7 @@ public class MapperRegistry {
   public MapperRegistry(Configuration config) {
     this.config = config;
   }
-
+	// 可以看到 创建 mapper实例,其实就是创建 JDK代理
   @SuppressWarnings("unchecked")
   public <T> T getMapper(Class<T> type, SqlSession sqlSession) {
     final MapperProxyFactory<T> mapperProxyFactory = (MapperProxyFactory<T>) knownMappers.get(type);
@@ -43,6 +43,7 @@ public class MapperRegistry {
       throw new BindingException("Type " + type + " is not known to the MapperRegistry.");
     }
     try {
+    	// 代理创建
       return mapperProxyFactory.newInstance(sqlSession);
     } catch (Exception e) {
       throw new BindingException("Error getting mapper instance. Cause: " + e, e);

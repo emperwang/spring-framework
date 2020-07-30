@@ -303,6 +303,8 @@ public class SqlSessionTemplate implements SqlSession, DisposableBean {
    */
   @Override
   public <T> T getMapper(Class<T> type) {
+  	// 注意点 注意点
+	  // 注意这里哦, 传递的sqlSession参数 为自己
     return getConfiguration().getMapper(type, this);
   }
 
@@ -426,6 +428,8 @@ public class SqlSessionTemplate implements SqlSession, DisposableBean {
           SqlSessionTemplate.this.executorType, SqlSessionTemplate.this.exceptionTranslator);
       try {
       	// 此处就执行到DefaultSqlSession
+		  // 反射调用,此处的sqlSession为DefaultSqlSession,也就是说method的targer是DefaultSqlSession
+		  // 所以此处的调用,就直接调用到 DefaultSqlSession中的 crud了
         Object result = method.invoke(sqlSession, args);
         // 如果spring中没有事务,那么就执行进行提交操作了
         if (!isSqlSessionTransactional(sqlSession, SqlSessionTemplate.this.sqlSessionFactory)) {

@@ -258,7 +258,7 @@ public class ClassPathBeanDefinitionScanner extends ClassPathScanningCandidateCo
 		if (this.includeAnnotationConfig) {
 			AnnotationConfigUtils.registerAnnotationConfigProcessors(this.registry);
 		}
-
+		// 返回此操作 注册了的bean的个数
 		return (this.registry.getBeanDefinitionCount() - beanCountAtScanStart);
 	}
 

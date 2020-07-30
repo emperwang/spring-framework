@@ -30,6 +30,7 @@ import java.util.concurrent.ConcurrentHashMap;
 public class MapperProxyFactory<T> {
 
   private final Class<T> mapperInterface;
+  // 此缓存了 method的invoker
   private final Map<Method, MapperMethodInvoker> methodCache = new ConcurrentHashMap<>();
 
   public MapperProxyFactory(Class<T> mapperInterface) {

@@ -88,6 +88,7 @@ public final class SqlSessionUtils {
    *           {@code SpringManagedTransactionFactory}
    * @see SpringManagedTransactionFactory
    */
+  // 获取sqlSession,此处是从 threadLocal中获取
   public static SqlSession getSqlSession(SqlSessionFactory sessionFactory, ExecutorType executorType,
       PersistenceExceptionTranslator exceptionTranslator) {
 
@@ -100,10 +101,10 @@ public final class SqlSessionUtils {
     if (session != null) {
       return session;
     }
-
+    // 如果threadLocal中不存在,则创建一个
     LOGGER.debug(() -> "Creating a new SqlSession");
     session = sessionFactory.openSession(executorType);
-
+	// 注册创建色 sqlsession 到threadLocal中
     registerSessionHolder(sessionFactory, executorType, exceptionTranslator, session);
 
     return session;
@@ -125,6 +126,7 @@ public final class SqlSessionUtils {
    * @param session
    *          sqlSession used for registration.
    */
+  // 注册session到threadLocal中
   private static void registerSessionHolder(SqlSessionFactory sessionFactory, ExecutorType executorType,
       PersistenceExceptionTranslator exceptionTranslator, SqlSession session) {
     SqlSessionHolder holder;
@@ -135,7 +137,9 @@ public final class SqlSessionUtils {
         LOGGER.debug(() -> "Registering transaction synchronization for SqlSession [" + session + "]");
 
         holder = new SqlSessionHolder(session, executorType, exceptionTranslator);
+        // 绑定操作
         TransactionSynchronizationManager.bindResource(sessionFactory, holder);
+        // 再次注入 同步信息
         TransactionSynchronizationManager
             .registerSynchronization(new SqlSessionSynchronization(holder, sessionFactory));
         holder.setSynchronizedWithTransaction(true);

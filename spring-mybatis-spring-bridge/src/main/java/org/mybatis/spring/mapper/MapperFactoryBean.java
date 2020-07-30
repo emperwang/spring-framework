@@ -53,7 +53,7 @@ import static org.springframework.util.Assert.notNull;
  */
 // 此类实现了FactoryBean, 那么实例化时,就会调用getObject方法类获取具体要创建的实例
 public class MapperFactoryBean<T> extends SqlSessionDaoSupport implements FactoryBean<T> {
-
+	// 记录要创建的mapper接口的全类名
   private Class<T> mapperInterface;
 
   private boolean addToConfig = true;

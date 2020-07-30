@@ -45,8 +45,11 @@ public class MapperProxy<T> implements InvocationHandler, Serializable {
   private final Map<Method, MapperMethodInvoker> methodCache;
 
   public MapperProxy(SqlSession sqlSession, Class<T> mapperInterface, Map<Method, MapperMethodInvoker> methodCache) {
-    this.sqlSession = sqlSession;
+    // 记录sqlSession
+  	this.sqlSession = sqlSession;
+  	// 记录 此代理类的源class 接口
     this.mapperInterface = mapperInterface;
+    // 缓存method调用的 invoke
     this.methodCache = methodCache;
   }
 
@@ -94,9 +97,11 @@ public class MapperProxy<T> implements InvocationHandler, Serializable {
       throw ExceptionUtil.unwrapThrowable(t);
     }
   }
-
+	// 缓存方法的 invoker
   private MapperMethodInvoker cachedInvoker(Method method) throws Throwable {
     try {
+    	// 先去缓存中去,不存在则计算
+		// 之后 在缓存起来
       return methodCache.computeIfAbsent(method, m -> {
         if (m.isDefault()) {
           try {

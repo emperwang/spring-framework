@@ -92,7 +92,8 @@ public class SqlSessionFactoryBean
 
   private static final ResourcePatternResolver RESOURCE_PATTERN_RESOLVER = new PathMatchingResourcePatternResolver();
   private static final MetadataReaderFactory METADATA_READER_FACTORY = new CachingMetadataReaderFactory();
-
+	// 此处应该是配置文件的解析
+	// 当然一般和spring整合时 就不需要专门制定 mybatis的配置
   private Resource configLocation;
 
   private Configuration configuration;
@@ -521,6 +522,7 @@ public class SqlSessionFactoryBean
       }
       // 如果指定了mybatis-config.xml配置文件的位置
 		// 就创建一个xmlConfigBuilder类用来对config文件的解析
+		// 和spring整合时一般不需要制定 mybatis的配置
     } else if (this.configLocation != null) {
       xmlConfigBuilder = new XMLConfigBuilder(this.configLocation.getInputStream(), null, this.configurationProperties);
       targetConfiguration = xmlConfigBuilder.getConfiguration();
@@ -528,6 +530,8 @@ public class SqlSessionFactoryBean
       LOGGER.debug(
           () -> "Property 'configuration' or 'configLocation' not specified, using default MyBatis Configuration");
       // 如果不存在configuration也没有指定配置文件位置,那么就创建一个
+		// 此处创建了一个 Configuration
+		// 看过mybatis源码的童鞋,对于此类我就不多说了
       targetConfiguration = new Configuration();
       Optional.ofNullable(this.configurationProperties).ifPresent(targetConfiguration::setVariables);
     }
@@ -592,6 +596,8 @@ public class SqlSessionFactoryBean
     // 如果指定了mybatis-config.xml配置文件的话,那么在此处会进行分析
     if (xmlConfigBuilder != null) {
       try {
+      	// 如果指定了mybatis的配置文件,那么就会在此进行解析
+		  // 当然一般在spring整合时,并不会使用到  mybatis的配置文件
         xmlConfigBuilder.parse();
         LOGGER.debug(() -> "Parsed configuration file: '" + this.configLocation + "'");
       } catch (Exception ex) {
