@@ -1,0 +1,28 @@
+plugins {
+    id 'java'
+}
+
+group 'org.springframework'
+version '5.1.4.BUILD-SNAPSHOT'
+
+sourceCompatibility = 1.8
+
+repositories {
+    mavenLocal()
+    mavenCentral()
+}
+
+dependencies {
+    // 原来使用的gradle为4.10.3,但是此版本的gradle和 kotlin插件不兼容
+    // 升级为gradle 5.1.1后, 对于lombok处理出问题,按照这里的 annotationProcessor 添加上,就可以处理lombok的处理
+    annotationProcessor 'org.projectlombok:lombok:1.18.2'
+    compileOnly 'org.projectlombok:lombok:1.18.2'
+    compile (project(':spring-mybatis-3'))
+    compile 'mysql:mysql-connector-java:5.1.47'
+    compile (project(":spring-mybatis-spring-bridge"))
+    compile (project(":spring-context"))
+    compile (project(":spring-tx"))
+    compile (project(":spring-jdbc"))
+    compile group: 'org.projectlombok', name: 'lombok', version: '1.18.12'
+    testCompile group: 'junit', name: 'junit', version: '4.12'
+}
