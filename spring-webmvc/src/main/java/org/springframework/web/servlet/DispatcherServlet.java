@@ -267,6 +267,7 @@ public class DispatcherServlet extends FrameworkServlet {
 	 * Name of the class path resource (relative to the DispatcherServlet class)
 	 * that defines DispatcherServlet's default strategy names.
 	 */
+	// 存储默认策略的文件
 	private static final String DEFAULT_STRATEGIES_PATH = "DispatcherServlet.properties";
 
 	/**
@@ -276,7 +277,7 @@ public class DispatcherServlet extends FrameworkServlet {
 
 	/** Additional logger to use when no mapped handler is found for a request. */
 	protected static final Log pageNotFoundLogger = LogFactory.getLog(PAGE_NOT_FOUND_LOG_CATEGORY);
-
+	// 存储默认的构造策略, 默认构造策略存储在DispatcherServlet.properties 文件中
 	private static final Properties defaultStrategies;
 
 	static {
@@ -293,15 +294,19 @@ public class DispatcherServlet extends FrameworkServlet {
 	}
 
 	/** Detect all HandlerMappings or just expect "handlerMapping" bean?. */
+	// 默认 允许先去容器中获取 handlerMapper,此就给了用户去定制机会
 	private boolean detectAllHandlerMappings = true;
 
 	/** Detect all HandlerAdapters or just expect "handlerAdapter" bean?. */
+	// 默认 允许先去容器中获取 handlerAdapter,此就给了用于机会可以去定制
 	private boolean detectAllHandlerAdapters = true;
 
 	/** Detect all HandlerExceptionResolvers or just expect "handlerExceptionResolver" bean?. */
+	// 默认 允许先容器中获取 HandlerExceptionResolvers, 此就给了用于机会其定制
 	private boolean detectAllHandlerExceptionResolvers = true;
 
 	/** Detect all ViewResolvers or just expect "viewResolver" bean?. */
+	// 此同样是给了用户定制机会
 	private boolean detectAllViewResolvers = true;
 
 	/** Throw a NoHandlerFoundException if no Handler was found to process this request? *.*/
@@ -488,7 +493,8 @@ public class DispatcherServlet extends FrameworkServlet {
 
 	/**
 	 * This implementation calls {@link #initStrategies}.
-	 * servlet.init 方法进行对此方法的调用,那就是说在dispatcher进行服务时,关于handlerMapping  handlerAdapter还有一些其他组件就初始化好了
+	 * servlet.init 方法进行对此方法的调用,那就是说在dispatcher进行服务时,关于handlerMapping
+	 * handlerAdapter还有一些其他组件就初始化好了
 	 */
 	@Override
 	protected void onRefresh(ApplicationContext context) {

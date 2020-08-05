@@ -144,6 +144,7 @@ public abstract class HttpServletBean extends HttpServlet implements Environment
 	 * @throws ServletException if bean properties are invalid (or required
 	 * properties are missing), or if subclass initialization fails.
 	 */
+	// dispatcherServlet 会先调用其初始化方法,之后才能正常使用
 	@Override
 	public final void init() throws ServletException {
 
@@ -152,10 +153,12 @@ public abstract class HttpServletBean extends HttpServlet implements Environment
 		PropertyValues pvs = new ServletConfigPropertyValues(getServletConfig(), this.requiredProperties);
 		if (!pvs.isEmpty()) {
 			try {
+				// 把当前的 dispatcherServlet封装为 BeanWrapper
 				BeanWrapper bw = PropertyAccessorFactory.forBeanPropertyAccess(this);
 				ResourceLoader resourceLoader = new ServletContextResourceLoader(getServletContext());
 				bw.registerCustomEditor(Resource.class, new ResourceEditor(resourceLoader, getEnvironment()));
 				initBeanWrapper(bw);
+				// 把 servelt的init paramer 通过反射设置到bean中
 				bw.setPropertyValues(pvs, true);
 			}
 			catch (BeansException ex) {
@@ -168,6 +171,7 @@ public abstract class HttpServletBean extends HttpServlet implements Environment
 
 		// Let subclasses do whatever initialization they like.
 		// 子类进行扩展
+		// 在子类中常见 web 的子容器
 		initServletBean();
 	}
 
