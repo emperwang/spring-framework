@@ -148,6 +148,8 @@ configure(allprojects) { project ->
 	}
 
 	repositories {
+		mavenLocal()
+		maven { url 'http://maven.aliyun.com/nexus/content/repositories/central/' }
 		maven { url "https://repo.spring.io/libs-release" }
 	}
 
