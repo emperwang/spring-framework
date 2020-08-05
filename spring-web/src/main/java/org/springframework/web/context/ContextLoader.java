@@ -97,6 +97,7 @@ public class ContextLoader {
 	 * default otherwise.
 	 * @see org.springframework.web.context.support.XmlWebApplicationContext#DEFAULT_CONFIG_LOCATION
 	 */
+	// xml配置下,父容器的xml配置文件路径
 	public static final String CONFIG_LOCATION_PARAM = "contextConfigLocation";
 
 	/**
@@ -129,9 +130,10 @@ public class ContextLoader {
 	 * Name of the class path resource (relative to the ContextLoader class)
 	 * that defines ContextLoader's default strategy names.
 	 */
+	// 默认策略存储在此文件中
 	private static final String DEFAULT_STRATEGIES_PATH = "ContextLoader.properties";
 
-
+		// 存储默认策略
 	private static final Properties defaultStrategies;
 
 	static {
@@ -139,7 +141,9 @@ public class ContextLoader {
 		// This is currently strictly internal and not meant to be customized
 		// by application developers.
 		try {
+			// 加载默认文档  ContextLoader.properties
 			ClassPathResource resource = new ClassPathResource(DEFAULT_STRATEGIES_PATH, ContextLoader.class);
+			// 把默认文档中的内容加载到  defaultStrategies
 			defaultStrategies = PropertiesLoaderUtils.loadProperties(resource);
 		}
 		catch (IOException ex) {
@@ -151,6 +155,7 @@ public class ContextLoader {
 	/**
 	 * Map from (thread context) ClassLoader to corresponding 'current' WebApplicationContext.
 	 */
+	// 加载器 对应的 applicationContext
 	private static final Map<ClassLoader, WebApplicationContext> currentContextPerThread =
 			new ConcurrentHashMap<>(1);
 
@@ -263,6 +268,7 @@ public class ContextLoader {
 	 * 3. 把此容器记录到servletContext
 	 */
 	public WebApplicationContext initWebApplicationContext(ServletContext servletContext) {
+		// 先从servletContext获取一个root applicationContext,如果已经存在,则报错
 		if (servletContext.getAttribute(WebApplicationContext.ROOT_WEB_APPLICATION_CONTEXT_ATTRIBUTE) != null) {
 			throw new IllegalStateException(
 					"Cannot initialize context because there is already a root application context present - " +
@@ -274,6 +280,7 @@ public class ContextLoader {
 		if (logger.isInfoEnabled()) {
 			logger.info("Root WebApplicationContext: initialization started");
 		}
+		// 记录开始时间
 		long startTime = System.currentTimeMillis();
 
 		try {
@@ -340,6 +347,7 @@ public class ContextLoader {
 	 * @return the root WebApplicationContext
 	 * @see ConfigurableWebApplicationContext
 	 */
+	// 创建 webApplicationContext
 	protected WebApplicationContext createWebApplicationContext(ServletContext sc) {
 		// 根据是否进行过配置,配置过则使用配置的
 		// 没有配置的话,则使用ContextLoader.properties来进行配置,默认使用XmlWebApplicationContext
@@ -364,7 +372,7 @@ public class ContextLoader {
 	// 如果没有开发过的话,就默认使用XmlWebApplicationContext此类
 	protected Class<?> determineContextClass(ServletContext servletContext) {
 		// 查看servletContext中是否制定的context的类型
-		// 如果指定了,则使用指定的class
+		// 如果contextClass指定了类,则使用指定的class
 		String contextClassName = servletContext.getInitParameter(CONTEXT_CLASS_PARAM);
 		if (contextClassName != null) {
 			try {
@@ -387,7 +395,7 @@ public class ContextLoader {
 			}
 		}
 	}
-
+	// 对创建的applicationContext进行配置, 并刷新
 	protected void configureAndRefreshWebApplicationContext(ConfigurableWebApplicationContext wac, ServletContext sc) {
 		if (ObjectUtils.identityToString(wac).equals(wac.getId())) {
 			// The application context id is still set to its original default value
@@ -402,21 +410,25 @@ public class ContextLoader {
 						ObjectUtils.getDisplayString(sc.getContextPath()));
 			}
 		}
-
+		// 把servletContext 记录到 applicationContext中
 		wac.setServletContext(sc);
+		// 获取父容器的配置文件路径,contextConfigLocation 属性的值
 		String configLocationParam = sc.getInitParameter(CONFIG_LOCATION_PARAM);
 		if (configLocationParam != null) {
+			// 记录配置文件路径
 			wac.setConfigLocation(configLocationParam);
 		}
 
 		// The wac environment's #initPropertySources will be called in any case when the context
 		// is refreshed; do it eagerly here to ensure servlet property sources are in place for
 		// use in any post-processing or initialization that occurs below prior to #refresh
+		// 配置  servletContextInitParams  servletConfigInitParams  的值到环境变量中
 		ConfigurableEnvironment env = wac.getEnvironment();
 		if (env instanceof ConfigurableWebEnvironment) {
 			((ConfigurableWebEnvironment) env).initPropertySources(sc, null);
 		}
 		// 执行ApplicationContextInitializer,进行一些初始化动作
+		// 是由这些 globalInitializerClasses contextInitializerClasses 配置项中指定的初始化类
 		customizeContext(sc, wac);
 		// 刷新容器
 		wac.refresh();
@@ -439,7 +451,11 @@ public class ContextLoader {
 	 * @see #CONTEXT_INITIALIZER_CLASSES_PARAM
 	 * @see ApplicationContextInitializer#initialize(ConfigurableApplicationContext)
 	 */
+	// 加载这些 globalInitializerClasses contextInitializerClasses 配置项中指定的初始化类
+	// 使用这些类 来对 applicationContext 进行初始化操作
 	protected void customizeContext(ServletContext sc, ConfigurableWebApplicationContext wac) {
+		// 加载这些 globalInitializerClasses contextInitializerClasses 配置项中指定的初始化类
+		// 使用这些初始化类 来进行初始化
 		List<Class<ApplicationContextInitializer<ConfigurableApplicationContext>>> initializerClasses =
 				determineContextInitializerClasses(sc);
 
@@ -455,7 +471,7 @@ public class ContextLoader {
 			}
 			this.contextInitializers.add(BeanUtils.instantiateClass(initializerClass));
 		}
-
+		// 对这些初始化类进行排序,之后调用其初始化
 		AnnotationAwareOrderComparator.sort(this.contextInitializers);
 		for (ApplicationContextInitializer<ConfigurableApplicationContext> initializer : this.contextInitializers) {
 			initializer.initialize(wac);
@@ -473,14 +489,16 @@ public class ContextLoader {
 
 		List<Class<ApplicationContextInitializer<ConfigurableApplicationContext>>> classes =
 				new ArrayList<>();
-
+		// globalInitializerClasses  全局初始化参数
+		// 此参数中指定的是一些配置类,使用 ",; \t\n" 这些分隔符进行分隔
 		String globalClassNames = servletContext.getInitParameter(GLOBAL_INITIALIZER_CLASSES_PARAM);
+		// 加载这些指定的  初始化类
 		if (globalClassNames != null) {
 			for (String className : StringUtils.tokenizeToStringArray(globalClassNames, INIT_PARAM_DELIMITERS)) {
 				classes.add(loadInitializerClass(className));
 			}
 		}
-
+		// contextInitializerClasses 加载这里参数指定的类,并记录
 		String localClassNames = servletContext.getInitParameter(CONTEXT_INITIALIZER_CLASSES_PARAM);
 		if (localClassNames != null) {
 			for (String className : StringUtils.tokenizeToStringArray(localClassNames, INIT_PARAM_DELIMITERS)) {

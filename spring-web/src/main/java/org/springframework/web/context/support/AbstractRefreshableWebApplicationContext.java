@@ -82,6 +82,7 @@ public abstract class AbstractRefreshableWebApplicationContext extends AbstractR
 		implements ConfigurableWebApplicationContext, ThemeSource {
 
 	/** Servlet context that this context runs in. */
+	// 记录对应的servletContext
 	@Nullable
 	private ServletContext servletContext;
 
