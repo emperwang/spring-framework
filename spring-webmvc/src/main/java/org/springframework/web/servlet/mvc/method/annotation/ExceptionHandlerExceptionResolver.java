@@ -87,7 +87,7 @@ public class ExceptionHandlerExceptionResolver extends AbstractHandlerMethodExce
 
 	@Nullable
 	private HandlerMethodReturnValueHandlerComposite returnValueHandlers;
-
+	// 记录信息转换器
 	private List<HttpMessageConverter<?>> messageConverters;
 
 	private ContentNegotiationManager contentNegotiationManager = new ContentNegotiationManager();
@@ -99,16 +99,19 @@ public class ExceptionHandlerExceptionResolver extends AbstractHandlerMethodExce
 
 	private final Map<Class<?>, ExceptionHandlerMethodResolver> exceptionHandlerCache =
 			new ConcurrentHashMap<>(64);
-
+	// 记录  ControllerAdviceBean 和 ExceptionHandlerMethodResolver 间的映射
+	// ControllerAdviceBean 表示带有 ControllerAdvice 注解的bean
+	// ExceptionHandlerMethodResolver 解析了注解bean中 异常和处理方法之间的映射
 	private final Map<ControllerAdviceBean, ExceptionHandlerMethodResolver> exceptionHandlerAdviceCache =
 			new LinkedHashMap<>();
 
-
+	// 构造器
 	public ExceptionHandlerExceptionResolver() {
 		StringHttpMessageConverter stringHttpMessageConverter = new StringHttpMessageConverter();
 		stringHttpMessageConverter.setWriteAcceptCharset(false);  // see SPR-7316
-
+		// 创建容器
 		this.messageConverters = new ArrayList<>();
+		// 添加具体的 信息转换器
 		this.messageConverters.add(new ByteArrayHttpMessageConverter());
 		this.messageConverters.add(stringHttpMessageConverter);
 		try {
@@ -258,18 +261,20 @@ public class ExceptionHandlerExceptionResolver extends AbstractHandlerMethodExce
 	@Override
 	public void afterPropertiesSet() {
 		// Do this first, it may add ResponseBodyAdvice beans
+		// 初始化带有 controllerAdvice注解的类
 		initExceptionHandlerAdviceCache();
-
+		// 添加参数解析器
 		if (this.argumentResolvers == null) {
 			List<HandlerMethodArgumentResolver> resolvers = getDefaultArgumentResolvers();
 			this.argumentResolvers = new HandlerMethodArgumentResolverComposite().addResolvers(resolvers);
 		}
+		// 添加返回值 处理器
 		if (this.returnValueHandlers == null) {
 			List<HandlerMethodReturnValueHandler> handlers = getDefaultReturnValueHandlers();
 			this.returnValueHandlers = new HandlerMethodReturnValueHandlerComposite().addHandlers(handlers);
 		}
 	}
-
+	// 初始化 异常处理器 并 缓存起来
 	private void initExceptionHandlerAdviceCache() {
 		if (getApplicationContext() == null) {
 			return;

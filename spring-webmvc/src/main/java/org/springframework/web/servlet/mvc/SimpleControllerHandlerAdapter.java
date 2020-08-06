@@ -41,6 +41,7 @@ public class SimpleControllerHandlerAdapter implements HandlerAdapter {
 
 	@Override
 	public boolean supports(Object handler) {
+		// 同样是进行类型的比较
 		return (handler instanceof Controller);
 	}
 
@@ -48,7 +49,7 @@ public class SimpleControllerHandlerAdapter implements HandlerAdapter {
 	@Nullable
 	public ModelAndView handle(HttpServletRequest request, HttpServletResponse response, Object handler)
 			throws Exception {
-
+		// 然后  类型强转,之后调用方法
 		return ((Controller) handler).handleRequest(request, response);
 	}
 

@@ -185,6 +185,7 @@ public class ControllerAdviceBean implements Ordered {
 	 * {@linkplain ControllerAdvice @ControllerAdvice} in the given
 	 * ApplicationContext and wrap them as {@code ControllerAdviceBean} instances.
 	 */
+	// 查找带有 ControllerAdvice的class的name,并封装意味 ControllerAdviceBean
 	public static List<ControllerAdviceBean> findAnnotatedBeans(ApplicationContext context) {
 		return Arrays.stream(BeanFactoryUtils.beanNamesForTypeIncludingAncestors(context, Object.class))
 				.filter(name -> context.findAnnotationOnBean(name, ControllerAdvice.class) != null)

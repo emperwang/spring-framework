@@ -46,10 +46,11 @@ public class ExceptionHandlerMethodResolver {
 	/**
 	 * A filter for selecting {@code @ExceptionHandler} methods.
 	 */
+	// 带有 ExceptionHandler 注解的方法
 	public static final MethodFilter EXCEPTION_HANDLER_METHODS = method ->
 			AnnotatedElementUtils.hasAnnotation(method, ExceptionHandler.class);
 
-
+		// 记录异常和 处理异常的 方法之间的映射
 	private final Map<Class<? extends Throwable>, Method> mappedMethods = new HashMap<>(16);
 
 	private final Map<Class<? extends Throwable>, Method> exceptionLookupCache = new ConcurrentReferenceHashMap<>(16);
@@ -59,6 +60,7 @@ public class ExceptionHandlerMethodResolver {
 	 * A constructor that finds {@link ExceptionHandler} methods in the given type.
 	 * @param handlerType the type to introspect
 	 */
+	// 解析 ExceptionHandler
 	public ExceptionHandlerMethodResolver(Class<?> handlerType) {
 		// MethodIntrospector.selectMethods找到此class有ExceptionHandler注解的方法
 		for (Method method : MethodIntrospector.selectMethods(handlerType, EXCEPTION_HANDLER_METHODS)) {
@@ -79,7 +81,8 @@ public class ExceptionHandlerMethodResolver {
 	@SuppressWarnings("unchecked")
 	private List<Class<? extends Throwable>> detectExceptionMappings(Method method) {
 		List<Class<? extends Throwable>> result = new ArrayList<>();
-		// 获取到ExceptionHandler注解中value的所有的值
+		// 获取到ExceptionHandler注解中value的所有的值, 并存储到 result中
+		// 父类,接口,都会去查找
 		detectAnnotationExceptionMappings(method, result);
 		if (result.isEmpty()) {
 			for (Class<?> paramType : method.getParameterTypes()) {
@@ -93,15 +96,19 @@ public class ExceptionHandlerMethodResolver {
 		}
 		return result;
 	}
-
+	// 获取 异常的映射
 	private void detectAnnotationExceptionMappings(Method method, List<Class<? extends Throwable>> result) {
+		// 查找到方法上的 ExceptionHandler 注解信息
+		// 父类, 接口上等 都会去查找
 		ExceptionHandler ann = AnnotatedElementUtils.findMergedAnnotation(method, ExceptionHandler.class);
 		Assert.state(ann != null, "No ExceptionHandler annotation");
 		result.addAll(Arrays.asList(ann.value()));
 	}
-
+	// 记录异常的映射值
 	private void addExceptionMapping(Class<? extends Throwable> exceptionType, Method method) {
+		// 记录起来 异常 和 处理此异常的 方法之间的映射
 		Method oldMethod = this.mappedMethods.put(exceptionType, method);
+		// 如果多个方法处理同一个异常,则会报错
 		if (oldMethod != null && !oldMethod.equals(method)) {
 			throw new IllegalStateException("Ambiguous @ExceptionHandler method mapped for [" +
 					exceptionType + "]: {" + oldMethod + ", " + method + "}");
