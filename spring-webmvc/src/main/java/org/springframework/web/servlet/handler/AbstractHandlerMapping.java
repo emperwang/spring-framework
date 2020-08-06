@@ -290,7 +290,9 @@ public abstract class AbstractHandlerMapping extends WebApplicationObjectSupport
 	@Override
 	protected void initApplicationContext() throws BeansException {
 		extendInterceptors(this.interceptors);
+		// 去容器中探测 拦截器,并添加到adaptedInterceptors 中
 		detectMappedInterceptors(this.adaptedInterceptors);
+		// 初始化拦截器
 		initInterceptors();
 	}
 
@@ -313,6 +315,7 @@ public abstract class AbstractHandlerMapping extends WebApplicationObjectSupport
 	 * from the current context and its ancestors. Subclasses can override and refine this policy.
 	 * @param mappedInterceptors an empty list to add {@link MappedInterceptor} instances to
 	 */
+	// 到容器中获取类型为 MappedInterceptor类型的bean,并添加到 mappedInterceptors 中
 	protected void detectMappedInterceptors(List<HandlerInterceptor> mappedInterceptors) {
 		mappedInterceptors.addAll(
 				BeanFactoryUtils.beansOfTypeIncludingAncestors(
@@ -333,6 +336,7 @@ public abstract class AbstractHandlerMapping extends WebApplicationObjectSupport
 				if (interceptor == null) {
 					throw new IllegalArgumentException("Entry number " + i + " in interceptors array is null");
 				}
+				// 把interceptors 中的拦截器添加到 adaptedInterceptors
 				this.adaptedInterceptors.add(adaptInterceptor(interceptor));
 			}
 		}

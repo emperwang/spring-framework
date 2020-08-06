@@ -52,14 +52,14 @@ import org.springframework.web.servlet.HandlerExecutionChain;
  * @since 16.04.2003
  */
 public abstract class AbstractUrlHandlerMapping extends AbstractHandlerMapping implements MatchableHandlerMapping {
-
+	// urlpath为/的 hander
 	@Nullable
 	private Object rootHandler;
 
 	private boolean useTrailingSlashMatch = false;
-
+	// 是否是 懒加载,默认不是懒加载
 	private boolean lazyInitHandlers = false;
-
+	// 记录 url和bean实例的映射关系
 	private final Map<String, Object> handlerMap = new LinkedHashMap<>();
 
 
@@ -310,8 +310,10 @@ public abstract class AbstractUrlHandlerMapping extends AbstractHandlerMapping i
 	 * @throws BeansException if the handler couldn't be registered
 	 * @throws IllegalStateException if there is a conflicting handler registered
 	 */
+	// 注册handler
 	protected void registerHandler(String[] urlPaths, String beanName) throws BeansException, IllegalStateException {
 		Assert.notNull(urlPaths, "URL path array must not be null");
+		// 边路所有的url,注册其 映射关系
 		for (String urlPath : urlPaths) {
 			registerHandler(urlPath, beanName);
 		}
@@ -331,15 +333,20 @@ public abstract class AbstractUrlHandlerMapping extends AbstractHandlerMapping i
 		Object resolvedHandler = handler;
 
 		// Eagerly resolve handler if referencing singleton via name.
+		// 如果handler 是字符串,且  不是懒加载
+		// 则实例化此 handler对应的bena实例
 		if (!this.lazyInitHandlers && handler instanceof String) {
 			String handlerName = (String) handler;
+			// 获取容器
 			ApplicationContext applicationContext = obtainApplicationContext();
 			if (applicationContext.isSingleton(handlerName)) {
+				// 实例化bean
 				resolvedHandler = applicationContext.getBean(handlerName);
 			}
 		}
-
+		// 查看此urlPath是否已经注册过
 		Object mappedHandler = this.handlerMap.get(urlPath);
+		// 如果此  urlPath已经注册过,则报错
 		if (mappedHandler != null) {
 			if (mappedHandler != resolvedHandler) {
 				throw new IllegalStateException(
@@ -348,12 +355,14 @@ public abstract class AbstractUrlHandlerMapping extends AbstractHandlerMapping i
 			}
 		}
 		else {
+			// 如果 urlpath是 /, 则把此handler 注册为 rootHandler
 			if (urlPath.equals("/")) {
 				if (logger.isTraceEnabled()) {
 					logger.trace("Root mapping to " + getHandlerDescription(handler));
 				}
 				setRootHandler(resolvedHandler);
 			}
+			// 如果 urlpath 是 /* ,则注册为 defaultHandler
 			else if (urlPath.equals("/*")) {
 				if (logger.isTraceEnabled()) {
 					logger.trace("Default mapping to " + getHandlerDescription(handler));
@@ -361,6 +370,7 @@ public abstract class AbstractUrlHandlerMapping extends AbstractHandlerMapping i
 				setDefaultHandler(resolvedHandler);
 			}
 			else {
+				// 保存 urlpath 和 handler的映射关系
 				this.handlerMap.put(urlPath, resolvedHandler);
 				if (logger.isTraceEnabled()) {
 					logger.trace("Mapped [" + urlPath + "] onto " + getHandlerDescription(handler));

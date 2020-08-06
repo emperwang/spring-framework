@@ -53,9 +53,12 @@ public abstract class AbstractDetectingUrlHandlerMapping extends AbstractUrlHand
 	 * Calls the {@link #detectHandlers()} method in addition to the
 	 * superclass's initialization.
 	 */
+	// 初始化 applicationContext,注册一个handler到 容器中
 	@Override
 	public void initApplicationContext() throws ApplicationContextException {
+		// 先调用父类的实现
 		super.initApplicationContext();
+		// 接着到容器中 探测具体的handler
 		detectHandlers();
 	}
 
@@ -67,17 +70,24 @@ public abstract class AbstractDetectingUrlHandlerMapping extends AbstractUrlHand
 	 * @throws org.springframework.beans.BeansException if the handler couldn't be registered
 	 * @see #determineUrlsForHandler(String)
 	 */
+	// 从容器中 探测 handler
 	protected void detectHandlers() throws BeansException {
+		// 获取容器
 		ApplicationContext applicationContext = obtainApplicationContext();
+		// 此获取容器中Object类型的bean, 即获取所有的 bean
 		String[] beanNames = (this.detectHandlersInAncestorContexts ?
 				BeanFactoryUtils.beanNamesForTypeIncludingAncestors(applicationContext, Object.class) :
 				applicationContext.getBeanNamesForType(Object.class));
 
 		// Take any bean name that we can determine URLs for.
+		// 遍历所有的bean, 对此bean判断有映射的 url
+		// 如果有 映射的 url,则进行注册操作
 		for (String beanName : beanNames) {
+			// 查找此bean的 映射url
 			String[] urls = determineUrlsForHandler(beanName);
 			if (!ObjectUtils.isEmpty(urls)) {
 				// URL paths found: Let's consider it a handler.
+				// 如果存在url,则进行注册操作
 				registerHandler(urls, beanName);
 			}
 		}

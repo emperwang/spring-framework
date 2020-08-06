@@ -59,7 +59,7 @@ public abstract class ApplicationObjectSupport implements ApplicationContextAwar
 	@Nullable
 	private MessageSourceAccessor messageSourceAccessor;
 
-
+	// 当初始化此类时,容器向其注入 applicationContext 的实例
 	@Override
 	public final void setApplicationContext(@Nullable ApplicationContext context) throws BeansException {
 		if (context == null && !isContextRequired()) {
@@ -69,12 +69,16 @@ public abstract class ApplicationObjectSupport implements ApplicationContextAwar
 		}
 		else if (this.applicationContext == null) {
 			// Initialize with passed-in context.
+			// 如果注入的不是ApplicationContext, 则报错
 			if (!requiredContextClass().isInstance(context)) {
 				throw new ApplicationContextException(
 						"Invalid application context: needs to be of type [" + requiredContextClass().getName() + "]");
 			}
+			// 真正的注入动作
 			this.applicationContext = context;
+			// 并创建了 MessageSourceAccessor
 			this.messageSourceAccessor = new MessageSourceAccessor(context);
+			// 并进行进一步的初始化操作
 			initApplicationContext(context);
 		}
 		else {
