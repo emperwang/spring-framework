@@ -155,7 +155,8 @@ public class RequestMappingHandlerAdapter extends AbstractHandlerMethodAdapter
 
 	@Nullable
 	private WebBindingInitializer webBindingInitializer;
-
+	// 异步处理的线程池
+	// 此线程池 每次都是创建一个线程来执行
 	private AsyncTaskExecutor taskExecutor = new SimpleAsyncTaskExecutor("MvcAsync");
 
 	@Nullable
@@ -789,6 +790,9 @@ public class RequestMappingHandlerAdapter extends AbstractHandlerMethodAdapter
 			HttpServletResponse response, HandlerMethod handlerMethod) throws Exception {
 
 		ModelAndView mav;
+		// 进行检测
+		// 1. 检测方法是否支持
+		// 2. 如果要求session,则检测session是否存在
 		checkRequest(request);
 
 		// Execute invokeHandlerMethod in synchronized block if required.
@@ -859,13 +863,22 @@ public class RequestMappingHandlerAdapter extends AbstractHandlerMethodAdapter
 	 * @since 4.2
 	 * @see #createInvocableHandlerMethod(HandlerMethod)
 	 */
+	// 调用具体的handler 来对 请求进行处理
 	@Nullable
 	protected ModelAndView invokeHandlerMethod(HttpServletRequest request,
 			HttpServletResponse response, HandlerMethod handlerMethod) throws Exception {
-
+		//
 		ServletWebRequest webRequest = new ServletWebRequest(request, response);
 		try {
+			// 获取 databinder, 获取顺序如下:
+			// 1. initBinderCache 存储的
+			// 2. InitBinder 注解的使用
+			// 3. initBinderAdvice 的使用
 			WebDataBinderFactory binderFactory = getDataBinderFactory(handlerMethod);
+			//  获取顺序如下:
+			// 1.modelAttributeCache 存储的
+			// 2. ModelAttribute 注解的处理
+			// 3.modelAttributeAdvice
 			ModelFactory modelFactory = getModelFactory(handlerMethod, binderFactory);
    			// 把httpMethod封装为ServletInvocableHandlerMethod
 			ServletInvocableHandlerMethod invocableMethod = createInvocableHandlerMethod(handlerMethod);
@@ -880,15 +893,16 @@ public class RequestMappingHandlerAdapter extends AbstractHandlerMethodAdapter
 			// 解析init-binder的工厂
 			invocableMethod.setDataBinderFactory(binderFactory);
 			invocableMethod.setParameterNameDiscoverer(this.parameterNameDiscoverer);
-
+			// mvcContainer
 			ModelAndViewContainer mavContainer = new ModelAndViewContainer();
 			mavContainer.addAllAttributes(RequestContextUtils.getInputFlashMap(request));
 			modelFactory.initModel(webRequest, mavContainer, invocableMethod);
 			mavContainer.setIgnoreDefaultModelOnRedirect(this.ignoreDefaultModelOnRedirect);
 			// 异步处理
 			AsyncWebRequest asyncWebRequest = WebAsyncUtils.createAsyncWebRequest(request, response);
+			// 异步处理超时时间
 			asyncWebRequest.setTimeout(this.asyncRequestTimeout);
-
+			// 移除处理时的一些初始化
 			WebAsyncManager asyncManager = WebAsyncUtils.getAsyncManager(request);
 			asyncManager.setTaskExecutor(this.taskExecutor);
 			asyncManager.setAsyncWebRequest(asyncWebRequest);
@@ -933,11 +947,14 @@ public class RequestMappingHandlerAdapter extends AbstractHandlerMethodAdapter
 		Class<?> handlerType = handlerMethod.getBeanType();
 		Set<Method> methods = this.modelAttributeCache.get(handlerType);
 		if (methods == null) {
+			// 查找类中 ModelAttribute 注解的方法
 			methods = MethodIntrospector.selectMethods(handlerType, MODEL_ATTRIBUTE_METHODS);
+			// 缓存方法
 			this.modelAttributeCache.put(handlerType, methods);
 		}
 		List<InvocableHandlerMethod> attrMethods = new ArrayList<>();
 		// Global methods first
+		// modelAttributeAdvice 使用
 		this.modelAttributeAdviceCache.forEach((clazz, methodSet) -> {
 			if (clazz.isApplicableToBeanType(handlerType)) {
 				Object bean = clazz.resolveBean();

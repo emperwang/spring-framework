@@ -904,6 +904,7 @@ public abstract class FrameworkServlet extends HttpServletBean implements Applic
 
 		HttpMethod httpMethod = HttpMethod.resolve(request.getMethod());
 		if (httpMethod == HttpMethod.PATCH || httpMethod == null) {
+			// 如果不知道请求的方法,则processRequest继续分析
 			processRequest(request, response);
 		}
 		else {
@@ -1025,8 +1026,9 @@ public abstract class FrameworkServlet extends HttpServletBean implements Applic
 		// 此和国际化有关系
 		LocaleContext previousLocaleContext = LocaleContextHolder.getLocaleContext();
 		LocaleContext localeContext = buildLocaleContext(request);
-		//
+		// 获取当前线程中的 requestAttribute
 		RequestAttributes previousAttributes = RequestContextHolder.getRequestAttributes();
+		// 根据请求创建一个新的 ServletRequestAttributes
 		ServletRequestAttributes requestAttributes = buildRequestAttributes(request, response, previousAttributes);
 		// request的异步处理
 		WebAsyncManager asyncManager = WebAsyncUtils.getAsyncManager(request);
@@ -1091,7 +1093,7 @@ public abstract class FrameworkServlet extends HttpServletBean implements Applic
 			return null;  // preserve the pre-bound RequestAttributes instance
 		}
 	}
-
+	// 初始化  contextHold
 	private void initContextHolders(HttpServletRequest request,
 			@Nullable LocaleContext localeContext, @Nullable RequestAttributes requestAttributes) {
 

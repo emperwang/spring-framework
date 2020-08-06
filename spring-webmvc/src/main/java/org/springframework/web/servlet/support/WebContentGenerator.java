@@ -82,6 +82,7 @@ public abstract class WebContentGenerator extends WebApplicationObjectSupport {
 
 
 	/** Set of supported HTTP methods. */
+	// 支持的http 方法
 	@Nullable
 	private Set<String> supportedMethods;
 
@@ -379,7 +380,7 @@ public abstract class WebContentGenerator extends WebApplicationObjectSupport {
 		if (this.supportedMethods != null && !this.supportedMethods.contains(method)) {
 			throw new HttpRequestMethodNotSupportedException(method, this.supportedMethods);
 		}
-
+			// 如果支持session,但是request中没有session,则报错
 		// Check whether a session is required.
 		if (this.requireSession && request.getSession(false) == null) {
 			throw new HttpSessionRequiredException("Pre-existing session required but none found");

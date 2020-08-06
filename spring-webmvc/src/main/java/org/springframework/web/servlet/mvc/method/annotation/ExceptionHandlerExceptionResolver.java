@@ -393,6 +393,7 @@ public class ExceptionHandlerExceptionResolver extends AbstractHandlerMethodExce
 			HttpServletResponse response, @Nullable HandlerMethod handlerMethod, Exception exception) {
 		// 此处把exceptionHandler的那个method封装为ServletInvocableHandlerMethod
 		ServletInvocableHandlerMethod exceptionHandlerMethod = getExceptionHandlerMethod(handlerMethod, exception);
+		// 没有找到则返回null
 		if (exceptionHandlerMethod == null) {
 			return null;
 		}
@@ -464,6 +465,7 @@ public class ExceptionHandlerExceptionResolver extends AbstractHandlerMethodExce
 	 * @param exception the raised exception
 	 * @return a method to handle the exception, or {@code null} if none
 	 */
+	// 获取异常的处理方法
 	@Nullable
 	protected ServletInvocableHandlerMethod getExceptionHandlerMethod(
 			@Nullable HandlerMethod handlerMethod, Exception exception) {
@@ -493,9 +495,10 @@ public class ExceptionHandlerExceptionResolver extends AbstractHandlerMethodExce
 				handlerType = AopUtils.getTargetClass(handlerMethod.getBean());
 			}
 		}
-
+		// 从 exceptionHandlerAdviceCache 中找到合适的method
 		for (Map.Entry<ControllerAdviceBean, ExceptionHandlerMethodResolver> entry : this.exceptionHandlerAdviceCache.entrySet()) {
 			ControllerAdviceBean advice = entry.getKey();
+			// 对比是否相同
 			if (advice.isApplicableToBeanType(handlerType)) {
 				ExceptionHandlerMethodResolver resolver = entry.getValue();
 				Method method = resolver.resolveMethod(exception);

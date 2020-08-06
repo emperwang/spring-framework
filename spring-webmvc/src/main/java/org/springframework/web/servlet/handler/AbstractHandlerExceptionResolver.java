@@ -126,6 +126,7 @@ public abstract class AbstractHandlerExceptionResolver implements HandlerExcepti
 	 * {@linkplain #setMappedHandlerClasses handler classes}), and then delegate
 	 * to the {@link #doResolveException} template method.
 	 */
+	// 解析异常
 	@Override
 	@Nullable
 	public ModelAndView resolveException(

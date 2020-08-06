@@ -386,12 +386,18 @@ public abstract class AbstractHandlerMethodMapping<T> extends AbstractHandlerMap
 	/**
 	 * Look up a handler method for the given request.
 	 */
+	// 根据request 查找handler
+	// todo 分析此解析路径的方法
 	@Override
 	protected HandlerMethod getHandlerInternal(HttpServletRequest request) throws Exception {
+		// 获取request中的请求路径,
 		String lookupPath = getUrlPathHelper().getLookupPathForRequest(request);
 		this.mappingRegistry.acquireReadLock();
 		try {
+			// 根据request中的请求路径,获取具体的handlerMethod
 			HandlerMethod handlerMethod = lookupHandlerMethod(lookupPath, request);
+			// 此createWithResolvedBean操作,主要是初始化字符串对应的bean
+			// 即:如果handlerMethod中的bean为字符串,则初始化此字符串对应的bean
 			return (handlerMethod != null ? handlerMethod.createWithResolvedBean() : null);
 		}
 		finally {

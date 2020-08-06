@@ -944,6 +944,7 @@ public class DispatcherServlet extends FrameworkServlet {
 		// Keep a snapshot of the request attributes in case of an include,
 		// to be able to restore the original attributes after the include.
 		Map<String, Object> attributesSnapshot = null;
+		// 获取reques中的 javax.servlet.include.request_uri 属性值
 		if (WebUtils.isIncludeRequest(request)) {
 			// 记录下 request中的属性信息
 			attributesSnapshot = new HashMap<>();
@@ -958,9 +959,13 @@ public class DispatcherServlet extends FrameworkServlet {
 
 		// Make framework objects available to handlers and view objects.
 		// 把webApplicaitonContext  locale theme 等信息放到request中, 后面处理时,就可以直接使用
+		// DispatcherServlet.class.getName() + ".CONTEXT"  存放 applicationContext
 		request.setAttribute(WEB_APPLICATION_CONTEXT_ATTRIBUTE, getWebApplicationContext());
+		// DispatcherServlet.class.getName() + ".LOCALE_RESOLVER" 存放 localeResolver
 		request.setAttribute(LOCALE_RESOLVER_ATTRIBUTE, this.localeResolver);
+		// DispatcherServlet.class.getName() + ".THEME_RESOLVER" 存放 themResolver
 		request.setAttribute(THEME_RESOLVER_ATTRIBUTE, this.themeResolver);
+		// DispatcherServlet.class.getName() + ".THEME_SOURCE"  存放 ThemeSource
 		request.setAttribute(THEME_SOURCE_ATTRIBUTE, getThemeSource());
 
 		if (this.flashMapManager != null) {
@@ -973,6 +978,7 @@ public class DispatcherServlet extends FrameworkServlet {
 		}
 
 		try {
+			// 上面向request中添加了许多的属性,下面继续进行分析,进一步进行处理
 			// 继续分发请求
 			doDispatch(request, response);
 		}
@@ -1052,6 +1058,7 @@ public class DispatcherServlet extends FrameworkServlet {
 				// Determine handler for the current request.
 				// 获取handler
 				mappedHandler = getHandler(processedRequest);
+				// 如果没有找到 handler
 				if (mappedHandler == null) {
 					noHandlerFound(processedRequest, response);
 					return;
@@ -1077,12 +1084,13 @@ public class DispatcherServlet extends FrameworkServlet {
 
 				// Actually invoke the handler.
 				// 真实方法调用
+				// 通过 adaptor 适配器来进行调用
 				mv = ha.handle(processedRequest, response, mappedHandler.getHandler());
 
 				if (asyncManager.isConcurrentHandlingStarted()) {
 					return;
 				}
-
+				// 应用默认的额 view name
 				applyDefaultViewName(processedRequest, mv);
 				// filter postHandler
 				mappedHandler.applyPostHandle(processedRequest, response, mv);
@@ -1144,12 +1152,15 @@ public class DispatcherServlet extends FrameworkServlet {
 		boolean errorView = false;
 
 		if (exception != null) {
+			// 如果异常是 ModelAndViewDefiningException,则直接强转
 			if (exception instanceof ModelAndViewDefiningException) {
 				logger.debug("ModelAndViewDefiningException encountered", exception);
 				mv = ((ModelAndViewDefiningException) exception).getModelAndView();
 			}
 			else {
+				// 不是 ModelAndViewDefiningException的异常,都在这里进行处理了
 				// 统一异常处理
+				// 重点 在这里
 				Object handler = (mappedHandler != null ? mappedHandler.getHandler() : null);
 				mv = processHandlerException(request, response, handler, exception);
 				errorView = (mv != null);
@@ -1309,6 +1320,7 @@ public class DispatcherServlet extends FrameworkServlet {
 	 * @param handler the handler object to find an adapter for
 	 * @throws ServletException if no HandlerAdapter can be found for the handler. This is a fatal error.
 	 */
+	// 遍历所有的适配器,来查看是否支持此方法
 	protected HandlerAdapter getHandlerAdapter(Object handler) throws ServletException {
 		if (this.handlerAdapters != null) {
 			for (HandlerAdapter adapter : this.handlerAdapters) {
@@ -1337,6 +1349,7 @@ public class DispatcherServlet extends FrameworkServlet {
 			@Nullable Object handler, Exception ex) throws Exception {
 
 		// Success and error responses may use different content types
+		// 移除 HandlerMapping.class.getName() + ".producibleMediaTypes" 属性
 		request.removeAttribute(HandlerMapping.PRODUCIBLE_MEDIA_TYPES_ATTRIBUTE);
 
 		// Check registered HandlerExceptionResolvers...
@@ -1352,6 +1365,7 @@ public class DispatcherServlet extends FrameworkServlet {
 		}
 		if (exMv != null) {
 			if (exMv.isEmpty()) {
+				// 没有解析到 则把异常放入到 request中的DispatcherServlet.class.getName() + ".EXCEPTION" 属性
 				request.setAttribute(EXCEPTION_ATTRIBUTE, ex);
 				return null;
 			}

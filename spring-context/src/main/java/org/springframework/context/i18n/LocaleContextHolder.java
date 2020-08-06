@@ -43,10 +43,10 @@ import org.springframework.lang.Nullable;
  * @see org.springframework.web.servlet.DispatcherServlet
  */
 public final class LocaleContextHolder {
-
+	// 对应当前线程的 Locale Context
 	private static final ThreadLocal<LocaleContext> localeContextHolder =
 			new NamedThreadLocal<>("LocaleContext");
-
+	// 当前继承的线程存储的 locale
 	private static final ThreadLocal<LocaleContext> inheritableLocaleContextHolder =
 			new NamedInheritableThreadLocal<>("LocaleContext");
 

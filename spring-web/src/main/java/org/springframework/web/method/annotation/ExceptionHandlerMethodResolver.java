@@ -52,7 +52,7 @@ public class ExceptionHandlerMethodResolver {
 
 		// 记录异常和 处理异常的 方法之间的映射
 	private final Map<Class<? extends Throwable>, Method> mappedMethods = new HashMap<>(16);
-
+	//此中同样记录 异常和处理方法的 映射
 	private final Map<Class<? extends Throwable>, Method> exceptionLookupCache = new ConcurrentReferenceHashMap<>(16);
 
 
@@ -128,6 +128,7 @@ public class ExceptionHandlerMethodResolver {
 	 * @param exception the exception
 	 * @return a Method to handle the exception, or {@code null} if none found
 	 */
+	// 解析获取 exception 异常对应的处理method
 	@Nullable
 	public Method resolveMethod(Exception exception) {
 		return resolveMethodByThrowable(exception);
@@ -140,10 +141,13 @@ public class ExceptionHandlerMethodResolver {
 	 * @return a Method to handle the exception, or {@code null} if none found
 	 * @since 5.0
 	 */
+	// 解析获取 exception 对应的 method
 	@Nullable
 	public Method resolveMethodByThrowable(Throwable exception) {
+		// 去exceptionLookupCache 以及  mappedMethods 中查找
 		Method method = resolveMethodByExceptionType(exception.getClass());
 		if (method == null) {
+			// 没有找到,则获取异常的原因,递归再次查找
 			Throwable cause = exception.getCause();
 			if (cause != null) {
 				method = resolveMethodByExceptionType(cause.getClass());
