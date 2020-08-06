@@ -162,7 +162,7 @@ public class DefaultHandlerExceptionResolver extends AbstractHandlerExceptionRes
 		setWarnLogCategory(getClass().getName());
 	}
 
-
+	// 对springmvc 内部的异常的一些处理
 	@Override
 	@Nullable
 	protected ModelAndView doResolveException(
