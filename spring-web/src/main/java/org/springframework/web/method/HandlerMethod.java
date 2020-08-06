@@ -101,6 +101,7 @@ public class HandlerMethod {
 		this.beanType = ClassUtils.getUserClass(bean);
 		this.method = method;
 		this.bridgedMethod = BridgeMethodResolver.findBridgedMethod(method);
+		// 存储方法的 方法参数
 		this.parameters = initMethodParameters();
 		evaluateResponseStatus();
 	}
@@ -175,7 +176,7 @@ public class HandlerMethod {
 		this.responseStatusReason = handlerMethod.responseStatusReason;
 		this.resolvedFromHandlerMethod = handlerMethod;
 	}
-
+	// 解析方法的 参数类型,并保存起来
 	private MethodParameter[] initMethodParameters() {
 		int count = this.bridgedMethod.getParameterCount();
 		MethodParameter[] result = new MethodParameter[count];

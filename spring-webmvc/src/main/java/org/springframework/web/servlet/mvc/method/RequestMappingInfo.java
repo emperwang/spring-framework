@@ -493,7 +493,7 @@ public final class RequestMappingInfo implements RequestCondition<RequestMapping
 			this.options = options;
 			return this;
 		}
-
+		// 创建 requestMappingInfo
 		@Override
 		public RequestMappingInfo build() {
 			ContentNegotiationManager manager = this.options.getContentNegotiationManager();

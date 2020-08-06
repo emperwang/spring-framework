@@ -61,25 +61,25 @@ public class CorsConfiguration {
 	private static final List<String> DEFAULT_PERMIT_METHODS =
 			Collections.unmodifiableList(Arrays.asList(HttpMethod.GET.name(), HttpMethod.HEAD.name(), HttpMethod.POST.name()));
 
-
+	// 记录此跨域 允许  origin
 	@Nullable
 	private List<String> allowedOrigins;
-
+	// 记录允许的方法
 	@Nullable
 	private List<String> allowedMethods;
 
 	@Nullable
 	private List<HttpMethod> resolvedMethods = DEFAULT_METHODS;
-
+	// 允许的 header
 	@Nullable
 	private List<String> allowedHeaders;
 
 	@Nullable
 	private List<String> exposedHeaders;
-
+	// 是否允许
 	@Nullable
 	private Boolean allowCredentials;
-
+	// 最大的超时时间
 	@Nullable
 	private Long maxAge;
 

@@ -55,22 +55,30 @@ public final class MethodIntrospector {
 	 * @return the selected methods associated with their metadata (in the order of retrieval),
 	 * or an empty map in case of no match
 	 */
+	// 从 targetType 中查找合适的方法
 	public static <T> Map<Method, T> selectMethods(Class<?> targetType, final MetadataLookup<T> metadataLookup) {
 		final Map<Method, T> methodMap = new LinkedHashMap<>();
 		Set<Class<?>> handlerTypes = new LinkedHashSet<>();
 		Class<?> specificHandlerType = null;
-
+		// 如果不是 JDK代理类
 		if (!Proxy.isProxyClass(targetType)) {
+			// 如果是cglib 代理类
+			// ClassUtils.getUserClass 此主要是获取此cglib 代理的类
 			specificHandlerType = ClassUtils.getUserClass(targetType);
 			handlerTypes.add(specificHandlerType);
 		}
+		// 找到所有的接口
 		handlerTypes.addAll(ClassUtils.getAllInterfacesForClassAsSet(targetType));
-
+		// 遍历所有的类型, 获取方法
+		// 可见查找时,会把接口的方法也不会遗漏
 		for (Class<?> currentHandlerType : handlerTypes) {
 			final Class<?> targetClass = (specificHandlerType != null ? specificHandlerType : currentHandlerType);
-
+			// doWithMethods 会遍历 currentHandlerType 中所有声明的 方法
 			ReflectionUtils.doWithMethods(currentHandlerType, method -> {
+				// ClassUtils.getMostSpecificMethod 查找特定的方法; 如:方法在接口声明,找到的是实现类中的方法
 				Method specificMethod = ClassUtils.getMostSpecificMethod(method, targetClass);
+				// 这里就是调用特定的方法来 进行进一步的 操作
+				// 此时此操作就是  getMappingForMethod
 				T result = metadataLookup.inspect(specificMethod);
 				if (result != null) {
 					Method bridgedMethod = BridgeMethodResolver.findBridgedMethod(specificMethod);

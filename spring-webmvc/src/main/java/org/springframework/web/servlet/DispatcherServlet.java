@@ -881,13 +881,17 @@ public class DispatcherServlet extends FrameworkServlet {
 		// 此时呢,就获取此key的默认配置
 		String value = defaultStrategies.getProperty(key);
 		if (value != null) {
+			//名字可能有多个,这里吧名字转换为数组
 			String[] classNames = StringUtils.commaDelimitedListToStringArray(value);
 			List<T> strategies = new ArrayList<>(classNames.length);
 			// 遍历默认配置
 			// 加载name对应的class,记录下来,并进行返回
 			for (String className : classNames) {
 				try {
+					// 加载类
 					Class<?> clazz = ClassUtils.forName(className, DispatcherServlet.class.getClassLoader());
+					// 注入到容器中
+					// 此返回值 是进行了初始化  属性注入的bean
 					Object strategy = createDefaultStrategy(context, clazz);
 					strategies.add((T) strategy);
 				}

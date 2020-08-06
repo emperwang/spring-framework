@@ -38,19 +38,22 @@ public class RequestMappingInfoHandlerMethodMappingNamingStrategy
 	/** Separator between the type and method-level parts of a HandlerMethod mapping name. */
 	public static final String SEPARATOR = "#";
 
-
+	// 名字生成策略
 	@Override
 	public String getName(HandlerMethod handlerMethod, RequestMappingInfo mapping) {
+		// 如果 mapping中指定了 name,则使用指定的名字
 		if (mapping.getName() != null) {
 			return mapping.getName();
 		}
 		StringBuilder sb = new StringBuilder();
+		// 获取method所在class的  simplename
 		String simpleTypeName = handlerMethod.getBeanType().getSimpleName();
 		for (int i = 0 ; i < simpleTypeName.length(); i++) {
 			if (Character.isUpperCase(simpleTypeName.charAt(i))) {
 				sb.append(simpleTypeName.charAt(i));
 			}
 		}
+		// 此处的生成名字就是 大写的 方法所在类 simpleName + # + method.name
 		sb.append(SEPARATOR).append(handlerMethod.getMethod().getName());
 		return sb.toString();
 	}

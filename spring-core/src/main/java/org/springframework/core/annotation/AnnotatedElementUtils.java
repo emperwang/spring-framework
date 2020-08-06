@@ -633,6 +633,14 @@ public abstract class AnnotatedElementUtils {
 	public static AnnotationAttributes findMergedAnnotationAttributes(AnnotatedElement element,
 			Class<? extends Annotation> annotationType, boolean classValuesAsString, boolean nestedAnnotationsAsMap) {
 		// searchWithFindSemantics 搜寻方法上的注解信息
+		// 分析类 或者 方法上的注解 以及注解上的属性信息
+		// 1. 先分析方法本身的注解
+		// 2. 分析方法所在类 的接口的信息
+		// 3. 分析方法的父类的注解信息
+		// 4. 分析方法所在的类的父类的接口的注解信息
+		// 分析类时 :
+		// 1. 分析类的注解信息
+		// 2. 分析类的父类的注解信息
 		AnnotationAttributes attributes = searchWithFindSemantics(element, annotationType, null,
 				new MergedAnnotationAttributesProcessor(classValuesAsString, nestedAnnotationsAsMap));
 		// 处理注解的 属性信息
@@ -695,9 +703,11 @@ public abstract class AnnotatedElementUtils {
 	 * @see #findMergedAnnotationAttributes(AnnotatedElement, String, boolean, boolean)
 	 * @see #getMergedAnnotationAttributes(AnnotatedElement, Class)
 	 */
+	// 查找元素上的注解信息
 	@Nullable
 	public static <A extends Annotation> A findMergedAnnotation(AnnotatedElement element, Class<A> annotationType) {
 		// Shortcut: directly present on the element, with no merging needed?
+		// 获取元素上的 注解信息
 		A annotation = element.getDeclaredAnnotation(annotationType);
 		if (annotation != null) {
 			return AnnotationUtils.synthesizeAnnotation(annotation, element);
@@ -707,7 +717,14 @@ public abstract class AnnotatedElementUtils {
 		if (AnnotationUtils.hasPlainJavaAnnotationsOnly(element)) {
 			return null;
 		}
-
+		// 分析类 或者 方法上的注解 以及注解上的属性信息
+		// 1. 先分析方法本身的注解
+		// 2. 分析方法所在类 的接口的信息
+		// 3. 分析方法的父类的注解信息
+		// 4. 分析方法所在的类的父类的接口的注解信息
+		// 分析类时 :
+		// 1. 分析类的注解信息
+		// 2. 分析类的父类的注解信息
 		// Exhaustive retrieval of merged annotation attributes...
 		AnnotationAttributes attributes = findMergedAnnotationAttributes(element, annotationType, false, false);
 		return (attributes != null ? AnnotationUtils.synthesizeAnnotation(attributes, annotationType, element) : null);
@@ -1040,6 +1057,14 @@ public abstract class AnnotatedElementUtils {
 			@Nullable String annotationName, Processor<T> processor) {
 		// 搜寻方法上的注解 及其 信息
 		// 查找自定的类的信息
+		// 分析类 或者 方法上的注解 以及注解上的属性信息
+		// 1. 先分析方法本身的注解
+		// 2. 分析方法所在类 的接口的信息
+		// 3. 分析方法的父类的注解信息
+		// 4. 分析方法所在的类的父类的接口的注解信息
+		// 分析类时 :
+		// 1. 分析类的注解信息
+		// 2. 分析类的父类的注解信息
 		return searchWithFindSemantics(element,
 				(annotationType != null ? Collections.singleton(annotationType) : Collections.emptySet()),
 				annotationName, null, processor);

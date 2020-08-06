@@ -72,7 +72,7 @@ public class RequestMappingHandlerMapping extends RequestMappingInfoHandlerMappi
 
 	@Nullable
 	private StringValueResolver embeddedValueResolver;
-
+	// builder的一些配置类信息
 	private RequestMappingInfo.BuilderConfiguration config = new RequestMappingInfo.BuilderConfiguration();
 
 
@@ -150,7 +150,7 @@ public class RequestMappingHandlerMapping extends RequestMappingInfoHandlerMappi
 	public void setEmbeddedValueResolver(StringValueResolver resolver) {
 		this.embeddedValueResolver = resolver;
 	}
-
+	// 此处先进行一些配置类信息的记录,之后就解析器  requestmapping的映射信息
 	@Override
 	public void afterPropertiesSet() {
 		this.config = new RequestMappingInfo.BuilderConfiguration();
@@ -215,14 +215,21 @@ public class RequestMappingHandlerMapping extends RequestMappingInfoHandlerMappi
 	 * @see #getCustomMethodCondition(Method)
 	 * @see #getCustomTypeCondition(Class)
 	 */
+	// 查找有映射的method
 	@Override
 	@Nullable
 	protected RequestMappingInfo getMappingForMethod(Method method, Class<?> handlerType) {
 		// 如果方法或者类上有requestMapping注解，那么就包装为RequestMappingInfo
+		// 先查找方法上的  注解信息
 		RequestMappingInfo info = createRequestMappingInfo(method);
 		if (info != null) {
+			// 在查找类上面的注解信心
 			RequestMappingInfo typeInfo = createRequestMappingInfo(handlerType);
+			// 方法 和 类上都有注解信息的话, 则进行合并
 			if (typeInfo != null) {
+				// 此合并,如:
+				// 1. 名字合并 this.name + # + other.name
+				// 2. 匹配路径的合并
 				info = typeInfo.combine(info);
 			}
 			String prefix = getPathPrefix(handlerType);
@@ -254,11 +261,24 @@ public class RequestMappingHandlerMapping extends RequestMappingInfoHandlerMappi
 	 * @see #getCustomTypeCondition(Class)
 	 * @see #getCustomMethodCondition(Method)
 	 */
+	// 根据方法上注解的信息,创建 RequestMappingInfo
+	// RequestMappingInfo 中保存了方法的路径,参数,请求方法,consumer,producer等信息
 	@Nullable
 	private RequestMappingInfo createRequestMappingInfo(AnnotatedElement element) {
+		// 从元素上查找 RequestMapping 注解
+		// 分析类 或者 方法上的注解 以及注解上的属性信息
+		// 1. 先分析方法本身的注解
+		// 2. 分析方法所在类 的接口的信息
+		// 3. 分析方法的父类的注解信息
+		// 4. 分析方法所在的类的父类的接口的注解信息
+		// 分析类时 :
+		// 1. 分析类的注解信息
+		// 2. 分析类的父类的注解信息
+		// Exhaustive retrieval of merged annotation attributes...
 		RequestMapping requestMapping = AnnotatedElementUtils.findMergedAnnotation(element, RequestMapping.class);
 		RequestCondition<?> condition = (element instanceof Class ?
 				getCustomTypeCondition((Class<?>) element) : getCustomMethodCondition((Method) element));
+		// 如果存在注解RequestMapping,则创建 ReqeustMappingInfo
 		return (requestMapping != null ? createRequestMappingInfo(requestMapping, condition) : null);
 	}
 
@@ -345,19 +365,22 @@ public class RequestMappingHandlerMapping extends RequestMappingInfoHandlerMappi
 		String lookupPath = getUrlPathHelper().getLookupPathForRequest(request);
 		return new RequestMatchResult(patterns.iterator().next(), lookupPath, getPathMatcher());
 	}
-
+	// 对映射关系中的跨域的配置
 	@Override
 	protected CorsConfiguration initCorsConfiguration(Object handler, Method method, RequestMappingInfo mappingInfo) {
+		// 先创建一个 HandlerMthod
 		HandlerMethod handlerMethod = createHandlerMethod(handler, method);
 		Class<?> beanType = handlerMethod.getBeanType();
+		// 获取 类 以及 方法上的 CrossOrigin 注解的信息
 		CrossOrigin typeAnnotation = AnnotatedElementUtils.findMergedAnnotation(beanType, CrossOrigin.class);
 		CrossOrigin methodAnnotation = AnnotatedElementUtils.findMergedAnnotation(method, CrossOrigin.class);
 
 		if (typeAnnotation == null && methodAnnotation == null) {
 			return null;
 		}
-
+		// 创建一个 跨域的配置
 		CorsConfiguration config = new CorsConfiguration();
+		// 更新跨域的配置 信息
 		updateCorsConfig(config, typeAnnotation);
 		updateCorsConfig(config, methodAnnotation);
 
@@ -366,26 +389,31 @@ public class RequestMappingHandlerMapping extends RequestMappingInfoHandlerMappi
 				config.addAllowedMethod(allowedMethod.name());
 			}
 		}
+		// 对跨域设置默认值
 		return config.applyPermitDefaultValues();
 	}
-
+	// 更新 跨域的配置信息
 	private void updateCorsConfig(CorsConfiguration config, @Nullable CrossOrigin annotation) {
 		if (annotation == null) {
 			return;
 		}
+		// 允许的 origin
 		for (String origin : annotation.origins()) {
 			config.addAllowedOrigin(resolveCorsAnnotationValue(origin));
 		}
+		// 允许的 method
 		for (RequestMethod method : annotation.methods()) {
 			config.addAllowedMethod(method.name());
 		}
+		// 允许的 header
 		for (String header : annotation.allowedHeaders()) {
 			config.addAllowedHeader(resolveCorsAnnotationValue(header));
 		}
+		// 允许的 expose header
 		for (String header : annotation.exposedHeaders()) {
 			config.addExposedHeader(resolveCorsAnnotationValue(header));
 		}
-
+		// 是否允许  allowCredentials
 		String allowCredentials = resolveCorsAnnotationValue(annotation.allowCredentials());
 		if ("true".equalsIgnoreCase(allowCredentials)) {
 			config.setAllowCredentials(true);

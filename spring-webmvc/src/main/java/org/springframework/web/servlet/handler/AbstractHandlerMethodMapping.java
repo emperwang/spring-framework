@@ -90,10 +90,11 @@ public abstract class AbstractHandlerMethodMapping<T> extends AbstractHandlerMap
 
 
 	private boolean detectHandlerMethodsInAncestorContexts = false;
-
+	// 名字生成策略
 	@Nullable
 	private HandlerMethodMappingNamingStrategy<T> namingStrategy;
-
+	// 存储 path -> method的映射,以及 目标类
+	// 这样方法通过反射就可以进行调用了
 	private final MappingRegistry mappingRegistry = new MappingRegistry();
 
 
@@ -206,6 +207,7 @@ public abstract class AbstractHandlerMethodMapping<T> extends AbstractHandlerMap
 	 * @see #processCandidateBean
 	 * @see #handlerMethodsInitialized
 	 */
+	// 解析容器中的 映射信息
 	protected void initHandlerMethods() {
 		// getCandidateBeanNames 获取容器中所有的bean的name
 		for (String beanName : getCandidateBeanNames()) {
@@ -241,6 +243,7 @@ public abstract class AbstractHandlerMethodMapping<T> extends AbstractHandlerMap
 	 * @see #isHandler
 	 * @see #detectHandlerMethods
 	 */
+	// 对容器中候选bean的处理, 获取 映射path 到method的对应关系
 	protected void processCandidateBean(String beanName) {
 		Class<?> beanType = null;
 		try {
@@ -265,15 +268,23 @@ public abstract class AbstractHandlerMethodMapping<T> extends AbstractHandlerMap
 	 * @param handler either a bean name or an actual handler instance
 	 * @see #getMappingForMethod
 	 */
+	// 从一个handler类中获取具体的处理method
 	protected void detectHandlerMethods(Object handler) {
+		// 如果handler参数给出的只是一个字符串,则从容器中获取此字符串对应的bean的类型
 		Class<?> handlerType = (handler instanceof String ?
 				obtainApplicationContext().getType((String) handler) : handler.getClass());
-
+		// 如果获取到了类型
 		if (handlerType != null) {
+			// 获取到 class
+			// 如果此类是cglib代理,则获取此代理类 对应的 被代理类
 			Class<?> userType = ClassUtils.getUserClass(handlerType);
+			// 查找合适的方法
 			Map<Method, T> methods = MethodIntrospector.selectMethods(userType,
 					(MethodIntrospector.MetadataLookup<T>) method -> {
 						try {
+							// 此是 根据注解来生成映射的方法
+							// 1. 解析method 和 class上的注解信息,如果都有则进行合并
+							// 		1) 合并是很多属性合并,如 name合并, 匹配路径的合并
 							return getMappingForMethod(method, userType);
 						}
 						catch (Throwable ex) {
@@ -286,7 +297,9 @@ public abstract class AbstractHandlerMethodMapping<T> extends AbstractHandlerMap
 			}
 			// 遍历所有方法,把 handler和mapping的映射关系保存起来
 			methods.forEach((method, mapping) -> {
+				// 选择可调用的方法
 				Method invocableMethod = AopUtils.selectInvocableMethod(method, userType);
+				// 把找到的方法 注册起来
 				registerHandlerMethod(handler, invocableMethod, mapping);
 			});
 		}
@@ -319,6 +332,7 @@ public abstract class AbstractHandlerMethodMapping<T> extends AbstractHandlerMap
 	 * @throws IllegalStateException if another method was already registered
 	 * under the same mapping
 	 */
+	// 注册 handleMethod到容器中
 	protected void registerHandlerMethod(Object handler, Method method, T mapping) {
 		this.mappingRegistry.register(mapping, handler, method);
 	}
@@ -329,14 +343,18 @@ public abstract class AbstractHandlerMethodMapping<T> extends AbstractHandlerMap
 	 * @param method the target method
 	 * @return the created HandlerMethod
 	 */
+	// 创建  HandlerMethod
 	protected HandlerMethod createHandlerMethod(Object handler, Method method) {
 		HandlerMethod handlerMethod;
+		// 如果handler 还是字符串,则使用此字符串从容器中 获取此 字符串对应的bean
 		if (handler instanceof String) {
 			String beanName = (String) handler;
 			handlerMethod = new HandlerMethod(beanName,
 					obtainApplicationContext().getAutowireCapableBeanFactory(), method);
 		}
 		else {
+			// 如果handler 已经是实例,则直接创建HandlerMethod
+			// 此 HandlerMethod中已经保存了 被解析方法的 参数类型
 			handlerMethod = new HandlerMethod(handler, method);
 		}
 		return handlerMethod;
@@ -531,15 +549,15 @@ public abstract class AbstractHandlerMethodMapping<T> extends AbstractHandlerMap
 	 * <p>Package-private for testing purposes.
 	 */
 	class MappingRegistry {
-
+		// 记录 mapping 到 MappingRegistration的映射关系
 		private final Map<T, MappingRegistration<T>> registry = new HashMap<>();
 
 		private final Map<T, HandlerMethod> mappingLookup = new LinkedHashMap<>();
-
+		// 此记录 directUrl -->  mapping 的映射
 		private final MultiValueMap<String, T> urlLookup = new LinkedMultiValueMap<>();
 
 		private final Map<String, List<HandlerMethod>> nameLookup = new ConcurrentHashMap<>();
-
+		// 此记录 handerMethod的跨域信息
 		private final Map<HandlerMethod, CorsConfiguration> corsLookup = new ConcurrentHashMap<>();
 
 		private final ReentrantReadWriteLock readWriteLock = new ReentrantReadWriteLock();
@@ -589,30 +607,37 @@ public abstract class AbstractHandlerMethodMapping<T> extends AbstractHandlerMap
 		public void releaseReadLock() {
 			this.readWriteLock.readLock().unlock();
 		}
-
+		// 映射方法的注册
 		public void register(T mapping, Object handler, Method method) {
 			this.readWriteLock.writeLock().lock();
 			try {
+				// 根据 handler 以及 method,创建 handlerMethod
 				HandlerMethod handlerMethod = createHandlerMethod(handler, method);
+				// 查看此是否是唯一的,如果不是唯一的,报错
 				assertUniqueMethodMapping(handlerMethod, mapping);
+				// 记录 映射path-> handerMethod
 				this.mappingLookup.put(mapping, handlerMethod);
-
+				// 记录直接映射
 				List<String> directUrls = getDirectUrls(mapping);
+				// 记录 directurl 到 mapping的映射关系
 				for (String url : directUrls) {
 					this.urlLookup.add(url, mapping);
 				}
 
 				String name = null;
 				if (getNamingStrategy() != null) {
+					// 1. 如果指定了名字，则使用指定的名字
+					// 2. 此处的生成名字就是 大写的 方法所在类 simpleName + # + method.name
 					name = getNamingStrategy().getName(handlerMethod, mapping);
+					// 记录此 name到 handlerMethod的 映射
 					addMappingName(name, handlerMethod);
 				}
-
+				// 对跨域的配置
 				CorsConfiguration corsConfig = initCorsConfiguration(handler, method, mapping);
 				if (corsConfig != null) {
 					this.corsLookup.put(handlerMethod, corsConfig);
 				}
-
+				// 再次记录一个 mapping到 MappingRegistration中的映射关系
 				this.registry.put(mapping, new MappingRegistration<>(mapping, handlerMethod, directUrls, name));
 			}
 			finally {
@@ -728,9 +753,13 @@ public abstract class AbstractHandlerMethodMapping<T> extends AbstractHandlerMap
 
 			Assert.notNull(mapping, "Mapping must not be null");
 			Assert.notNull(handlerMethod, "HandlerMethod must not be null");
+			// 映射 路径
 			this.mapping = mapping;
+			// 映射方法
 			this.handlerMethod = handlerMethod;
+			// 直接 url
 			this.directUrls = (directUrls != null ? directUrls : Collections.emptyList());
+			// name
 			this.mappingName = mappingName;
 		}
 
