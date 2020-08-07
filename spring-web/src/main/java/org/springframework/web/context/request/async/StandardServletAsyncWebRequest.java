@@ -118,6 +118,7 @@ public class StandardServletAsyncWebRequest extends ServletWebRequest implements
 		if (isAsyncStarted()) {
 			return;
 		}
+		// 创建异步请求的上下文
 		this.asyncContext = getRequest().startAsync(getRequest(), getResponse());
 		this.asyncContext.addListener(this);
 		if (this.timeout != null) {
