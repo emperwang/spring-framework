@@ -249,6 +249,7 @@ public abstract class AopUtils {
 			for (Method method : methods) {
 				// 如果是事务创建代理, 会走methodMatcher.matches这里,这个方法会解析方法的注解信息
 				// introductionAwareMethodMatcher.matches 使用pointCut表达式调用AspectJ 来进行匹配操作
+				// 如果是 async的匹配则是使用 AnnotationMatchingPointcut 来进行 match
 				if (introductionAwareMethodMatcher != null ?
 						introductionAwareMethodMatcher.matches(method, targetClass, hasIntroductions) :
 						methodMatcher.matches(method, targetClass)) {
@@ -291,6 +292,7 @@ public abstract class AopUtils {
 		}
 		// 根据pointCut是进行匹配
 		// 注意此 pca.getPointcut(),当是事务的时候,其返回的是 TransactionAttributeSourcePointcut
+		// 当此处是 Async时,此处的 advisor是 AsyncAnnotationAdvisor
 		else if (advisor instanceof PointcutAdvisor) {
 			PointcutAdvisor pca = (PointcutAdvisor) advisor;
 			return canApply(pca.getPointcut(), targetClass, hasIntroductions);

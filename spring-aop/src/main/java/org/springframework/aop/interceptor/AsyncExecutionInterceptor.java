@@ -103,13 +103,17 @@ public class AsyncExecutionInterceptor extends AsyncExecutionAspectSupport imple
 		Class<?> targetClass = (invocation.getThis() != null ? AopUtils.getTargetClass(invocation.getThis()) : null);
 		Method specificMethod = ClassUtils.getMostSpecificMethod(invocation.getMethod(), targetClass);
 		final Method userDeclaredMethod = BridgeMethodResolver.findBridgedMethod(specificMethod);
-
+		// 决定要使用的 线程池
+		// 1. 先获取 Async 注解上执行 的线程池
+		// 2. 再获取 TaskExecutor 类型的bean
+		// 3. 获取 taskExecutor 名字的bean
+		// 4. 使用默认的线程池 SimpleAsyncTaskExecutor
 		AsyncTaskExecutor executor = determineAsyncExecutor(userDeclaredMethod);
 		if (executor == null) {
 			throw new IllegalStateException(
 					"No executor specified and no default executor set on AsyncExecutionInterceptor either");
 		}
-
+		// 如果有其他前置, 则先执行前置
 		Callable<Object> task = () -> {
 			try {
 				Object result = invocation.proceed();
@@ -125,7 +129,7 @@ public class AsyncExecutionInterceptor extends AsyncExecutionAspectSupport imple
 			}
 			return null;
 		};
-
+		// 提交任务到  线程池中执行
 		return doSubmit(task, executor, invocation.getMethod().getReturnType());
 	}
 
@@ -154,6 +158,9 @@ public class AsyncExecutionInterceptor extends AsyncExecutionAspectSupport imple
 	@Override
 	@Nullable
 	protected Executor getDefaultExecutor(@Nullable BeanFactory beanFactory) {
+		// 1. 先获取 TaskExecutor 类型的bean
+		// 2. 获取名字为 TaskExecutor类型的bean
+		// 3. 都没有,则使用默认的 SimpleAsyncTaskExecutor
 		Executor defaultExecutor = super.getDefaultExecutor(beanFactory);
 		return (defaultExecutor != null ? defaultExecutor : new SimpleAsyncTaskExecutor());
 	}

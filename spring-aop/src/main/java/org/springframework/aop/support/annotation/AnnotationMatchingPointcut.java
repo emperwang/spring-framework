@@ -35,9 +35,9 @@ import org.springframework.util.Assert;
  * @see AnnotationMethodMatcher
  */
 public class AnnotationMatchingPointcut implements Pointcut {
-
+	// 对class 进行过滤的 过滤器
 	private final ClassFilter classFilter;
-
+	// 方法匹配
 	private final MethodMatcher methodMatcher;
 
 
@@ -57,7 +57,11 @@ public class AnnotationMatchingPointcut implements Pointcut {
 	 * @see AnnotationClassFilter#AnnotationClassFilter(Class, boolean)
 	 */
 	public AnnotationMatchingPointcut(Class<? extends Annotation> classAnnotationType, boolean checkInherited) {
+		// 异常的 过滤
+		// 这里的 AnnotationType 为 Async 或  Asynchronous
+		// 因为上次 创建 pointcut时,创建了多个pointcut
 		this.classFilter = new AnnotationClassFilter(classAnnotationType, checkInherited);
+		// 方法 method, 默认为 true
 		this.methodMatcher = MethodMatcher.TRUE;
 	}
 

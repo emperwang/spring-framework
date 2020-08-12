@@ -54,9 +54,9 @@ import org.springframework.util.function.SingletonSupplier;
  */
 @SuppressWarnings("serial")
 public class AsyncAnnotationAdvisor extends AbstractPointcutAdvisor implements BeanFactoryAware {
-
+	// async的拦截方法
 	private Advice advice;
-
+	// 对async 进行匹配的 pointcut
 	private Pointcut pointcut;
 
 
@@ -96,6 +96,7 @@ public class AsyncAnnotationAdvisor extends AbstractPointcutAdvisor implements B
 			@Nullable Supplier<Executor> executor, @Nullable Supplier<AsyncUncaughtExceptionHandler> exceptionHandler) {
 
 		Set<Class<? extends Annotation>> asyncAnnotationTypes = new LinkedHashSet<>(2);
+		// 此中添加了 Async 和 Asynchronous 注解
 		asyncAnnotationTypes.add(Async.class);
 		try {
 			asyncAnnotationTypes.add((Class<? extends Annotation>)
@@ -104,7 +105,11 @@ public class AsyncAnnotationAdvisor extends AbstractPointcutAdvisor implements B
 		catch (ClassNotFoundException ex) {
 			// If EJB 3.1 API not present, simply ignore.
 		}
+		// 创建此 async的 advice
 		this.advice = buildAdvice(executor, exceptionHandler);
+		// 创建pointCut
+		// 这里的pointcut 使用了上面创建的 asyncAnnotationTypes, 这里的asyncAnnotationTypes包含了 Async Asynchronous
+		// 也就是使用此 pointcut去进行匹配时, 或使用 Async 和 Asynchronous 两个注解去进行匹配
 		this.pointcut = buildPointcut(asyncAnnotationTypes);
 	}
 
@@ -146,11 +151,12 @@ public class AsyncAnnotationAdvisor extends AbstractPointcutAdvisor implements B
 		return this.pointcut;
 	}
 
-
+	// 创建 advice
 	protected Advice buildAdvice(
 			@Nullable Supplier<Executor> executor, @Nullable Supplier<AsyncUncaughtExceptionHandler> exceptionHandler) {
-
+		// 在 advice中创建了  methodInterceptor
 		AnnotationAsyncExecutionInterceptor interceptor = new AnnotationAsyncExecutionInterceptor(null);
+		// 配置 线程池 和 未捕获异常处理方法
 		interceptor.configure(executor, exceptionHandler);
 		return interceptor;
 	}
@@ -160,6 +166,8 @@ public class AsyncAnnotationAdvisor extends AbstractPointcutAdvisor implements B
 	 * @param asyncAnnotationTypes the async annotation types to introspect
 	 * @return the applicable Pointcut object, or {@code null} if none
 	 */
+	// 注意此处两个重要的 pointCut  AnnotationMatchingPointcut    AnnotationMatchingPointcut
+	// Async 和 Asynchronous 要匹配的注解
 	protected Pointcut buildPointcut(Set<Class<? extends Annotation>> asyncAnnotationTypes) {
 		ComposablePointcut result = null;
 		for (Class<? extends Annotation> asyncAnnotationType : asyncAnnotationTypes) {

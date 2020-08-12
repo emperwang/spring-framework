@@ -76,18 +76,18 @@ public class AsyncAnnotationBeanPostProcessor extends AbstractBeanFactoryAwareAd
 
 
 	protected final Log logger = LogFactory.getLog(getClass());
-
+	// 记录 AsyncConfigurer 配置的线程池
 	@Nullable
 	private Supplier<Executor> executor;
-
+	// 记录 AsyncConfigurer 配置的未捕获异常的处理函数
 	@Nullable
 	private Supplier<AsyncUncaughtExceptionHandler> exceptionHandler;
-
+	// 设置 异步注解的类型
 	@Nullable
 	private Class<? extends Annotation> asyncAnnotationType;
 
 
-
+	// 把 beforeExistingAdvisors 属性设置为 true
 	public AsyncAnnotationBeanPostProcessor() {
 		setBeforeExistingAdvisors(true);
 	}
@@ -100,8 +100,9 @@ public class AsyncAnnotationBeanPostProcessor extends AbstractBeanFactoryAwareAd
 	 */
 	public void configure(
 			@Nullable Supplier<Executor> executor, @Nullable Supplier<AsyncUncaughtExceptionHandler> exceptionHandler) {
-
+		// 记录 线程池
 		this.executor = executor;
+		// 记录 未捕获异常的处理
 		this.exceptionHandler = exceptionHandler;
 	}
 
@@ -141,16 +142,17 @@ public class AsyncAnnotationBeanPostProcessor extends AbstractBeanFactoryAwareAd
 		this.asyncAnnotationType = asyncAnnotationType;
 	}
 
-
+	// AsyncAnnotationAdvisor 此种包含了  advice 以及 pointcut
 	@Override
 	public void setBeanFactory(BeanFactory beanFactory) {
 		super.setBeanFactory(beanFactory);
-
+		// 在此中设置了 Advisor --> AsyncAnnotationAdvisor
 		AsyncAnnotationAdvisor advisor = new AsyncAnnotationAdvisor(this.executor, this.exceptionHandler);
 		if (this.asyncAnnotationType != null) {
 			advisor.setAsyncAnnotationType(this.asyncAnnotationType);
 		}
 		advisor.setBeanFactory(beanFactory);
+		// 此advisor是 AsyncAnnotationAdvisor类型
 		this.advisor = advisor;
 	}
 

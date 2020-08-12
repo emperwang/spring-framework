@@ -41,17 +41,17 @@ import org.springframework.util.CollectionUtils;
  */
 @Configuration
 public abstract class AbstractAsyncConfiguration implements ImportAware {
-
+	// 存储 @Async注解的属性信息
 	@Nullable
 	protected AnnotationAttributes enableAsync;
-
+	// 记录配置的线程池
 	@Nullable
 	protected Supplier<Executor> executor;
-
+	// 记录配置的 未捕获异常的处理函数
 	@Nullable
 	protected Supplier<AsyncUncaughtExceptionHandler> exceptionHandler;
 
-
+	// 获取注解的信息
 	@Override
 	public void setImportMetadata(AnnotationMetadata importMetadata) {
 		this.enableAsync = AnnotationAttributes.fromMap(
@@ -65,6 +65,7 @@ public abstract class AbstractAsyncConfiguration implements ImportAware {
 	/**
 	 * Collect any {@link AsyncConfigurer} beans through autowiring.
 	 */
+	// 这里就可以看到,通过实现 AsyncConfigurer, 继承AsyncConfigurerSupport实现的配置,就这里进行了解析
 	@Autowired(required = false)
 	void setConfigurers(Collection<AsyncConfigurer> configurers) {
 		if (CollectionUtils.isEmpty(configurers)) {
@@ -74,7 +75,9 @@ public abstract class AbstractAsyncConfiguration implements ImportAware {
 			throw new IllegalStateException("Only one AsyncConfigurer may exist");
 		}
 		AsyncConfigurer configurer = configurers.iterator().next();
+		// 获取通过 AsyncConfigurer 实现的async的配置的线程池
 		this.executor = configurer::getAsyncExecutor;
+		// 获取通过 AsyncConfigurer 实现的 未捕获异常的处理
 		this.exceptionHandler = configurer::getAsyncUncaughtExceptionHandler;
 	}
 

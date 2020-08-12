@@ -49,13 +49,13 @@ public abstract class AbstractBeanFactoryAwareAdvisingPostProcessor extends Abst
 		this.beanFactory = (beanFactory instanceof ConfigurableListableBeanFactory ?
 				(ConfigurableListableBeanFactory) beanFactory : null);
 	}
-
+	// 准备创建 针对 Async的 aop 工厂
 	@Override
 	protected ProxyFactory prepareProxyFactory(Object bean, String beanName) {
 		if (this.beanFactory != null) {
 			AutoProxyUtils.exposeTargetClass(this.beanFactory, beanName, bean.getClass());
 		}
-
+		// 创建的 ProxyFactory, 并使用其来创建代理类
 		ProxyFactory proxyFactory = super.prepareProxyFactory(bean, beanName);
 		if (!proxyFactory.isProxyTargetClass() && this.beanFactory != null &&
 				AutoProxyUtils.shouldProxyTargetClass(this.beanFactory, beanName)) {

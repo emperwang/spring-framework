@@ -33,12 +33,12 @@ import org.springframework.lang.Nullable;
  */
 @SuppressWarnings("serial")
 public abstract class AbstractAdvisingBeanPostProcessor extends ProxyProcessorSupport implements BeanPostProcessor {
-
+	// 在处理 Async时,此advisor 是 AsyncAnnotationAdvisor
 	@Nullable
 	protected Advisor advisor;
-
+	// 在AsyncAnnotationBeanPostProcessor 中设置为 true
 	protected boolean beforeExistingAdvisors = false;
-
+	// eligibleBeans 记录对于此 PostProcessor 要进行创建aop代理的 class
 	private final Map<Class<?>, Boolean> eligibleBeans = new ConcurrentHashMap<>(256);
 
 
@@ -51,6 +51,7 @@ public abstract class AbstractAdvisingBeanPostProcessor extends ProxyProcessorSu
 	 * <p>Note: Check the concrete post-processor's javadoc whether it possibly
 	 * changes this flag by default, depending on the nature of its advisor.
 	 */
+	// 在子类 AsyncAnnotationBeanPostProcessor 中设置为true
 	public void setBeforeExistingAdvisors(boolean beforeExistingAdvisors) {
 		this.beforeExistingAdvisors = beforeExistingAdvisors;
 	}
@@ -81,14 +82,19 @@ public abstract class AbstractAdvisingBeanPostProcessor extends ProxyProcessorSu
 				return bean;
 			}
 		}
-
+		// 根据pointcut 判断是否是 @Async 注解的方法
 		if (isEligible(bean, beanName)) {
+			// 创建了 代理工厂类
 			ProxyFactory proxyFactory = prepareProxyFactory(bean, beanName);
 			if (!proxyFactory.isProxyTargetClass()) {
+				// 获取要代理的接口
 				evaluateProxyInterfaces(bean.getClass(), proxyFactory);
 			}
+			// 此 advisor是 AsyncAnnotationAdvisor
 			proxyFactory.addAdvisor(this.advisor);
+			// 扩展 方法
 			customizeProxyFactory(proxyFactory);
+			// 创建方法的代理
 			return proxyFactory.getProxy(getProxyClassLoader());
 		}
 
@@ -130,7 +136,9 @@ public abstract class AbstractAdvisingBeanPostProcessor extends ProxyProcessorSu
 		if (this.advisor == null) {
 			return false;
 		}
+		// 使用AsyncAnnotationAdvisor 来判断此 class是否需要是需要创建 代理的
 		eligible = AopUtils.canApply(this.advisor, targetClass);
+		// eligibleBeans 记录对于此 PostProcessor 要进行创建aop代理的 class
 		this.eligibleBeans.put(targetClass, eligible);
 		return eligible;
 	}
