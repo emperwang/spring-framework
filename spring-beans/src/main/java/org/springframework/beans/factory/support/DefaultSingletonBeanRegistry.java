@@ -453,7 +453,7 @@ public class DefaultSingletonBeanRegistry extends SimpleAliasRegistry implements
 	// dependentBeanName 依赖于 beanName
 	public void registerDependentBean(String beanName, String dependentBeanName) {
 		String canonicalName = canonicalName(beanName);
-
+		// 注册 beanName -> dependentBeanName的依赖关系
 		synchronized (this.dependentBeanMap) {
 			Set<String> dependentBeans =
 					this.dependentBeanMap.computeIfAbsent(canonicalName, k -> new LinkedHashSet<>(8));
@@ -461,7 +461,7 @@ public class DefaultSingletonBeanRegistry extends SimpleAliasRegistry implements
 				return;
 			}
 		}
-
+	// 注册 dependentBeanName -> beanName的依赖关系
 		synchronized (this.dependenciesForBeanMap) {
 			Set<String> dependenciesForBean =
 					this.dependenciesForBeanMap.computeIfAbsent(dependentBeanName, k -> new LinkedHashSet<>(8));
@@ -476,24 +476,30 @@ public class DefaultSingletonBeanRegistry extends SimpleAliasRegistry implements
 	 * @param dependentBeanName the name of the dependent bean
 	 * @since 4.0
 	 */
+	// 判断 beanName是否依赖 dependentBeanName
 	protected boolean isDependent(String beanName, String dependentBeanName) {
 		synchronized (this.dependentBeanMap) {
+			// 同步检测
 			return isDependent(beanName, dependentBeanName, null);
 		}
 	}
-
+	// 检测 beanName是否依赖于 dependentBeanName
 	private boolean isDependent(String beanName, String dependentBeanName, @Nullable Set<String> alreadySeen) {
 		if (alreadySeen != null && alreadySeen.contains(beanName)) {
 			return false;
 		}
+		// 获取beanName的真实名字
 		String canonicalName = canonicalName(beanName);
+		// 查看此 beanName对应的依赖  bean的名字
 		Set<String> dependentBeans = this.dependentBeanMap.get(canonicalName);
 		if (dependentBeans == null) {
 			return false;
 		}
+		// 如果beanName依赖的bean 名字中有 dependentBeanName 则说明有依赖关系
 		if (dependentBeans.contains(dependentBeanName)) {
 			return true;
 		}
+		// 递归调用哦
 		for (String transitiveDependency : dependentBeans) {
 			if (alreadySeen == null) {
 				alreadySeen = new HashSet<>();
