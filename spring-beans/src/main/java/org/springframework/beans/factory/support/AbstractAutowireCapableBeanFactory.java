@@ -587,7 +587,8 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 			if (!mbd.postProcessed) {
 				try {
 					/**
-					 * 调用MergedBeanDefinitionPostProcessor后置处理器,合并父子bean的信息
+					 * init-method  destory-method
+					 * autowired  value 等注解解析的地方
 					 */
 					applyMergedBeanDefinitionPostProcessors(mbd, beanType, beanName);
 				}
@@ -1102,6 +1103,8 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 		for (BeanPostProcessor bp : getBeanPostProcessors()) {
 			if (bp instanceof MergedBeanDefinitionPostProcessor) {
 				MergedBeanDefinitionPostProcessor bdp = (MergedBeanDefinitionPostProcessor) bp;
+				// init-method  destory-method
+				// autowired  value 等注解解析的地方
 				bdp.postProcessMergedBeanDefinition(mbd, beanType, beanName);
 			}
 		}
@@ -1866,7 +1869,6 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 			 *  那也就是说方法调用顺序:
 			 *  1.PostConstruct注解的方法
 			 *  2. InitializingBean.afterPropertiesSet
-			 *  3. init-method
 			 */
 			// CommonAnnotationBeanPostProcessor extends InitDestroyAnnotationBeanPostProcessor
 			// 这里对 PostConstruct 注解的处理主要通过 InitDestroyAnnotationBeanPostProcessor来做的
