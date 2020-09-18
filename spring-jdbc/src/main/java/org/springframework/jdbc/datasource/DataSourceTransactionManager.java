@@ -328,7 +328,7 @@ public class DataSourceTransactionManager extends AbstractPlatformTransactionMan
 		// 挂起事务,也就是把事务资源从threadLocal中删除
 		return TransactionSynchronizationManager.unbindResource(obtainDataSource());
 	}
-
+	// 还原旧的事务
 	@Override
 	protected void doResume(@Nullable Object transaction, Object suspendedResources) {
 		TransactionSynchronizationManager.bindResource(obtainDataSource(), suspendedResources);
