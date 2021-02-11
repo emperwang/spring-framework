@@ -1,5 +1,7 @@
 buildscript {
 	repositories {
+		mavenLocal()
+		jcenter()
 		maven { url "https://repo.spring.io/plugins-release" }
 	}
 	dependencies {
