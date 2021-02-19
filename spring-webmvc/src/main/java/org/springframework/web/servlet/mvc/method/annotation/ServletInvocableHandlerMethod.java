@@ -101,6 +101,7 @@ public class ServletInvocableHandlerMethod extends InvocableHandlerMethod {
 			Object... providedArgs) throws Exception {
 		// 1. 正常的http请求,调用controller方法
 		// 2. 统一异常处理时,调用异常的方法来处理exception
+		// 3. 此种保存了对各种请求参数的处理,其中包含了  @RequestBody注解
 		Object returnValue = invokeForRequest(webRequest, mavContainer, providedArgs);
 		setResponseStatus(webRequest);
 
@@ -119,6 +120,7 @@ public class ServletInvocableHandlerMethod extends InvocableHandlerMethod {
 		Assert.state(this.returnValueHandlers != null, "No return value handlers");
 		try {
 			// 对方法的返回结果进行处理
+			// 此中包含了对 responseBody的处理
 			this.returnValueHandlers.handleReturnValue(
 					returnValue, getReturnValueType(returnValue), mavContainer, webRequest);
 		}

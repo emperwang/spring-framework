@@ -100,7 +100,9 @@ public abstract class AbstractGenericHttpMessageConverter<T> extends AbstractHtt
 			}));
 		}
 		else {
+			// 通过具体的子类来进行 具体的 写出操作
 			writeInternal(t, type, outputMessage);
+			// flush 清缓存,	全部写出
 			outputMessage.getBody().flush();
 		}
 	}

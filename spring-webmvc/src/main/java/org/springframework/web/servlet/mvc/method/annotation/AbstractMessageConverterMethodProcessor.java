@@ -177,6 +177,7 @@ public abstract class AbstractMessageConverterMethodProcessor extends AbstractMe
 	 * @throws HttpMediaTypeNotAcceptableException thrown when the conditions indicated
 	 * by the {@code Accept} header on the request cannot be met by the message converters
 	 */
+	// 对数据进行转换并响应
 	@SuppressWarnings({"rawtypes", "unchecked"})
 	protected <T> void writeWithMessageConverters(@Nullable T value, MethodParameter returnType,
 			ServletServerHttpRequest inputMessage, ServletServerHttpResponse outputMessage)
@@ -278,6 +279,7 @@ public abstract class AbstractMessageConverterMethodProcessor extends AbstractMe
 				if (genericConverter != null ?
 						((GenericHttpMessageConverter) converter).canWrite(targetType, valueType, selectedMediaType) :
 						converter.canWrite(valueType, selectedMediaType)) {
+					// 数据转换前的操作
 					body = getAdvice().beforeBodyWrite(body, returnType, selectedMediaType,
 							(Class<? extends HttpMessageConverter<?>>) converter.getClass(),
 							inputMessage, outputMessage);
@@ -287,6 +289,7 @@ public abstract class AbstractMessageConverterMethodProcessor extends AbstractMe
 								"Writing [" + LogFormatUtils.formatValue(theBody, traceOn) + "]");
 						addContentDispositionHeader(inputMessage, outputMessage);
 						if (genericConverter != null) {
+							// 写出数据
 							genericConverter.write(body, targetType, selectedMediaType, outputMessage);
 						}
 						else {

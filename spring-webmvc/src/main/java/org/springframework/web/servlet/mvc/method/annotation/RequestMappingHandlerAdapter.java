@@ -818,7 +818,7 @@ public class RequestMappingHandlerAdapter extends AbstractHandlerMethodAdapter
 			// No synchronization on session demanded at all...
 			mav = invokeHandlerMethod(request, response, handlerMethod);
 		}
-
+		// 设置缓存相关的 响应头
 		if (!response.containsHeader(HEADER_CACHE_CONTROL)) {
 			if (getSessionAttributesHandler(handlerMethod).hasSessionAttributes()) {
 				applyCacheSeconds(response, this.cacheSecondsForSessionAttributeHandlers);
@@ -1038,6 +1038,8 @@ public class RequestMappingHandlerAdapter extends AbstractHandlerMethodAdapter
 			ModelFactory modelFactory, NativeWebRequest webRequest) throws Exception {
 
 		modelFactory.updateModel(webRequest, mavContainer);
+		// 如果已经被处理过  则返回null
+		// 如:方法上带有 responseBody注解,那么在此之前就进行了数据的相应
 		if (mavContainer.isRequestHandled()) {
 			return null;
 		}

@@ -104,12 +104,12 @@ public class RequestResponseBodyMethodProcessor extends AbstractMessageConverter
 		super(converters, manager, requestResponseBodyAdvice);
 	}
 
-
+	// 对 requestBody 注解的处理
 	@Override
 	public boolean supportsParameter(MethodParameter parameter) {
 		return parameter.hasParameterAnnotation(RequestBody.class);
 	}
-
+		// 对 responseBody注解的处理
 	@Override
 	public boolean supportsReturnType(MethodParameter returnType) {
 		return (AnnotatedElementUtils.hasAnnotation(returnType.getContainingClass(), ResponseBody.class) ||
@@ -166,17 +166,18 @@ public class RequestResponseBodyMethodProcessor extends AbstractMessageConverter
 		RequestBody requestBody = parameter.getParameterAnnotation(RequestBody.class);
 		return (requestBody != null && requestBody.required() && !parameter.isOptional());
 	}
-
+	// 针对 有responseBody注解的存在的,则直接把数据转换为 json写出
 	@Override
 	public void handleReturnValue(@Nullable Object returnValue, MethodParameter returnType,
 			ModelAndViewContainer mavContainer, NativeWebRequest webRequest)
 			throws IOException, HttpMediaTypeNotAcceptableException, HttpMessageNotWritableException {
-
+			///  标记此 request 被处理
 		mavContainer.setRequestHandled(true);
 		ServletServerHttpRequest inputMessage = createInputMessage(webRequest);
 		ServletServerHttpResponse outputMessage = createOutputMessage(webRequest);
 
 		// Try even with null return value. ResponseBodyAdvice could get involved.
+		// 把数据进行响应
 		writeWithMessageConverters(returnValue, returnType, inputMessage, outputMessage);
 	}
 

@@ -245,7 +245,7 @@ public abstract class AbstractJackson2HttpMessageConverter extends AbstractGener
 			throw new HttpMessageNotReadableException("JSON parse error: " + ex.getOriginalMessage(), ex, inputMessage);
 		}
 	}
-
+	// 把数据通过 jackson 转换进行输出
 	@Override
 	protected void writeInternal(Object object, @Nullable Type type, HttpOutputMessage outputMessage)
 			throws IOException, HttpMessageNotWritableException {

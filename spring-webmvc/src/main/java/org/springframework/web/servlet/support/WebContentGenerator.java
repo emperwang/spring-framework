@@ -439,6 +439,8 @@ public abstract class WebContentGenerator extends WebApplicationObjectSupport {
 	 * @param cacheSeconds positive number of seconds into the future that the
 	 * response should be cacheable for, 0 to prevent caching
 	 */
+	// 设置是否进行缓存
+	// 即 设置 Cache-Control  响应头
 	@SuppressWarnings("deprecation")
 	protected final void applyCacheSeconds(HttpServletResponse response, int cacheSeconds) {
 		if (this.useExpiresHeader || !this.useCacheControlHeader) {
