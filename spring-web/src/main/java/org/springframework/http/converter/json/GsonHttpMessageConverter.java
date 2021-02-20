@@ -86,7 +86,7 @@ public class GsonHttpMessageConverter extends AbstractJsonHttpMessageConverter {
 		return this.gson;
 	}
 
-
+	// 使用gson对数据进行解析
 	@Override
 	protected Object readInternal(Type resolvedType, Reader reader) throws Exception {
 		return getGson().fromJson(reader, resolvedType);

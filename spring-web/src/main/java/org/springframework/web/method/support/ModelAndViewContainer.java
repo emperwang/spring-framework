@@ -50,7 +50,7 @@ import org.springframework.web.bind.support.SimpleSessionStatus;
 public class ModelAndViewContainer {
 
 	private boolean ignoreDefaultModelOnRedirect = false;
-
+	// 记录具体的view
 	@Nullable
 	private Object view;
 
@@ -69,7 +69,7 @@ public class ModelAndViewContainer {
 	private final Set<String> bindingDisabled = new HashSet<>(4);
 
 	private final SessionStatus sessionStatus = new SimpleSessionStatus();
-
+	// 标记此 request是否处理完成
 	private boolean requestHandled = false;
 
 

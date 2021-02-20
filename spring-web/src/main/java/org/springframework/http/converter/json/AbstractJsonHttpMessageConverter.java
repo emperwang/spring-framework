@@ -90,7 +90,7 @@ public abstract class AbstractJsonHttpMessageConverter extends AbstractGenericHt
 	@Override
 	public final Object read(Type type, @Nullable Class<?> contextClass, HttpInputMessage inputMessage)
 			throws IOException, HttpMessageNotReadableException {
-
+		// 数据数据 并解析
 		return readResolved(GenericTypeResolver.resolveType(type, contextClass), inputMessage);
 	}
 
@@ -100,7 +100,7 @@ public abstract class AbstractJsonHttpMessageConverter extends AbstractGenericHt
 
 		return readResolved(clazz, inputMessage);
 	}
-
+	// 读取json数据
 	private Object readResolved(Type resolvedType, HttpInputMessage inputMessage)
 			throws IOException, HttpMessageNotReadableException {
 

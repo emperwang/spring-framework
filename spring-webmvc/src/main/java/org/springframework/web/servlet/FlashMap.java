@@ -51,7 +51,7 @@ public final class FlashMap extends HashMap<String, Object> implements Comparabl
 
 	@Nullable
 	private String targetRequestPath;
-
+	// 保存转发时的 参数传递
 	private final MultiValueMap<String, String> targetRequestParams = new LinkedMultiValueMap<>(4);
 
 	private long expirationTime = -1;
@@ -78,10 +78,12 @@ public final class FlashMap extends HashMap<String, Object> implements Comparabl
 	 * Provide request parameters identifying the request for this FlashMap.
 	 * @param params a Map with the names and values of expected parameters
 	 */
+	// 保存转发的参数
 	public FlashMap addTargetRequestParams(@Nullable MultiValueMap<String, String> params) {
 		if (params != null) {
 			params.forEach((key, values) -> {
 				for (String value : values) {
+					// 保存请求转发时的参数
 					addTargetRequestParam(key, value);
 				}
 			});
@@ -94,8 +96,10 @@ public final class FlashMap extends HashMap<String, Object> implements Comparabl
 	 * @param name the expected parameter name (skipped if empty)
 	 * @param value the expected value (skipped if empty)
 	 */
+	// 记录请求转发时的 参数
 	public FlashMap addTargetRequestParam(String name, String value) {
 		if (StringUtils.hasText(name) && StringUtils.hasText(value)) {
+			// 记录参数
 			this.targetRequestParams.add(name, value);
 		}
 		return this;

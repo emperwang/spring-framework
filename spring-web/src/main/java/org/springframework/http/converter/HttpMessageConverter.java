@@ -32,6 +32,7 @@ import org.springframework.lang.Nullable;
  * @since 3.0
  * @param <T> the converted object type
  */
+// 数据转换
 public interface HttpMessageConverter<T> {
 
 	/**

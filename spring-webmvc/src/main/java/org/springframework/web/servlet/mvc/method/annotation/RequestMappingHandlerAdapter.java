@@ -128,19 +128,19 @@ public class RequestMappingHandlerAdapter extends AbstractHandlerMethodAdapter
 			(!AnnotatedElementUtils.hasAnnotation(method, RequestMapping.class) &&
 					AnnotatedElementUtils.hasAnnotation(method, ModelAttribute.class));
 
-
+	// 记录具体的参数 解析器
 	@Nullable
 	private List<HandlerMethodArgumentResolver> customArgumentResolvers;
-
+	// 具体处理方法的 参数解析器
 	@Nullable
 	private HandlerMethodArgumentResolverComposite argumentResolvers;
-
+	// InitBinder 的参数解析器
 	@Nullable
 	private HandlerMethodArgumentResolverComposite initBinderArgumentResolvers;
-
+	// 记录 参数值的 处理器 handler
 	@Nullable
 	private List<HandlerMethodReturnValueHandler> customReturnValueHandlers;
-
+	// 解析对应的返回值 解析器
 	@Nullable
 	private HandlerMethodReturnValueHandlerComposite returnValueHandlers;
 
@@ -657,18 +657,25 @@ public class RequestMappingHandlerAdapter extends AbstractHandlerMethodAdapter
 		// Annotation-based argument resolution
 		resolvers.add(new RequestParamMethodArgumentResolver(getBeanFactory(), false));
 		resolvers.add(new RequestParamMapMethodArgumentResolver());
+		// 路径参数
 		resolvers.add(new PathVariableMethodArgumentResolver());
 		resolvers.add(new PathVariableMapMethodArgumentResolver());
 		resolvers.add(new MatrixVariableMethodArgumentResolver());
 		resolvers.add(new MatrixVariableMapMethodArgumentResolver());
 		resolvers.add(new ServletModelAttributeMethodProcessor(false));
+		// requestBody  responseBody
 		resolvers.add(new RequestResponseBodyMethodProcessor(getMessageConverters(), this.requestResponseBodyAdvice));
 		resolvers.add(new RequestPartMethodArgumentResolver(getMessageConverters(), this.requestResponseBodyAdvice));
+		// 请求 header
 		resolvers.add(new RequestHeaderMethodArgumentResolver(getBeanFactory()));
 		resolvers.add(new RequestHeaderMapMethodArgumentResolver());
+		// cookie 处理
 		resolvers.add(new ServletCookieValueMethodArgumentResolver(getBeanFactory()));
+		// 表达式参数
 		resolvers.add(new ExpressionValueMethodArgumentResolver(getBeanFactory()));
+		// sessionAttribute
 		resolvers.add(new SessionAttributeMethodArgumentResolver());
+		// requestAttribute
 		resolvers.add(new RequestAttributeMethodArgumentResolver());
 
 		// Type-based argument resolution
@@ -732,21 +739,30 @@ public class RequestMappingHandlerAdapter extends AbstractHandlerMethodAdapter
 	 * Return the list of return value handlers to use including built-in and
 	 * custom handlers provided via {@link #setReturnValueHandlers}.
 	 */
+	// 响应 处理器  responseHandler
 	private List<HandlerMethodReturnValueHandler> getDefaultReturnValueHandlers() {
 		List<HandlerMethodReturnValueHandler> handlers = new ArrayList<>();
 
 		// Single-purpose return value types
 		handlers.add(new ModelAndViewMethodReturnValueHandler());
 		handlers.add(new ModelMethodProcessor());
+		//
 		handlers.add(new ViewMethodReturnValueHandler());
+		// responseBody 处理器
 		handlers.add(new ResponseBodyEmitterReturnValueHandler(getMessageConverters(),
 				this.reactiveAdapterRegistry, this.taskExecutor, this.contentNegotiationManager));
+		// streaming 流处理
 		handlers.add(new StreamingResponseBodyReturnValueHandler());
+		// httpEntity 处理
 		handlers.add(new HttpEntityMethodProcessor(getMessageConverters(),
 				this.contentNegotiationManager, this.requestResponseBodyAdvice));
+		// responseHeader
 		handlers.add(new HttpHeadersReturnValueHandler());
+		// callable 方法
 		handlers.add(new CallableMethodReturnValueHandler());
+		// DeferredResult 处理
 		handlers.add(new DeferredResultMethodReturnValueHandler());
+		// asyncTask  处理
 		handlers.add(new AsyncTaskMethodReturnValueHandler(this.beanFactory));
 
 		// Annotation-based return value types
@@ -897,9 +913,13 @@ public class RequestMappingHandlerAdapter extends AbstractHandlerMethodAdapter
 			// 解析init-binder的工厂
 			invocableMethod.setDataBinderFactory(binderFactory);
 			invocableMethod.setParameterNameDiscoverer(this.parameterNameDiscoverer);
-			// mvcContainer
+			// mvcContainer 1.记录此次request是否处理完成 2. 记录view
 			ModelAndViewContainer mavContainer = new ModelAndViewContainer();
+			// 记录转发的request 中设置的参数,通过flashManager实现
+			// 其中 inputFlashMap记录上次转发前的request传递的参数
+			// 其中 outputFlashMap 记录要传递给下一个request的参数
 			mavContainer.addAllAttributes(RequestContextUtils.getInputFlashMap(request));
+			// 此针对  modelAttribute注解处理
 			modelFactory.initModel(webRequest, mavContainer, invocableMethod);
 			mavContainer.setIgnoreDefaultModelOnRedirect(this.ignoreDefaultModelOnRedirect);
 			// 异步处理
@@ -925,6 +945,7 @@ public class RequestMappingHandlerAdapter extends AbstractHandlerMethodAdapter
 				invocableMethod = invocableMethod.wrapConcurrentResult(result);
 			}
 			// 方法调用
+			// 调用真实的业务处理函数
 			invocableMethod.invokeAndHandle(webRequest, mavContainer);
 			if (asyncManager.isConcurrentHandlingStarted()) {
 				return null;
@@ -952,7 +973,7 @@ public class RequestMappingHandlerAdapter extends AbstractHandlerMethodAdapter
 		Class<?> handlerType = handlerMethod.getBeanType();
 		Set<Method> methods = this.modelAttributeCache.get(handlerType);
 		if (methods == null) {
-			// 查找类中 ModelAttribute 注解的方法
+			// 查找类中 ModelAttribute 注解的方法 @ModelAttribute
 			methods = MethodIntrospector.selectMethods(handlerType, MODEL_ATTRIBUTE_METHODS);
 			// 缓存方法
 			this.modelAttributeCache.put(handlerType, methods);
@@ -989,6 +1010,7 @@ public class RequestMappingHandlerAdapter extends AbstractHandlerMethodAdapter
 		Class<?> handlerType = handlerMethod.getBeanType();
 		Set<Method> methods = this.initBinderCache.get(handlerType);
 		if (methods == null) {
+			// 缓存方法上有 InitBinder 的方法
 			methods = MethodIntrospector.selectMethods(handlerType, INIT_BINDER_METHODS);
 			this.initBinderCache.put(handlerType, methods);
 		}
@@ -1012,6 +1034,7 @@ public class RequestMappingHandlerAdapter extends AbstractHandlerMethodAdapter
 	private InvocableHandlerMethod createInitBinderMethod(Object bean, Method method) {
 		InvocableHandlerMethod binderMethod = new InvocableHandlerMethod(bean, method);
 		if (this.initBinderArgumentResolvers != null) {
+			// 记录参数解析器
 			binderMethod.setHandlerMethodArgumentResolvers(this.initBinderArgumentResolvers);
 		}
 		binderMethod.setDataBinderFactory(new DefaultDataBinderFactory(this.webBindingInitializer));

@@ -273,6 +273,8 @@ public abstract class AbstractMessageConverterMethodProcessor extends AbstractMe
 
 		if (selectedMediaType != null) {
 			selectedMediaType = selectedMediaType.removeQualityValue();
+			// 在这里也会遍历所有的 转换器 来进行数据的转换
+			// 转换完成后 再把数据写出
 			for (HttpMessageConverter<?> converter : this.messageConverters) {
 				GenericHttpMessageConverter genericConverter = (converter instanceof GenericHttpMessageConverter ?
 						(GenericHttpMessageConverter<?>) converter : null);
@@ -290,9 +292,11 @@ public abstract class AbstractMessageConverterMethodProcessor extends AbstractMe
 						addContentDispositionHeader(inputMessage, outputMessage);
 						if (genericConverter != null) {
 							// 写出数据
+							// 具体的写出点
 							genericConverter.write(body, targetType, selectedMediaType, outputMessage);
 						}
 						else {
+							// 如果没有找到合适的,则使用 默认的写出
 							((HttpMessageConverter) converter).write(body, selectedMediaType, outputMessage);
 						}
 					}

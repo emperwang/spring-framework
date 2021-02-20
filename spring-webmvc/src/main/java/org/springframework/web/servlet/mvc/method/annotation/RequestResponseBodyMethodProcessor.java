@@ -122,15 +122,20 @@ public class RequestResponseBodyMethodProcessor extends AbstractMessageConverter
 	 * is {@code true} and there is no body content or if there is no suitable
 	 * converter to read the content with.
 	 */
+	// 解析参数
 	@Override
 	public Object resolveArgument(MethodParameter parameter, @Nullable ModelAndViewContainer mavContainer,
 			NativeWebRequest webRequest, @Nullable WebDataBinderFactory binderFactory) throws Exception {
 
 		parameter = parameter.nestedIfOptional();
+		// 解析参数, 在这里就是对 RequestBody的 解析
+		// 即解析 JSON
 		Object arg = readWithMessageConverters(webRequest, parameter, parameter.getNestedGenericParameterType());
+		// 获取参数名字
 		String name = Conventions.getVariableNameForParameter(parameter);
-
+		// 把参数进行绑定
 		if (binderFactory != null) {
+			// 创建一个绑定器
 			WebDataBinder binder = binderFactory.createBinder(webRequest, arg, name);
 			if (arg != null) {
 				validateIfApplicable(binder, parameter);
@@ -139,21 +144,23 @@ public class RequestResponseBodyMethodProcessor extends AbstractMessageConverter
 				}
 			}
 			if (mavContainer != null) {
+				// 这里记录绑定的结果值
 				mavContainer.addAttribute(BindingResult.MODEL_KEY_PREFIX + name, binder.getBindingResult());
 			}
 		}
 
 		return adaptArgumentIfNecessary(arg, parameter);
 	}
-
+	// 通过 convert对 body参数进行解析
 	@Override
 	protected <T> Object readWithMessageConverters(NativeWebRequest webRequest, MethodParameter parameter,
 			Type paramType) throws IOException, HttpMediaTypeNotSupportedException, HttpMessageNotReadableException {
 
 		HttpServletRequest servletRequest = webRequest.getNativeRequest(HttpServletRequest.class);
 		Assert.state(servletRequest != null, "No HttpServletRequest");
+		// 封装 HttpServletRequest
 		ServletServerHttpRequest inputMessage = new ServletServerHttpRequest(servletRequest);
-
+		// 解析参数,可能是 json 或者是 直接就是字符串
 		Object arg = readWithMessageConverters(inputMessage, parameter, paramType);
 		if (arg == null && checkRequired(parameter)) {
 			throw new HttpMessageNotReadableException("Required request body is missing: " +
