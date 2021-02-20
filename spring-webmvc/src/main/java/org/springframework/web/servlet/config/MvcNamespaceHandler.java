@@ -31,6 +31,7 @@ public class MvcNamespaceHandler extends NamespaceHandlerSupport {
 
 	@Override
 	public void init() {
+		// 注册mvc namespace下的 xml node 节点的 handler
 		registerBeanDefinitionParser("annotation-driven", new AnnotationDrivenBeanDefinitionParser());
 		registerBeanDefinitionParser("default-servlet-handler", new DefaultServletHandlerBeanDefinitionParser());
 		registerBeanDefinitionParser("interceptors", new InterceptorsBeanDefinitionParser());

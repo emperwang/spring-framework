@@ -48,18 +48,24 @@ public abstract class NamespaceHandlerSupport implements NamespaceHandler {
 	 * Stores the {@link BeanDefinitionParser} implementations keyed by the
 	 * local name of the {@link Element Elements} they handle.
 	 */
+	// 存储 解析器和其要解析的 element的映射
+	// 其中 key为element 的name, value为其对应的解析器
 	private final Map<String, BeanDefinitionParser> parsers = new HashMap<>();
 
 	/**
 	 * Stores the {@link BeanDefinitionDecorator} implementations keyed by the
 	 * local name of the {@link Element Elements} they handle.
 	 */
+	// 存储 element对应的装饰器
+			//  其中 key为element 的name, value为其对应的装饰器
 	private final Map<String, BeanDefinitionDecorator> decorators = new HashMap<>();
 
 	/**
 	 * Stores the {@link BeanDefinitionDecorator} implementations keyed by the local
 	 * name of the {@link Attr Attrs} they handle.
 	 */
+	// 存储element的属性装饰器
+	//  其中 key为element 的name, value为其对应的装饰器
 	private final Map<String, BeanDefinitionDecorator> attributeDecorators = new HashMap<>();
 
 
@@ -70,7 +76,9 @@ public abstract class NamespaceHandlerSupport implements NamespaceHandler {
 	@Override
 	@Nullable
 	public BeanDefinition parse(Element element, ParserContext parserContext) {
+		// 为特定的 element查找特定的 解析器
 		BeanDefinitionParser parser = findParserForElement(element, parserContext);
+		// 如果找到解析器呢 就进行解析
 		return (parser != null ? parser.parse(element, parserContext) : null);
 	}
 
@@ -80,7 +88,9 @@ public abstract class NamespaceHandlerSupport implements NamespaceHandler {
 	 */
 	@Nullable
 	private BeanDefinitionParser findParserForElement(Element element, ParserContext parserContext) {
+		// 获取 element的名字
 		String localName = parserContext.getDelegate().getLocalName(element);
+		// 找到对应的解析器
 		BeanDefinitionParser parser = this.parsers.get(localName);
 		if (parser == null) {
 			parserContext.getReaderContext().fatal(
@@ -97,8 +107,9 @@ public abstract class NamespaceHandlerSupport implements NamespaceHandler {
 	@Nullable
 	public BeanDefinitionHolder decorate(
 			Node node, BeanDefinitionHolder definition, ParserContext parserContext) {
-
+		// 为 node查找对应的装饰器
 		BeanDefinitionDecorator decorator = findDecoratorForNode(node, parserContext);
+		// 如果存在装饰器, 则进行装饰
 		return (decorator != null ? decorator.decorate(node, definition, parserContext) : null);
 	}
 
@@ -110,11 +121,14 @@ public abstract class NamespaceHandlerSupport implements NamespaceHandler {
 	@Nullable
 	private BeanDefinitionDecorator findDecoratorForNode(Node node, ParserContext parserContext) {
 		BeanDefinitionDecorator decorator = null;
+		// 获取 node的名字
 		String localName = parserContext.getDelegate().getLocalName(node);
 		if (node instanceof Element) {
+			// 如果node是 element,则查找element对应的装饰器
 			decorator = this.decorators.get(localName);
 		}
 		else if (node instanceof Attr) {
+			// 如果是 属性,则查找属性装饰器
 			decorator = this.attributeDecorators.get(localName);
 		}
 		else {
@@ -125,6 +139,7 @@ public abstract class NamespaceHandlerSupport implements NamespaceHandler {
 			parserContext.getReaderContext().fatal("Cannot locate BeanDefinitionDecorator for " +
 					(node instanceof Element ? "element" : "attribute") + " [" + localName + "]", node);
 		}
+		// 返回装饰器
 		return decorator;
 	}
 
@@ -134,6 +149,7 @@ public abstract class NamespaceHandlerSupport implements NamespaceHandler {
 	 * handle the specified element. The element name is the local (non-namespace qualified)
 	 * name.
 	 */
+	// 注册解析器
 	protected final void registerBeanDefinitionParser(String elementName, BeanDefinitionParser parser) {
 		this.parsers.put(elementName, parser);
 	}
@@ -143,6 +159,7 @@ public abstract class NamespaceHandlerSupport implements NamespaceHandler {
 	 * handle the specified element. The element name is the local (non-namespace qualified)
 	 * name.
 	 */
+	// 注册装饰器
 	protected final void registerBeanDefinitionDecorator(String elementName, BeanDefinitionDecorator dec) {
 		this.decorators.put(elementName, dec);
 	}
@@ -152,6 +169,7 @@ public abstract class NamespaceHandlerSupport implements NamespaceHandler {
 	 * handle the specified attribute. The attribute name is the local (non-namespace qualified)
 	 * name.
 	 */
+	// 注册属性装饰器
 	protected final void registerBeanDefinitionDecoratorForAttribute(String attrName, BeanDefinitionDecorator dec) {
 		this.attributeDecorators.put(attrName, dec);
 	}
