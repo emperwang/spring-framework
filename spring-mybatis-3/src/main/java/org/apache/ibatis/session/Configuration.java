@@ -144,6 +144,7 @@ public class Configuration {
   protected final Map<String, KeyGenerator> keyGenerators = new StrictMap<>("Key Generators collection");
 	// 记录已经解析的mapper.xml文件
   protected final Set<String> loadedResources = new HashSet<>();
+  // 记录sql片段
   protected final Map<String, XNode> sqlFragments = new StrictMap<>("XML fragments parsed from previous mappers");
 
   protected final Collection<XMLStatementBuilder> incompleteStatements = new LinkedList<>();

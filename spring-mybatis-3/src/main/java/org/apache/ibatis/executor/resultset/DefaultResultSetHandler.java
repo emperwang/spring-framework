@@ -168,6 +168,7 @@ public class DefaultResultSetHandler implements ResultSetHandler {
     final List<Object> multipleResults = new ArrayList<>();
 
     int resultSetCount = 0;
+    // 得到 查询的结果集 包装 wrapper
     ResultSetWrapper rsw = getFirstResultSet(stmt);
 	// 获取此sql的resultMap
     List<ResultMap> resultMaps = mappedStatement.getResultMaps();
@@ -222,6 +223,7 @@ public class DefaultResultSetHandler implements ResultSetHandler {
   }
 
   private ResultSetWrapper getFirstResultSet(Statement stmt) throws SQLException {
+  	// 获取查询结果集
     ResultSet rs = stmt.getResultSet();
     while (rs == null) {
       // move forward to get the first resultset in case the driver
