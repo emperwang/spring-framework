@@ -35,6 +35,11 @@ import org.springframework.scheduling.config.TaskManagementConfigUtils;
  * @see EnableScheduling
  * @see ScheduledAnnotationBeanPostProcessor
  */
+/*
+针对scheduling 调度注解的配置类
+可以看到角色是 指令
+并注入一个后置处理器到容器中
+ */
 @Configuration
 @Role(BeanDefinition.ROLE_INFRASTRUCTURE)
 public class SchedulingConfiguration {
@@ -42,6 +47,7 @@ public class SchedulingConfiguration {
 	@Bean(name = TaskManagementConfigUtils.SCHEDULED_ANNOTATION_PROCESSOR_BEAN_NAME)
 	@Role(BeanDefinition.ROLE_INFRASTRUCTURE)
 	public ScheduledAnnotationBeanPostProcessor scheduledAnnotationProcessor() {
+		// 注入针对scheduling处理的后置处理器
 		return new ScheduledAnnotationBeanPostProcessor();
 	}
 

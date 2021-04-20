@@ -32,9 +32,9 @@ import org.springframework.util.ReflectionUtils;
  * @see org.springframework.scheduling.annotation.ScheduledAnnotationBeanPostProcessor
  */
 public class ScheduledMethodRunnable implements Runnable {
-
+	// 被调用方法的 target
 	private final Object target;
-
+	// 要被调用的方法
 	private final Method method;
 
 
@@ -80,7 +80,9 @@ public class ScheduledMethodRunnable implements Runnable {
 	@Override
 	public void run() {
 		try {
+			// 使方法可访问
 			ReflectionUtils.makeAccessible(this.method);
+			// 方法调用
 			this.method.invoke(this.target);
 		}
 		catch (InvocationTargetException ex) {

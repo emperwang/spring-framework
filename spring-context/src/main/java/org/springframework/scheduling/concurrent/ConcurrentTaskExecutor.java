@@ -88,7 +88,9 @@ public class ConcurrentTaskExecutor implements AsyncListenableTaskExecutor, Sche
 	 * @see java.util.concurrent.Executors#newSingleThreadExecutor()
 	 */
 	public ConcurrentTaskExecutor() {
+		// 单线程的线程池
 		this.concurrentExecutor = Executors.newSingleThreadExecutor();
+		// 针对线程池的一个适配器
 		this.adaptedExecutor = new TaskExecutorAdapter(this.concurrentExecutor);
 	}
 
@@ -100,6 +102,7 @@ public class ConcurrentTaskExecutor implements AsyncListenableTaskExecutor, Sche
 	 */
 	public ConcurrentTaskExecutor(@Nullable Executor executor) {
 		this.concurrentExecutor = (executor != null ? executor : Executors.newSingleThreadExecutor());
+		// 得到对应的一个适配器
 		this.adaptedExecutor = getAdaptedExecutor(this.concurrentExecutor);
 	}
 
@@ -131,11 +134,12 @@ public class ConcurrentTaskExecutor implements AsyncListenableTaskExecutor, Sche
 	 * invocation, or to provide some monitoring/statistics for task execution.
 	 * @since 4.3
 	 */
+	// 设置任务装饰器
 	public final void setTaskDecorator(TaskDecorator taskDecorator) {
 		this.adaptedExecutor.setTaskDecorator(taskDecorator);
 	}
 
-
+	// 下面都是把任务提交到 线程池中
 	@Override
 	public void execute(Runnable task) {
 		this.adaptedExecutor.execute(task);
@@ -166,7 +170,7 @@ public class ConcurrentTaskExecutor implements AsyncListenableTaskExecutor, Sche
 		return this.adaptedExecutor.submitListenable(task);
 	}
 
-
+	// 创建 线程池 适配器
 	private static TaskExecutorAdapter getAdaptedExecutor(Executor concurrentExecutor) {
 		if (managedExecutorServiceClass != null && managedExecutorServiceClass.isInstance(concurrentExecutor)) {
 			return new ManagedTaskExecutorAdapter(concurrentExecutor);

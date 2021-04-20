@@ -86,6 +86,7 @@ public final class MethodIntrospector {
 						methodMap.put(specificMethod, result);
 					}
 				}
+				// 查找用户声明的方法
 			}, ReflectionUtils.USER_DECLARED_METHODS);
 		}
 

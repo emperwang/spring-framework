@@ -29,7 +29,7 @@ import org.springframework.util.Assert;
  * @see org.springframework.scheduling.TaskScheduler#schedule(Runnable, Trigger)
  */
 public class TriggerTask extends Task {
-
+	// 任务执行的触发器
 	private final Trigger trigger;
 
 

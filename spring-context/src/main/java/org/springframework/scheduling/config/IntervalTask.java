@@ -41,7 +41,9 @@ public class IntervalTask extends Task {
 	 */
 	public IntervalTask(Runnable runnable, long interval, long initialDelay) {
 		super(runnable);
+		// 执行间隔
 		this.interval = interval;
+		// 执行的初始 延迟
 		this.initialDelay = initialDelay;
 	}
 

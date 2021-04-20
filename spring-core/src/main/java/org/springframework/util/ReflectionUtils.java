@@ -60,6 +60,8 @@ public abstract class ReflectionUtils {
 	 * which are not declared on {@code java.lang.Object}.
 	 * @since 3.0.5
 	 */
+	// 方法既不是 bridge  也不是 synthetic  同时声明的 class不是Object
+   //  那么就可以认为这个method 就是 用户声明的方法
 	public static final MethodFilter USER_DECLARED_METHODS =
 			(method -> (!method.isBridge() && !method.isSynthetic() && method.getDeclaringClass() != Object.class));
 
@@ -492,6 +494,8 @@ public abstract class ReflectionUtils {
 	 * @param method the method to make accessible
 	 * @see java.lang.reflect.Method#setAccessible
 	 */
+	// 使方法可以访问
+	// 设置方法可通过反射访问
 	@SuppressWarnings("deprecation")  // on JDK 9
 	public static void makeAccessible(Method method) {
 		if ((!Modifier.isPublic(method.getModifiers()) ||

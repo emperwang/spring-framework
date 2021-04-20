@@ -28,13 +28,13 @@ import org.springframework.scheduling.TriggerContext;
  * @since 3.0
  */
 public class SimpleTriggerContext implements TriggerContext {
-
+	// 记录任务应该开始执行的时间
 	@Nullable
 	private volatile Date lastScheduledExecutionTime;
-
+	// 任务真实执行的时间
 	@Nullable
 	private volatile Date lastActualExecutionTime;
-
+	// 记录任务上次真正完成的时间
 	@Nullable
 	private volatile Date lastCompletionTime;
 

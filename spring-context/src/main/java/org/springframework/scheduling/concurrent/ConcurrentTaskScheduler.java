@@ -138,6 +138,7 @@ public class ConcurrentTaskScheduler extends ConcurrentTaskExecutor implements T
 					managedScheduledExecutorServiceClass.isInstance(scheduledExecutor));
 		}
 		else {
+			// 默认是使用 单线程的线程池
 			this.scheduledExecutor = Executors.newSingleThreadScheduledExecutor();
 			this.enterpriseConcurrentScheduler = false;
 		}
@@ -176,8 +177,10 @@ public class ConcurrentTaskScheduler extends ConcurrentTaskExecutor implements T
 				return new EnterpriseConcurrentTriggerScheduler().schedule(decorateTask(task, true), trigger);
 			}
 			else {
+				// 默认异常handler
 				ErrorHandler errorHandler =
 						(this.errorHandler != null ? this.errorHandler : TaskUtils.getDefaultErrorHandler(true));
+				// 封装任务 并开始任务调度
 				return new ReschedulingRunnable(task, trigger, this.scheduledExecutor, errorHandler).schedule();
 			}
 		}
@@ -201,6 +204,7 @@ public class ConcurrentTaskScheduler extends ConcurrentTaskExecutor implements T
 	public ScheduledFuture<?> scheduleAtFixedRate(Runnable task, Date startTime, long period) {
 		long initialDelay = startTime.getTime() - System.currentTimeMillis();
 		try {
+			// 调度任务
 			return this.scheduledExecutor.scheduleAtFixedRate(decorateTask(task, true), initialDelay, period, TimeUnit.MILLISECONDS);
 		}
 		catch (RejectedExecutionException ex) {
@@ -240,6 +244,7 @@ public class ConcurrentTaskScheduler extends ConcurrentTaskExecutor implements T
 	}
 
 	private Runnable decorateTask(Runnable task, boolean isRepeatingTask) {
+		// 包装一下任务,为其设置一个 异常处理函数
 		Runnable result = TaskUtils.decorateTaskWithErrorHandler(task, this.errorHandler, isRepeatingTask);
 		if (this.enterpriseConcurrentScheduler) {
 			result = ManagedTaskBuilder.buildManagedTask(result, task.toString());

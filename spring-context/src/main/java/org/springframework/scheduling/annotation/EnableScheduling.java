@@ -202,6 +202,10 @@ import org.springframework.scheduling.config.ScheduledTaskRegistrar;
  * @see Trigger
  * @see ScheduledAnnotationBeanPostProcessor
  */
+/*
+  使能调度的操作
+  即 注入一个配置类到 容器中
+ */
 @Target(ElementType.TYPE)
 @Retention(RetentionPolicy.RUNTIME)
 @Import(SchedulingConfiguration.class)

@@ -51,6 +51,7 @@ public class CronTrigger implements Trigger {
 	 * @param timeZone a time zone in which the trigger times will be generated
 	 */
 	public CronTrigger(String expression, TimeZone timeZone) {
+		// CronSequenceGenerator 解析表达式的具体类
 		this.sequenceGenerator = new CronSequenceGenerator(expression, timeZone);
 	}
 
@@ -69,6 +70,7 @@ public class CronTrigger implements Trigger {
 	 * {@linkplain TriggerContext#lastCompletionTime completion time} of the
 	 * previous execution; therefore, overlapping executions won't occur.
 	 */
+	// 得到下次的执行时间
 	@Override
 	public Date nextExecutionTime(TriggerContext triggerContext) {
 		Date date = triggerContext.lastCompletionTime();

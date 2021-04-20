@@ -30,8 +30,9 @@ import org.springframework.lang.Nullable;
  * @since 4.0
  * @param <T> the result type returned by this Future's {@code get} method
  */
+// 此对futureTask 进行了扩展, 针对失败和成功的结果 添加了回调
 public class ListenableFutureTask<T> extends FutureTask<T> implements ListenableFuture<T> {
-
+	// 这是回调函数的注册地,即保存了哪些注册的回调函数
 	private final ListenableFutureCallbackRegistry<T> callbacks = new ListenableFutureCallbackRegistry<>();
 
 
@@ -40,7 +41,9 @@ public class ListenableFutureTask<T> extends FutureTask<T> implements Listenable
 	 * execute the given {@link Callable}.
 	 * @param callable the callable task
 	 */
+	// callable 即真正执行的任务
 	public ListenableFutureTask(Callable<T> callable) {
+		// 保存任务到父类
 		super(callable);
 	}
 
@@ -55,12 +58,12 @@ public class ListenableFutureTask<T> extends FutureTask<T> implements Listenable
 		super(runnable, result);
 	}
 
-
+	// 添加回调函数
 	@Override
 	public void addCallback(ListenableFutureCallback<? super T> callback) {
 		this.callbacks.addCallback(callback);
 	}
-
+	// 添加回调函数
 	@Override
 	public void addCallback(SuccessCallback<? super T> successCallback, FailureCallback failureCallback) {
 		this.callbacks.addSuccessCallback(successCallback);
@@ -75,7 +78,8 @@ public class ListenableFutureTask<T> extends FutureTask<T> implements Listenable
 		return completable;
 	}
 
-
+	// 这是 futurTask 留下的一个用于扩展的函数点
+	// 此函数在 任务完成时 会被调用
 	@Override
 	protected void done() {
 		Throwable cause;

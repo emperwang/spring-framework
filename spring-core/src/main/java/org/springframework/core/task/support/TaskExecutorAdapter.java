@@ -44,7 +44,7 @@ import org.springframework.util.concurrent.ListenableFutureTask;
  * @see java.util.concurrent.Executors
  */
 public class TaskExecutorAdapter implements AsyncListenableTaskExecutor {
-
+	// 具体的线程池
 	private final Executor concurrentExecutor;
 
 	@Nullable
@@ -58,6 +58,7 @@ public class TaskExecutorAdapter implements AsyncListenableTaskExecutor {
 	 */
 	public TaskExecutorAdapter(Executor concurrentExecutor) {
 		Assert.notNull(concurrentExecutor, "Executor must not be null");
+		// 线程池 从构造器中确定
 		this.concurrentExecutor = concurrentExecutor;
 	}
 
@@ -73,6 +74,7 @@ public class TaskExecutorAdapter implements AsyncListenableTaskExecutor {
 	 * @since 4.3
 	 */
 	public final void setTaskDecorator(TaskDecorator taskDecorator) {
+		// 任务装饰器
 		this.taskDecorator = taskDecorator;
 	}
 
@@ -81,9 +83,11 @@ public class TaskExecutorAdapter implements AsyncListenableTaskExecutor {
 	 * Delegates to the specified JDK concurrent executor.
 	 * @see java.util.concurrent.Executor#execute(Runnable)
 	 */
+	// 执行任务
 	@Override
 	public void execute(Runnable task) {
 		try {
+			// 提交任务到 线程池中
 			doExecute(this.concurrentExecutor, this.taskDecorator, task);
 		}
 		catch (RejectedExecutionException ex) {
@@ -94,12 +98,14 @@ public class TaskExecutorAdapter implements AsyncListenableTaskExecutor {
 
 	@Override
 	public void execute(Runnable task, long startTimeout) {
+		// 执行任务
 		execute(task);
 	}
 
 	@Override
 	public Future<?> submit(Runnable task) {
 		try {
+			// 提交任务到 线程池中
 			if (this.taskDecorator == null && this.concurrentExecutor instanceof ExecutorService) {
 				return ((ExecutorService) this.concurrentExecutor).submit(task);
 			}
@@ -114,7 +120,7 @@ public class TaskExecutorAdapter implements AsyncListenableTaskExecutor {
 					"Executor [" + this.concurrentExecutor + "] did not accept task: " + task, ex);
 		}
 	}
-
+	// 提交任务到线程池中
 	@Override
 	public <T> Future<T> submit(Callable<T> task) {
 		try {
@@ -169,6 +175,7 @@ public class TaskExecutorAdapter implements AsyncListenableTaskExecutor {
 	 * @throws RejectedExecutionException if the given runnable cannot be accepted
 	 * @since 4.3
 	 */
+	// 把任务提交到 线程池中 来进行调用
 	protected void doExecute(Executor concurrentExecutor, @Nullable TaskDecorator taskDecorator, Runnable runnable)
 			throws RejectedExecutionException{
 

@@ -44,11 +44,11 @@ import org.springframework.util.ErrorHandler;
  * @since 3.0
  */
 class ReschedulingRunnable extends DelegatingErrorHandlingRunnable implements ScheduledFuture<Object> {
-
+	// schedule任务的触发器
 	private final Trigger trigger;
 
 	private final SimpleTriggerContext triggerContext = new SimpleTriggerContext();
-
+	// 执行任务的线程池
 	private final ScheduledExecutorService executor;
 
 	@Nullable
@@ -56,7 +56,7 @@ class ReschedulingRunnable extends DelegatingErrorHandlingRunnable implements Sc
 
 	@Nullable
 	private Date scheduledExecutionTime;
-
+	// 锁的使用
 	private final Object triggerContextMonitor = new Object();
 
 
@@ -64,7 +64,9 @@ class ReschedulingRunnable extends DelegatingErrorHandlingRunnable implements Sc
 			Runnable delegate, Trigger trigger, ScheduledExecutorService executor, ErrorHandler errorHandler) {
 
 		super(delegate, errorHandler);
+		// 任务触发器
 		this.trigger = trigger;
+		// 记录执行器即 线程池
 		this.executor = executor;
 	}
 
@@ -72,11 +74,14 @@ class ReschedulingRunnable extends DelegatingErrorHandlingRunnable implements Sc
 	@Nullable
 	public ScheduledFuture<?> schedule() {
 		synchronized (this.triggerContextMonitor) {
+			// 获取到下次执行时间
 			this.scheduledExecutionTime = this.trigger.nextExecutionTime(this.triggerContext);
 			if (this.scheduledExecutionTime == null) {
 				return null;
 			}
+			// 初始延迟时间
 			long initialDelay = this.scheduledExecutionTime.getTime() - System.currentTimeMillis();
+			// 放入到线程池中 运行任务
 			this.currentFuture = this.executor.schedule(this, initialDelay, TimeUnit.MILLISECONDS);
 			return this;
 		}
@@ -89,13 +94,18 @@ class ReschedulingRunnable extends DelegatingErrorHandlingRunnable implements Sc
 
 	@Override
 	public void run() {
+		// 真实执行时间
 		Date actualExecutionTime = new Date();
+		// 由父类来调用具体的 方法执行
 		super.run();
+		// 执行完成时间
 		Date completionTime = new Date();
 		synchronized (this.triggerContextMonitor) {
 			Assert.state(this.scheduledExecutionTime != null, "No scheduled execution");
+			// 把执行时间记录到 triggerContext 中
 			this.triggerContext.update(this.scheduledExecutionTime, actualExecutionTime, completionTime);
 			if (!obtainCurrentFuture().isCancelled()) {
+				// 任务没有被取消,则再次调度
 				schedule();
 			}
 		}

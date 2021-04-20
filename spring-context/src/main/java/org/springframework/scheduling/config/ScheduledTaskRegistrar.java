@@ -55,27 +55,31 @@ import org.springframework.util.CollectionUtils;
  * @see org.springframework.scheduling.annotation.SchedulingConfigurer
  */
 public class ScheduledTaskRegistrar implements ScheduledTaskHolder, InitializingBean, DisposableBean {
-
+	// 任务的执行器, 默认使用 使用单线程线程池
+	/**
+	 * 简单来说 即如果没有在容器中设置线程池的话, 或默认使用newSingleThreadScheduledExecutor 线程池来执行任务
+	 * 即默认情况下会使用coresize=1, 最大线程数为Integer.MAX 的线程池; 个人感觉这样效率也不会低到哪里
+	 */
 	@Nullable
 	private TaskScheduler taskScheduler;
-
+	// 默认使用单线程线程池
 	@Nullable
 	private ScheduledExecutorService localExecutor;
-
+	// 当还没有配置 执行器,即设置线程池时, 会先把任务 暂时存储到这里
 	@Nullable
 	private List<TriggerTask> triggerTasks;
-
+	// 当还没有配置线程池时 crontab任务先保存到这里
 	@Nullable
 	private List<CronTask> cronTasks;
-
+	// 作用类似上面的容器, 只是存储的任务是 fixRate任务
 	@Nullable
 	private List<IntervalTask> fixedRateTasks;
 
 	@Nullable
 	private List<IntervalTask> fixedDelayTasks;
-
+	// 当还没有配置线程池时, 对于提交的任务 会保存到这里
 	private final Map<Task, ScheduledTask> unresolvedTasks = new HashMap<>(16);
-
+	// 此容器会记录 调度执行的任务
 	private final Set<ScheduledTask> scheduledTasks = new LinkedHashSet<>(16);
 
 
@@ -248,8 +252,10 @@ public class ScheduledTaskRegistrar implements ScheduledTaskHolder, Initializing
 	 */
 	public void addTriggerTask(TriggerTask task) {
 		if (this.triggerTasks == null) {
+			// 初始化 容器
 			this.triggerTasks = new ArrayList<>();
 		}
+		// 保存任务
 		this.triggerTasks.add(task);
 	}
 
@@ -329,6 +335,7 @@ public class ScheduledTaskRegistrar implements ScheduledTaskHolder, Initializing
 	 */
 	@Override
 	public void afterPropertiesSet() {
+		// 调度任务
 		scheduleTasks();
 	}
 
@@ -338,22 +345,28 @@ public class ScheduledTaskRegistrar implements ScheduledTaskHolder, Initializing
 	 */
 	@SuppressWarnings("deprecation")
 	protected void scheduleTasks() {
+		// 这里是对 执行器即 线程池的一个创建
 		if (this.taskScheduler == null) {
+			// 默认是单线程的线程池
 			this.localExecutor = Executors.newSingleThreadScheduledExecutor();
+			// 使用的是 单线程的线程池
 			this.taskScheduler = new ConcurrentTaskScheduler(this.localExecutor);
 		}
 		if (this.triggerTasks != null) {
 			for (TriggerTask task : this.triggerTasks) {
+				// 记录任务
 				addScheduledTask(scheduleTriggerTask(task));
 			}
 		}
 		if (this.cronTasks != null) {
 			for (CronTask task : this.cronTasks) {
+				// 调度任务 并记录
 				addScheduledTask(scheduleCronTask(task));
 			}
 		}
 		if (this.fixedRateTasks != null) {
 			for (IntervalTask task : this.fixedRateTasks) {
+				// 调度任务并执行
 				addScheduledTask(scheduleFixedRateTask(task));
 			}
 		}
@@ -363,7 +376,7 @@ public class ScheduledTaskRegistrar implements ScheduledTaskHolder, Initializing
 			}
 		}
 	}
-
+	// 记录调度运行的任务
 	private void addScheduledTask(@Nullable ScheduledTask task) {
 		if (task != null) {
 			this.scheduledTasks.add(task);
@@ -386,10 +399,13 @@ public class ScheduledTaskRegistrar implements ScheduledTaskHolder, Initializing
 			newTask = true;
 		}
 		if (this.taskScheduler != null) {
+			// 开始调度任务
 			scheduledTask.future = this.taskScheduler.schedule(task.getRunnable(), task.getTrigger());
 		}
 		else {
+			// 如果还没有设置执行器即 线程池,则记录任务到队列中
 			addTriggerTask(task);
+			// 针对还没有执行的任务  先记录下来
 			this.unresolvedTasks.put(task, scheduledTask);
 		}
 		return (newTask ? scheduledTask : null);
@@ -402,6 +418,7 @@ public class ScheduledTaskRegistrar implements ScheduledTaskHolder, Initializing
 	 * (or {@code null} if processing a previously registered task)
 	 * @since 4.3
 	 */
+	// 注册crontab任务
 	@Nullable
 	public ScheduledTask scheduleCronTask(CronTask task) {
 		ScheduledTask scheduledTask = this.unresolvedTasks.remove(task);
@@ -411,9 +428,11 @@ public class ScheduledTaskRegistrar implements ScheduledTaskHolder, Initializing
 			newTask = true;
 		}
 		if (this.taskScheduler != null) {
+			// 调度执行 crontab任务
 			scheduledTask.future = this.taskScheduler.schedule(task.getRunnable(), task.getTrigger());
 		}
 		else {
+			// 记录任务
 			addCronTask(task);
 			this.unresolvedTasks.put(task, scheduledTask);
 		}
@@ -431,8 +450,10 @@ public class ScheduledTaskRegistrar implements ScheduledTaskHolder, Initializing
 	@Deprecated
 	@Nullable
 	public ScheduledTask scheduleFixedRateTask(IntervalTask task) {
+		// 把任务 封装为一个 FixedRateTask
 		FixedRateTask taskToUse = (task instanceof FixedRateTask ? (FixedRateTask) task :
 				new FixedRateTask(task.getRunnable(), task.getInterval(), task.getInitialDelay()));
+		// 调度任务
 		return scheduleFixedRateTask(taskToUse);
 	}
 
@@ -443,6 +464,7 @@ public class ScheduledTaskRegistrar implements ScheduledTaskHolder, Initializing
 	 * (or {@code null} if processing a previously registered task)
 	 * @since 5.0.2
 	 */
+	// fixedRate 任务执行
 	@Nullable
 	public ScheduledTask scheduleFixedRateTask(FixedRateTask task) {
 		ScheduledTask scheduledTask = this.unresolvedTasks.remove(task);
@@ -454,6 +476,7 @@ public class ScheduledTaskRegistrar implements ScheduledTaskHolder, Initializing
 		if (this.taskScheduler != null) {
 			if (task.getInitialDelay() > 0) {
 				Date startTime = new Date(System.currentTimeMillis() + task.getInitialDelay());
+				// 提交任务
 				scheduledTask.future =
 						this.taskScheduler.scheduleAtFixedRate(task.getRunnable(), startTime, task.getInterval());
 			}
@@ -463,6 +486,7 @@ public class ScheduledTaskRegistrar implements ScheduledTaskHolder, Initializing
 			}
 		}
 		else {
+			// 记录任务
 			addFixedRateTask(task);
 			this.unresolvedTasks.put(task, scheduledTask);
 		}

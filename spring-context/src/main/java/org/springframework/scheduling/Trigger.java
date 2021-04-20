@@ -38,6 +38,7 @@ public interface Trigger {
 	 * @return the next execution time as defined by the trigger,
 	 * or {@code null} if the trigger won't fire anymore
 	 */
+	// 获得下次要执行的时间
 	@Nullable
 	Date nextExecutionTime(TriggerContext triggerContext);
 
