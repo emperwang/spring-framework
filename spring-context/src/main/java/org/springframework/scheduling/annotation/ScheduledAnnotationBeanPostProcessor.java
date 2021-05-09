@@ -238,7 +238,8 @@ public class ScheduledAnnotationBeanPostProcessor
 			finishRegistration();
 		}
 	}
-
+	// 上面分析完了method的处理
+	// 此处就开始了对 分析完成的 method进行 任务的提交
 	private void finishRegistration() {
 		if (this.scheduler != null) {
 			this.registrar.setScheduler(this.scheduler);

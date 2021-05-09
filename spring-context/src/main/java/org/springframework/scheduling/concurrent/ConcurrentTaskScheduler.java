@@ -130,9 +130,11 @@ public class ConcurrentTaskScheduler extends ConcurrentTaskExecutor implements T
 		this.scheduledExecutor = initScheduledExecutor(scheduledExecutor);
 	}
 
-
+	//  对最终执行任务的线程池进行初始化
+	// 即如果没有进行配置线程池的话  就创建一个线程池
 	private ScheduledExecutorService initScheduledExecutor(@Nullable ScheduledExecutorService scheduledExecutor) {
 		if (scheduledExecutor != null) {
+			// 优先使用配置的线程池
 			this.scheduledExecutor = scheduledExecutor;
 			this.enterpriseConcurrentScheduler = (managedScheduledExecutorServiceClass != null &&
 					managedScheduledExecutorServiceClass.isInstance(scheduledExecutor));
